@@ -183,7 +183,7 @@ class FintsService @Inject constructor(
 
     // ─── Internal helpers ─────────────────────────────────────────────────────────
 
-    private fun openSession(account: Account): Pair<HBCIHandler, AbstractHBCIPassport> {
+    private fun openSession(account: Account): Pair<HBCIHandler, HBCIPassport> {
         val blz = account.bankCode.ifBlank { error("BLZ fehlt für Konto '${account.name}'") }
         initHbciOnce()
 
@@ -232,6 +232,10 @@ class FintsService @Inject constructor(
     // ─── HBCI Callback ────────────────────────────────────────────────────────────
 
     inner class HbciCallback : AbstractHBCICallback() {
+
+        override fun log(msg: String?, level: Int, date: Date?, trace: StackTraceElement?) {
+            Log.d(TAG, "HBCI log level=$level msg=$msg")
+        }
 
         override fun callback(
             passport: HBCIPassport?,
