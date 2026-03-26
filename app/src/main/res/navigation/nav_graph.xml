@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/dashboardFragment">
+
+    <fragment android:id="@+id/dashboardFragment"
+        android:name="de.mybudgets.app.ui.dashboard.DashboardFragment"
+        android:label="@string/nav_dashboard" />
+
+    <fragment android:id="@+id/accountsFragment"
+        android:name="de.mybudgets.app.ui.accounts.AccountsFragment"
+        android:label="@string/nav_accounts">
+        <action android:id="@+id/action_accountsFragment_to_accountDetailFragment"
+            app:destination="@id/accountDetailFragment" />
+        <action android:id="@+id/action_accountsFragment_to_addEditAccountFragment"
+            app:destination="@id/addEditAccountFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/accountDetailFragment"
+        android:name="de.mybudgets.app.ui.accounts.AccountDetailFragment"
+        android:label="Konto">
+        <argument android:name="accountId"
+            app:argType="long" android:defaultValue="0" />
+    </fragment>
+
+    <fragment android:id="@+id/addEditAccountFragment"
+        android:name="de.mybudgets.app.ui.accounts.AddEditAccountFragment"
+        android:label="@string/add_account" />
+
+    <fragment android:id="@+id/transactionsFragment"
+        android:name="de.mybudgets.app.ui.transactions.TransactionsFragment"
+        android:label="@string/nav_transactions">
+        <action android:id="@+id/action_transactionsFragment_to_transactionDetailFragment"
+            app:destination="@id/transactionDetailFragment" />
+        <action android:id="@+id/action_transactionsFragment_to_addEditTransactionFragment"
+            app:destination="@id/addEditTransactionFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/transactionDetailFragment"
+        android:name="de.mybudgets.app.ui.transactions.TransactionDetailFragment"
+        android:label="Buchung">
+        <argument android:name="transactionId"
+            app:argType="long" android:defaultValue="0" />
+    </fragment>
+
+    <fragment android:id="@+id/addEditTransactionFragment"
+        android:name="de.mybudgets.app.ui.transactions.AddEditTransactionFragment"
+        android:label="@string/add_transaction" />
+
+    <fragment android:id="@+id/categoriesFragment"
+        android:name="de.mybudgets.app.ui.categories.CategoriesFragment"
+        android:label="@string/nav_categories">
+        <action android:id="@+id/action_categoriesFragment_to_addEditCategoryFragment"
+            app:destination="@id/addEditCategoryFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/addEditCategoryFragment"
+        android:name="de.mybudgets.app.ui.categories.AddEditCategoryFragment"
+        android:label="@string/add_category" />
+
+    <fragment android:id="@+id/settingsFragment"
+        android:name="de.mybudgets.app.ui.settings.SettingsFragment"
+        android:label="@string/nav_settings" />
+
+</navigation>

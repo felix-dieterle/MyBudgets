@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand colors -->
+    <color name="primary">#1976D2</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary_light">#BBDEFB</color>
+    <color name="accent">#4CAF50</color>
+    <color name="background">#FAFAFA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_surface">#212121</color>
+    <color name="on_surface_secondary">#757575</color>
+
+    <!-- Semantic transaction colors -->
+    <color name="income_green">#2E7D32</color>
+    <color name="expense_red">#C62828</color>
+    <color name="transfer_blue">#1565C0</color>
+
+    <!-- Category palette -->
+    <color name="cat_housing">#5C6BC0</color>
+    <color name="cat_food">#66BB6A</color>
+    <color name="cat_transport">#42A5F5</color>
+    <color name="cat_leisure">#FF7043</color>
+    <color name="cat_health">#26C6DA</color>
+    <color name="cat_income">#4CAF50</color>
+    <color name="cat_savings">#8D6E63</color>
+    <color name="cat_clothing">#AB47BC</color>
+</resources>
