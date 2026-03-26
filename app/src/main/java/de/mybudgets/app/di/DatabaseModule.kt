@@ -17,11 +17,15 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "mybudgets.db").build()
+        Room.databaseBuilder(context, AppDatabase::class.java, "mybudgets.db")
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
 
     @Provides fun provideAccountDao(db: AppDatabase): AccountDao = db.accountDao()
     @Provides fun provideTransactionDao(db: AppDatabase): TransactionDao = db.transactionDao()
     @Provides fun provideCategoryDao(db: AppDatabase): CategoryDao = db.categoryDao()
     @Provides fun provideLabelDao(db: AppDatabase): LabelDao = db.labelDao()
     @Provides fun provideGamificationDao(db: AppDatabase): GamificationDao = db.gamificationDao()
+    @Provides fun provideStandingOrderDao(db: AppDatabase): StandingOrderDao = db.standingOrderDao()
 }
+

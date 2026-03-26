@@ -49,11 +49,34 @@
                 android:layout_width="wrap_content" android:layout_height="wrap_content" />
         </LinearLayout>
 
+        <!-- Sync Status -->
+        <TextView
+            android:id="@+id/tv_last_sync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:alpha="0.7" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_settings"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/save" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_manual_sync"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/sync_now" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_standing_orders"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/nav_standing_orders" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_legal"
@@ -63,3 +86,4 @@
             android:text="@string/settings_legal" />
     </LinearLayout>
 </ScrollView>
+

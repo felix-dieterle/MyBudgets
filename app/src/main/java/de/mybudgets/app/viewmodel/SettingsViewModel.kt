@@ -30,4 +30,16 @@ class SettingsViewModel @Inject constructor(
     var offlineMode: Boolean
         get()      = prefs.getBoolean("offline_mode", true)
         set(value) = prefs.edit().putBoolean("offline_mode", value).apply()
+
+    val lastSyncTime: Long
+        get() = prefs.getLong("last_sync_time", 0L)
+
+    var fintsBankCode: String
+        get()      = prefs.getString("fints_bank_code", "") ?: ""
+        set(value) = prefs.edit().putString("fints_bank_code", value).apply()
+
+    var fintsUserId: String
+        get()      = prefs.getString("fints_user_id", "") ?: ""
+        set(value) = prefs.edit().putString("fints_user_id", value).apply()
 }
+
