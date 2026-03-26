@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
+import de.mybudgets.app.R
 import de.mybudgets.app.databinding.FragmentSettingsBinding
 import de.mybudgets.app.viewmodel.SettingsViewModel
 
@@ -32,6 +34,10 @@ class SettingsFragment : Fragment() {
             vm.apiKey            = binding.etApiKey.text.toString().trim()
             vm.openrouterApiKey  = binding.etOpenrouterKey.text.toString().trim()
             vm.offlineMode       = binding.switchOfflineMode.isChecked
+        }
+
+        binding.btnLegal.setOnClickListener {
+            findNavController().navigate(R.id.action_settingsFragment_to_legalFragment)
         }
     }
 

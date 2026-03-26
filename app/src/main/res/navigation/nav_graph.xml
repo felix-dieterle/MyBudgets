@@ -61,6 +61,13 @@
 
     <fragment android:id="@+id/settingsFragment"
         android:name="de.mybudgets.app.ui.settings.SettingsFragment"
-        android:label="@string/nav_settings" />
+        android:label="@string/nav_settings">
+        <action android:id="@+id/action_settingsFragment_to_legalFragment"
+            app:destination="@id/legalFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/legalFragment"
+        android:name="de.mybudgets.app.ui.legal.LegalFragment"
+        android:label="@string/nav_legal" />
 
 </navigation>

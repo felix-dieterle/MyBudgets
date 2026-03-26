@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App icon foreground: a wallet with a euro sign, white on transparent -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Wallet body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,34H36c-3.3,0-6,2.7-6,6v28c0,3.3,2.7,6,6,6h36c3.3,0,6,-2.7,6,-6V40C78,36.7,75.3,34,72,34z" />
+
+    <!-- Wallet flap / top fold -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M36,34h36l-4,-6H40L36,34z" />
+
+    <!-- Card slot pocket on right side -->
+    <path
+        android:fillColor="#BDBDBD"
+        android:pathData="M66,46h6v16h-6c-2.2,0-4,-1.8-4,-4v-8C62,47.8,63.8,46,66,46z" />
+
+    <!-- Euro sign -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M50,44c-4.4,0-8,3.6-8,8s3.6,8,8,8c2.5,0,4.8,-1.2,6.3,-3H53c-0.9,0.7-2,1-3,1c-2.4,0-4.4,-1.7-4.9,-4H57v-2H45.1c0.5,-2.3,2.5,-4,4.9,-4c1,0,2.1,0.3,3,1h3.3C54.8,45.2,52.5,44,50,44z" />
+</vector>

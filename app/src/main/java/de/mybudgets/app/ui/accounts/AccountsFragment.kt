@@ -39,7 +39,10 @@ class AccountsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.accounts.collect { adapter.submitList(it) }
+                vm.accounts.collect { list ->
+                    adapter.submitList(list)
+                    binding.layoutEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                }
             }
         }
     }

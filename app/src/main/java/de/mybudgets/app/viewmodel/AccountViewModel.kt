@@ -16,6 +16,7 @@ class AccountViewModel @Inject constructor(
 ) : ViewModel() {
 
     val accounts = repo.observeAll().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val realAccounts = repo.observeRealAccounts().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val totalBalance = repo.observeTotalBalance().stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
 
     fun save(account: Account) = viewModelScope.launch { repo.save(account) }
