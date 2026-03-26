@@ -22,6 +22,8 @@
         android:label="Konto">
         <argument android:name="accountId"
             app:argType="long" android:defaultValue="0L" />
+        <action android:id="@+id/action_accountDetailFragment_to_transferFragment"
+            app:destination="@id/transferFragment" />
     </fragment>
 
     <fragment android:id="@+id/addEditAccountFragment"
@@ -64,10 +66,30 @@
         android:label="@string/nav_settings">
         <action android:id="@+id/action_settingsFragment_to_legalFragment"
             app:destination="@id/legalFragment" />
+        <action android:id="@+id/action_settingsFragment_to_standingOrdersFragment"
+            app:destination="@id/standingOrdersFragment" />
     </fragment>
 
     <fragment android:id="@+id/legalFragment"
         android:name="de.mybudgets.app.ui.legal.LegalFragment"
         android:label="@string/nav_legal" />
+
+    <fragment android:id="@+id/transferFragment"
+        android:name="de.mybudgets.app.ui.transfers.TransferFragment"
+        android:label="@string/transfer_title" />
+
+    <fragment android:id="@+id/standingOrdersFragment"
+        android:name="de.mybudgets.app.ui.standingorders.StandingOrdersFragment"
+        android:label="@string/nav_standing_orders">
+        <action android:id="@+id/action_standingOrdersFragment_to_addEditStandingOrderFragment"
+            app:destination="@id/addEditStandingOrderFragment" />
+    </fragment>
+
+    <fragment android:id="@+id/addEditStandingOrderFragment"
+        android:name="de.mybudgets.app.ui.standingorders.AddEditStandingOrderFragment"
+        android:label="@string/so_add">
+        <argument android:name="standingOrderId"
+            app:argType="long" android:defaultValue="0L" />
+    </fragment>
 
 </navigation>

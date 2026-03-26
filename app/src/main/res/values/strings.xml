@@ -57,4 +57,48 @@
     <string name="legal_accept_message">Bitte lies und akzeptiere die rechtlichen Hinweise, bevor du MyBudgets verwendest. Du findest diese jederzeit unter Einstellungen → Rechtliche Hinweise.</string>
     <string name="legal_accept_button">Akzeptieren &amp; Fortfahren</string>
     <string name="legal_decline_button">Ablehnen</string>
+
+    <!-- Transfers -->
+    <string name="transfer_title">Überweisung</string>
+    <string name="transfer_from_account">Quellkonto</string>
+    <string name="transfer_recipient_name">Empfängername</string>
+    <string name="transfer_recipient_iban">Empfänger IBAN</string>
+    <string name="transfer_recipient_bic">Empfänger BIC (optional)</string>
+    <string name="transfer_purpose">Verwendungszweck</string>
+    <string name="transfer_execute">Jetzt überweisen</string>
+    <string name="transfer_pin_title">PIN für %s</string>
+    <string name="transfer_tan_title">TAN-Eingabe: %s</string>
+    <string name="transfer_legal_notice">⚠ Überweisungen sind unwiderruflich. Bitte prüfe alle Angaben sorgfältig.</string>
+    <string name="error_invalid_iban">Ungültige IBAN</string>
+    <string name="error_invalid_amount">Ungültiger Betrag</string>
+    <string name="error_required">Pflichtfeld</string>
+    <string name="error_select_account">Bitte wähle ein Konto</string>
+    <string name="error_account_missing_bank_data">Das Konto hat keine BLZ/IBAN. Bitte zuerst hinterlegen.</string>
+
+    <!-- Bank Sync -->
+    <string name="bank_sync_button">Kontoauszug synchronisieren</string>
+    <string name="bank_sync_started">Kontoauszug wird abgerufen…</string>
+
+    <!-- Backend Sync -->
+    <string name="sync_now">Jetzt synchronisieren</string>
+    <string name="sync_started">Synchronisation gestartet</string>
+    <string name="sync_never">Noch nicht synchronisiert</string>
+    <string name="sync_last">Zuletzt: %s</string>
+    <string name="settings_saved">Einstellungen gespeichert</string>
+    <string name="settings_no_backend_url">Keine Backend-URL konfiguriert</string>
+
+    <!-- Standing Orders -->
+    <string name="nav_standing_orders">Daueraufträge</string>
+    <string name="so_add">Dauerauftrag anlegen</string>
+    <string name="so_empty">Noch keine Daueraufträge.\nTippe auf + um einen anzulegen.</string>
+    <string name="so_interval">Intervall</string>
+    <string name="so_first_date">Erste Ausführung</string>
+    <string name="so_last_date">Letzte Ausführung (optional)</string>
+    <string name="so_no_end_date">Kein Enddatum</string>
+    <string name="so_clear_end_date">Entfernen</string>
+    <string name="so_send_to_bank">Bei Bank einreichen</string>
+    <string name="so_send_to_bank_hint">Legt den Dauerauftrag direkt bei deiner Bank an (erfordert Online-Banking-Zugang).</string>
+    <string name="so_delete_title">Dauerauftrag löschen</string>
+    <string name="so_delete_message">Dauerauftrag an %s wirklich löschen?</string>
+    <string name="so_sent_to_bank_cd">Bei Bank eingereicht</string>
 </resources>
