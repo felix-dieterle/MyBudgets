@@ -1,0 +1,43 @@
+# Android build artifacts
+*.iml
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Gradle cache (not wrapper scripts)
+.gradle/
+
+# App build output
+app/build/
+
+# Kotlin
+*.class
+
+# PHP
+vendor/
+.env
+config.local.php
+
+# IDE
+*.iws
+*.ipr
+out/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# Windows
+Thumbs.db
+
+# Logs
+*.log
+
+# Debug keystore IS committed intentionally for reproducible CI builds
+# keystore/debug.keystore  <-- do NOT add this line
