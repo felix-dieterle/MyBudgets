@@ -19,6 +19,7 @@ import org.kapott.hbci.passport.HBCIPassport
 import org.kapott.hbci.structures.Konto
 import org.kapott.hbci.structures.Value
 import java.io.File
+import java.security.SecureRandom
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -28,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.abs
 
 private const val TAG = "FintsService"
 
@@ -48,6 +50,20 @@ class FintsService @Inject constructor(
 
     private val passportDir: File by lazy {
         File(context.filesDir, "hbci_passports").also { it.mkdirs() }
+    }
+
+    /**
+     * A randomly generated passphrase stored in app-private SharedPreferences.
+     * Used to encrypt the HBCI passport file. Generated once per install.
+     */
+    private val passportPassphrase: String by lazy {
+        val prefs = context.getSharedPreferences("hbci_secure", Context.MODE_PRIVATE)
+        prefs.getString("passport_pp", null) ?: run {
+            val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }
+            val pp = bytes.joinToString("") { "%02x".format(it) }
+            prefs.edit().putString("passport_pp", pp).apply()
+            pp
+        }
     }
 
     // ─── Public API ──────────────────────────────────────────────────────────────
@@ -151,7 +167,7 @@ class FintsService @Inject constructor(
                     val isIncome = entry.value.longValue >= 0
                     Transaction(
                         accountId   = account.id,
-                        amount      = Math.abs(entry.value.doubleValue),
+                        amount      = abs(entry.value.doubleValue),
                         description = entry.usage.joinToString(" ").trim().ifBlank { entry.other?.name ?: "" },
                         date        = entry.valuta?.time ?: entry.bdate?.time ?: System.currentTimeMillis(),
                         type        = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
@@ -236,7 +252,7 @@ class FintsService @Inject constructor(
                     retData?.replace(0, retData.length, tan)
                 }
                 NEED_PASSPHRASE_LOAD, NEED_PASSPHRASE_SAVE -> {
-                    retData?.replace(0, retData.length, "mybudgets_pp")
+                    retData?.replace(0, retData.length, passportPassphrase)
                 }
                 NEED_NEW_INST_KEYS_ACK -> {
                     retData?.replace(0, retData.length, "")

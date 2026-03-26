@@ -32,9 +32,9 @@ class BackendSyncWorker @AssistedInject constructor(
         return try {
             val api = ApiClient.getService(backendUrl, apiKey)
 
-            // Push local transactions
-            val recent = transactionRepo.getRecent(100)
-            recent.filter { it.remoteId == null }.forEach { tx ->
+            // Push local transactions without remoteId
+            val allLocal = transactionRepo.getRecent(500)
+            allLocal.filter { it.remoteId == null }.forEach { tx ->
                 val dto = tx.toDto()
                 val resp = api.createTransaction(dto)
                 if (resp.isSuccessful) {
@@ -45,12 +45,12 @@ class BackendSyncWorker @AssistedInject constructor(
                 }
             }
 
-            // Pull remote transactions
+            // Pull remote transactions – deduplicate against known remoteIds
+            val existingRemoteIds = allLocal.mapNotNull { it.remoteId }.toHashSet()
             val serverResp = api.getTransactions(limit = 200)
             if (serverResp.isSuccessful) {
                 serverResp.body()?.forEach { dto ->
-                    val existing = transactionRepo.getRecent(1000).firstOrNull { it.remoteId == dto.id.toString() }
-                    if (existing == null) {
+                    if (dto.id.toString() !in existingRemoteIds) {
                         transactionRepo.save(dto.toTransaction())
                     }
                 }

@@ -38,7 +38,7 @@ class BankSyncWorker @AssistedInject constructor(
 
         val syncResult = fintsService.fetchAccountStatement(account)
         syncResult.onSuccess { transactions ->
-            val existingRemoteIds = transactionRepo.getRecent(1000).mapNotNull { it.remoteId }.toSet()
+            val existingRemoteIds = transactionRepo.getRecent(500).mapNotNull { it.remoteId }.toHashSet()
             transactions.filter { it.remoteId !in existingRemoteIds }.forEach { tx ->
                 transactionRepo.save(tx.copy(accountId = account.id))
             }

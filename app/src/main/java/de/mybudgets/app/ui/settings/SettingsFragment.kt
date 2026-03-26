@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.work.*
 import com.google.android.material.snackbar.Snackbar
@@ -13,14 +16,10 @@ import de.mybudgets.app.R
 import de.mybudgets.app.databinding.FragmentSettingsBinding
 import de.mybudgets.app.viewmodel.SettingsViewModel
 import de.mybudgets.app.worker.BackendSyncWorker
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.Lifecycle
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {

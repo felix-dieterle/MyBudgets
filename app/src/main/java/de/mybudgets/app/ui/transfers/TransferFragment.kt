@@ -114,7 +114,17 @@ class TransferFragment : Fragment() {
     private fun isValidIban(iban: String): Boolean {
         if (iban.length < 15 || iban.length > 34) return false
         if (!iban[0].isLetter() || !iban[1].isLetter()) return false
-        return true
+        if (!iban[2].isDigit() || !iban[3].isDigit()) return false
+        // ISO 13616: move first 4 chars to end, replace letters A=10..Z=35, check mod97=1
+        val rearranged = iban.substring(4) + iban.substring(0, 4)
+        val numeric = rearranged.map { c ->
+            if (c.isLetter()) (c.uppercaseChar() - 'A' + 10).toString() else c.toString()
+        }.joinToString("")
+        var remainder = 0
+        for (ch in numeric) {
+            remainder = (remainder * 10 + ch.digitToInt()) % 97
+        }
+        return remainder == 1
     }
 
     override fun onDestroyView() {
