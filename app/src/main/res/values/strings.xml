@@ -16,6 +16,12 @@
     <string name="account_type">Kontotyp</string>
     <string name="account_iban">IBAN</string>
     <string name="account_bank_code">BLZ</string>
+    <string name="account_parent_label">Verknüpftes echtes Konto</string>
+    <string name="account_parent_hint">Bitte wähle das echte Konto aus, das diesem virtuellen Konto zugrunde liegt.</string>
+    <string name="account_linked_to">Verknüpft mit:</string>
+    <string name="account_badge_virtual">VIRTUELL</string>
+    <string name="account_badge_real">REAL</string>
+    <string name="error_no_real_accounts">Es sind keine echten Konten vorhanden. Lege zuerst ein echtes Konto an.</string>
 
     <string name="tx_description">Beschreibung</string>
     <string name="tx_amount">Betrag (€)</string>
@@ -29,5 +35,26 @@
     <string name="settings_api_key">API-Schlüssel</string>
     <string name="settings_openrouter_key">OpenRouter API-Key</string>
     <string name="settings_offline_mode">Offline-Modus</string>
+    <string name="settings_legal">Rechtliche Hinweise &amp; Impressum</string>
     <string name="save">Speichern</string>
+
+    <!-- Empty states -->
+    <string name="empty_accounts_title">Noch keine Konten</string>
+    <string name="empty_accounts_message">Tippe auf + um dein erstes Konto anzulegen.\n\nDu kannst echte Bankkonten (mit IBAN/BLZ) sowie virtuelle Unterkonten anlegen.</string>
+    <string name="empty_transactions_title">Noch keine Buchungen</string>
+    <string name="empty_transactions_message">Tippe auf + um deine erste Buchung zu erfassen.\n\nBuchungen werden einem Konto zugeordnet und können kategorisiert werden.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Willkommen bei MyBudgets 👋</string>
+    <string name="onboarding_message">MyBudgets hilft dir, deine Finanzen im Blick zu behalten:\n\n• Lege echte Bankkonten mit IBAN an\n• Erstelle virtuelle Unterkonten (z. B. „Urlaub", „Notgroschen") die mit einem echten Konto verknüpft sind\n• Erfasse Einnahmen, Ausgaben und Überweisungen\n• Synchronisiere Buchungen mit deiner Bank\n\nAlle Daten werden zunächst nur lokal gespeichert.</string>
+    <string name="onboarding_ok">Los geht\'s!</string>
+
+    <!-- Legal -->
+    <string name="nav_legal">Rechtliches</string>
+    <string name="legal_title">Rechtliche Hinweise</string>
+    <string name="legal_text">**Haftungsausschluss**\n\nDiese App (MyBudgets) ist ein privates Hilfsmittel zur persönlichen Finanzverwaltung. Sie stellt keine zugelassene Finanzdienstleistung dar und ersetzt keine professionelle Finanz- oder Steuerberatung.\n\n**Keine Haftung für Fehler**\n\nTrotz sorgfältiger Entwicklung übernimmt der Entwickler keine Gewähr für die Richtigkeit, Vollständigkeit oder Aktualität der in der App angezeigten Daten. Für Schäden, die durch fehlerhafte Berechnungen, Datenverlust oder Fehlfunktionen entstehen, wird keine Haftung übernommen.\n\n**Bankgeschäfte und Überweisungen**\n\nSofern die App Funktionen zur Kommunikation mit Bankkonten bereitstellt, erfolgt dies über standardisierte Schnittstellen (z. B. FinTS/HBCI oder PSD2). Der Nutzer ist selbst verantwortlich für die Richtigkeit der eingegebenen Bankdaten (IBAN, BLZ, Empfänger). Fehlerhafte Überweisungen, die auf falschen Benutzereingaben beruhen, können nicht zurückgenommen werden. Der Entwickler haftet nicht für finanzielle Verluste, die durch Fehleingaben entstehen.\n\n**Zugangsdaten und Sicherheit**\n\nPIN, TAN und sonstige Zugangsdaten zu Bankkonten werden ausschließlich zur Durchführung der gewünschten Aktion verwendet und nicht dauerhaft gespeichert. Der Nutzer ist für die Sicherheit seines Geräts und seiner Zugangsdaten verantwortlich.\n\n**Datenschutz (DSGVO)**\n\nAlle eingegebenen Daten werden standardmäßig nur lokal auf dem Gerät gespeichert. Eine Übertragung an externe Server findet nur statt, wenn der Nutzer aktiv ein Backend konfiguriert und die Synchronisierung aktiviert. Es werden keine personenbezogenen Daten an Dritte weitergegeben.\n\n**Impressum**\n\nDiese App wird als privates Open-Source-Projekt bereitgestellt. Für Fragen oder Hinweise wende dich an den Entwickler über das zugehörige Repository.\n\n**Stand:** März 2026</string>
+    <string name="legal_accept_title">Nutzungsbedingungen</string>
+    <string name="legal_accept_message">Bitte lies und akzeptiere die rechtlichen Hinweise, bevor du MyBudgets verwendest. Du findest diese jederzeit unter Einstellungen → Rechtliche Hinweise.</string>
+    <string name="legal_accept_button">Akzeptieren &amp; Fortfahren</string>
+    <string name="legal_decline_button">Ablehnen</string>
 </resources>

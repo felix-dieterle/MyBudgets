@@ -11,16 +11,45 @@
         <TextView android:id="@+id/tv_account_name"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+
         <TextView android:id="@+id/tv_account_balance"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="@color/income_green" />
-        <TextView android:id="@+id/tv_account_iban"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
         <TextView android:id="@+id/tv_account_type"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        <TextView android:id="@+id/tv_account_iban"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        <!-- Linked real account – only visible for virtual accounts -->
+        <LinearLayout
+            android:id="@+id/layout_linked_account"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/account_linked_to"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_linked_account_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

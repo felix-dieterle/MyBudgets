@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import de.mybudgets.app.data.model.Account
+import de.mybudgets.app.data.model.AccountType
 import de.mybudgets.app.databinding.ItemAccountBinding
 import de.mybudgets.app.util.CurrencyFormatter
 
@@ -18,6 +19,13 @@ class AccountAdapter(
             binding.tvAccountName.text    = acc.name
             binding.tvAccountBalance.text = CurrencyFormatter.format(acc.balance, acc.currency)
             binding.viewColor.setBackgroundColor(acc.color)
+            val typeLabel = when (acc.type) {
+                AccountType.CHECKING -> "Girokonto"
+                AccountType.SAVINGS  -> "Sparkonto"
+                AccountType.CASH     -> "Barkasse"
+                AccountType.VIRTUAL  -> "Virtuelles Konto"
+            }
+            binding.tvAccountType.text = typeLabel
             binding.root.setOnClickListener { onClick(acc) }
         }
     }
