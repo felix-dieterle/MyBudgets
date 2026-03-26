@@ -10,7 +10,7 @@ jobs:
     name: Build & sign release APK
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -61,3 +61,11 @@ jobs:
           name: MyBudgets-${{ github.run_number }}-${{ steps.version.outputs.version_name }}
           path: app/build/outputs/apk/release/${{ env.APK_NAME }}
           retention-days: 90
+
+      - name: Create pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version_name }}-build${{ github.run_number }}
+          name: MyBudgets ${{ steps.version.outputs.version_name }} (Build ${{ github.run_number }})
+          prerelease: true
+          files: app/build/outputs/apk/release/${{ env.APK_NAME }}
