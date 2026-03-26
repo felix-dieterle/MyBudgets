@@ -20,7 +20,7 @@ android {
     }
 
     signingConfigs {
-        create("debug") {
+        getByName("debug") {
             storeFile = rootProject.file("keystore/debug.keystore")
             storePassword = "mybudgets"
             keyAlias = "mybudgets"
