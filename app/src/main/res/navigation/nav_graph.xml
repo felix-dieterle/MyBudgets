@@ -21,7 +21,7 @@
         android:name="de.mybudgets.app.ui.accounts.AccountDetailFragment"
         android:label="Konto">
         <argument android:name="accountId"
-            app:argType="long" android:defaultValue="0" />
+            app:argType="long" android:defaultValue="0L" />
     </fragment>
 
     <fragment android:id="@+id/addEditAccountFragment"
@@ -41,7 +41,7 @@
         android:name="de.mybudgets.app.ui.transactions.TransactionDetailFragment"
         android:label="Buchung">
         <argument android:name="transactionId"
-            app:argType="long" android:defaultValue="0" />
+            app:argType="long" android:defaultValue="0L" />
     </fragment>
 
     <fragment android:id="@+id/addEditTransactionFragment"
