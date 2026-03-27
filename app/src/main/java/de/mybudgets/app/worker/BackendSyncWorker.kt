@@ -12,6 +12,9 @@ import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.data.repository.AccountRepository
 import de.mybudgets.app.data.repository.TransactionRepository
+import de.mybudgets.app.util.AppLogger
+
+private const val TAG = "BackendSyncWorker"
 
 @HiltWorker
 class BackendSyncWorker @AssistedInject constructor(
@@ -30,11 +33,14 @@ class BackendSyncWorker @AssistedInject constructor(
         if (!syncEnabled || backendUrl.isBlank()) return Result.success()
 
         return try {
+            AppLogger.i(TAG, "doWork: Starte Backend-Sync gegen $backendUrl")
             val api = ApiClient.getService(backendUrl, apiKey)
 
             // Push local transactions without remoteId
             val allLocal = transactionRepo.getRecent(500)
-            allLocal.filter { it.remoteId == null }.forEach { tx ->
+            val unpushed = allLocal.filter { it.remoteId == null }
+            AppLogger.d(TAG, "doWork: ${unpushed.size} lokale Buchungen ohne remoteId werden hochgeladen")
+            unpushed.forEach { tx ->
                 val dto = tx.toDto()
                 val resp = api.createTransaction(dto)
                 if (resp.isSuccessful) {
@@ -42,6 +48,8 @@ class BackendSyncWorker @AssistedInject constructor(
                     if (remoteId != null) {
                         transactionRepo.save(tx.copy(remoteId = remoteId))
                     }
+                } else {
+                    AppLogger.w(TAG, "doWork: Upload fehlgeschlagen für txId=${tx.id}: HTTP ${resp.code()}")
                 }
             }
 
@@ -49,16 +57,17 @@ class BackendSyncWorker @AssistedInject constructor(
             val existingRemoteIds = allLocal.mapNotNull { it.remoteId }.toHashSet()
             val serverResp = api.getTransactions(limit = 200)
             if (serverResp.isSuccessful) {
-                serverResp.body()?.forEach { dto ->
-                    if (dto.id.toString() !in existingRemoteIds) {
-                        transactionRepo.save(dto.toTransaction())
-                    }
-                }
+                val pulled = serverResp.body()?.filter { dto -> dto.id.toString() !in existingRemoteIds } ?: emptyList()
+                pulled.forEach { dto -> transactionRepo.save(dto.toTransaction()) }
+                AppLogger.i(TAG, "doWork: ${pulled.size} neue Buchungen vom Server importiert")
+            } else {
+                AppLogger.w(TAG, "doWork: Server-Abruf fehlgeschlagen: HTTP ${serverResp.code()}")
             }
 
             prefs.edit().putLong("last_sync_time", System.currentTimeMillis()).apply()
             Result.success()
         } catch (e: Exception) {
+            AppLogger.e(TAG, "doWork: Backend-Sync fehlgeschlagen: ${e.message}", e)
             Result.retry()
         }
     }

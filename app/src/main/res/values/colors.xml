@@ -16,6 +16,12 @@
     <color name="expense_red">#C62828</color>
     <color name="transfer_blue">#1565C0</color>
 
+    <!-- Log console level colors -->
+    <color name="log_debug">#9E9E9E</color>
+    <color name="log_info">#1976D2</color>
+    <color name="log_warn">#F57C00</color>
+    <color name="log_error">#C62828</color>
+
     <!-- Category palette -->
     <color name="cat_housing">#5C6BC0</color>
     <color name="cat_food">#66BB6A</color>

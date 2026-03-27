@@ -1,22 +1,23 @@
 package de.mybudgets.app.viewmodel
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import de.mybudgets.app.data.banking.FintsService
 import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.data.repository.AccountRepository
 import de.mybudgets.app.data.repository.TransactionRepository
+import de.mybudgets.app.util.AppLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "TransferViewModel"
 
 sealed class TransferState {
     object Idle : TransferState()
@@ -46,6 +47,7 @@ class TransferViewModel @Inject constructor(
         amount: Double,
         purpose: String
     ) = viewModelScope.launch {
+        AppLogger.i(TAG, "executeTransfer gestartet – von ${fromAccount.name} an $toName ($toIban) Betrag=$amount")
         _state.value = TransferState.Loading
 
         // Resolve virtual → real account for FinTS
@@ -76,8 +78,10 @@ class TransferViewModel @Inject constructor(
                     note             = purpose
                 )
             )
+            AppLogger.i(TAG, "executeTransfer: Lokale Buchung gespeichert")
             _state.value = TransferState.Success(msg)
         }.onFailure { e ->
+            AppLogger.e(TAG, "executeTransfer fehlgeschlagen: ${e.message}", e)
             _state.value = TransferState.Error(e.message ?: "Unbekannter Fehler")
         }
     }

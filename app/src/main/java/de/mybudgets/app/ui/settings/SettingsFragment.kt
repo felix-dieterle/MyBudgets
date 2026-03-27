@@ -80,6 +80,10 @@ class SettingsFragment : Fragment() {
         binding.btnLegal.setOnClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_legalFragment)
         }
+
+        binding.btnLogConsole.setOnClickListener {
+            findNavController().navigate(R.id.action_settingsFragment_to_logConsoleFragment)
+        }
     }
 
     private fun updateSyncStatus() {

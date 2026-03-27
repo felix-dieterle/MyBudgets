@@ -105,4 +105,16 @@
     <string name="so_delete_title">Dauerauftrag löschen</string>
     <string name="so_delete_message">Dauerauftrag an %s wirklich löschen?</string>
     <string name="so_sent_to_bank_cd">Bei Bank eingereicht</string>
+
+    <!-- Log Console -->
+    <string name="log_console_title">Fehlerprotokoll</string>
+    <string name="log_filter_all">Alle</string>
+    <string name="log_filter_info">Info+</string>
+    <string name="log_filter_warn">Warn+</string>
+    <string name="log_filter_error">Fehler</string>
+    <string name="log_export">Export</string>
+    <string name="log_clear">Leeren</string>
+    <string name="log_empty">Keine Einträge vorhanden.</string>
+    <string name="log_export_chooser_title">Fehlerprotokoll teilen</string>
+    <string name="settings_log_console">Fehlerprotokoll anzeigen</string>
 </resources>
