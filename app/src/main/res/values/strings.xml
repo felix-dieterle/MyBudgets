@@ -42,11 +42,11 @@
     <string name="empty_accounts_title">Noch keine Konten</string>
     <string name="empty_accounts_message">Tippe auf + um dein erstes Konto anzulegen.\n\nDu kannst echte Bankkonten (mit IBAN/BLZ) sowie virtuelle Unterkonten anlegen.</string>
     <string name="empty_transactions_title">Noch keine Buchungen</string>
-    <string name="empty_transactions_message">Tippe auf + um deine erste Buchung zu erfassen.\n\nBuchungen werden einem Konto zugeordnet und können kategorisiert werden.</string>
+    <string name="empty_transactions_message">Buchungen sind Aufzeichnungen von Einnahmen und Ausgaben – manuell erfasst oder per Bankabgleich importiert.\n\nMöchtest du Geld überweisen? Tippe auf den Überweisungs-Button unten rechts.</string>
 
     <!-- Onboarding -->
     <string name="onboarding_title">Willkommen bei MyBudgets 👋</string>
-    <string name="onboarding_message">MyBudgets hilft dir, deine Finanzen im Blick zu behalten:\n\n• Lege echte Bankkonten mit IBAN an\n• Erstelle virtuelle Unterkonten (z. B. „Urlaub", „Notgroschen") die mit einem echten Konto verknüpft sind\n• Erfasse Einnahmen, Ausgaben und Überweisungen\n• Synchronisiere Buchungen mit deiner Bank\n\nAlle Daten werden zunächst nur lokal gespeichert.</string>
+    <string name="onboarding_message">MyBudgets hilft dir, deine Finanzen im Blick zu behalten:\n\n• Lege echte Bankkonten mit IBAN an\n• Erstelle virtuelle Unterkonten (z. B. „Urlaub", „Notgroschen") die mit einem echten Konto verknüpft sind\n• Erfasse Einnahmen und Ausgaben als Buchungen (lokal oder per Bankabgleich importiert)\n• Führe Überweisungen an externe Empfänger durch – mit Empfänger, IBAN, Verwendungszweck und TAN-Bestätigung\n• Richte Daueraufträge ein und synchronisiere mit deiner Bank\n\nAlle Daten werden zunächst nur lokal gespeichert.</string>
     <string name="onboarding_ok">Los geht\'s!</string>
 
     <!-- Legal -->
@@ -60,6 +60,7 @@
 
     <!-- Transfers -->
     <string name="transfer_title">Überweisung</string>
+    <string name="transfer_new">Neue Überweisung</string>
     <string name="transfer_from_account">Quellkonto</string>
     <string name="transfer_recipient_name">Empfängername</string>
     <string name="transfer_recipient_iban">Empfänger IBAN</string>
@@ -69,6 +70,9 @@
     <string name="transfer_pin_title">PIN für %s</string>
     <string name="transfer_tan_title">TAN-Eingabe: %s</string>
     <string name="transfer_legal_notice">⚠ Überweisungen sind unwiderruflich. Bitte prüfe alle Angaben sorgfältig.</string>
+    <string name="transfer_confirm_title">Überweisung bestätigen</string>
+    <string name="transfer_confirm_message">Empfänger: %1$s\nIBAN: %2$s\nBetrag: %3$s\nVerwendungszweck: %4$s\n\nDie Überweisung wird unwiderruflich an deine Bank übermittelt. Anschließend wirst du zur PIN/TAN-Eingabe aufgefordert.\n\nFortfahren?</string>
+    <string name="transfer_confirm_ok">Bestätigen &amp; PIN/TAN eingeben</string>
     <string name="error_invalid_iban">Ungültige IBAN</string>
     <string name="error_invalid_amount">Ungültiger Betrag</string>
     <string name="error_required">Pflichtfeld</string>

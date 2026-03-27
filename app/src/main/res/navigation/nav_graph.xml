@@ -37,6 +37,8 @@
             app:destination="@id/transactionDetailFragment" />
         <action android:id="@+id/action_transactionsFragment_to_addEditTransactionFragment"
             app:destination="@id/addEditTransactionFragment" />
+        <action android:id="@+id/action_transactionsFragment_to_transferFragment"
+            app:destination="@id/transferFragment" />
     </fragment>
 
     <fragment android:id="@+id/transactionDetailFragment"

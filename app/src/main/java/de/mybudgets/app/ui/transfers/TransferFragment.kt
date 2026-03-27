@@ -3,6 +3,7 @@ package de.mybudgets.app.ui.transfers
 import android.os.Bundle
 import android.view.*
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.*
@@ -12,6 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.R
 import de.mybudgets.app.data.banking.FintsService
 import de.mybudgets.app.databinding.FragmentTransferBinding
+import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.viewmodel.TransferState
 import de.mybudgets.app.viewmodel.TransferViewModel
 import kotlinx.coroutines.launch
@@ -107,7 +109,22 @@ class TransferFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            vm.executeTransfer(fromAccount, toName, toIban, toBic, amount, purpose)
+            // Show confirmation dialog with full transfer details before sending to bank
+            val confirmMsg = getString(
+                R.string.transfer_confirm_message,
+                toName,
+                toIban,
+                CurrencyFormatter.format(amount),
+                purpose.ifBlank { "—" }
+            )
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.transfer_confirm_title)
+                .setMessage(confirmMsg)
+                .setPositiveButton(R.string.transfer_confirm_ok) { _, _ ->
+                    vm.executeTransfer(fromAccount, toName, toIban, toBic, amount, purpose)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
     }
 
