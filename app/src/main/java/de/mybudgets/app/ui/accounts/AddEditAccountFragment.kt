@@ -86,6 +86,7 @@ class AddEditAccountFragment : Fragment() {
                 type            = selectedType,
                 iban            = binding.etIban.text.toString().trim(),
                 bankCode        = binding.etBankCode.text.toString().trim(),
+                userId          = binding.etUserId.text.toString().trim(),
                 isVirtual       = isVirtual,
                 parentAccountId = parentAccountId
             )

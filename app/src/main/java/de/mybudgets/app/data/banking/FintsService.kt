@@ -53,6 +53,9 @@ class FintsService @Inject constructor(
     /** BLZ of the account currently being connected. Set in openSession, read by HbciCallback. */
     private val currentBlz = ThreadLocal<String>()
 
+    /** Nutzerkennung (HBCI/FinTS login name) of the account currently being connected. */
+    private val currentUserId = ThreadLocal<String>()
+
     private val passportDir: File by lazy {
         File(context.filesDir, "hbci_passports").also { it.mkdirs() }
     }
@@ -214,6 +217,7 @@ class FintsService @Inject constructor(
         }
         AppLogger.d(TAG, "openSession: BLZ=$blz accountId=${account.id}")
         currentBlz.set(blz)
+        currentUserId.set(account.userId)
         initHbciOnce()
 
         val passportFile = File(passportDir, "passport_${blz}_${account.id}.dat")
@@ -244,6 +248,8 @@ class FintsService @Inject constructor(
 
     private fun safeClose(handler: HBCIHandler) {
         try { handler.close() } catch (e: Exception) { AppLogger.w(TAG, "Handler close error: ${e.message}", e) }
+        currentBlz.remove()
+        currentUserId.remove()
     }
 
     /**
@@ -307,6 +313,9 @@ class FintsService @Inject constructor(
                 }
                 NEED_BLZ -> {
                     retData?.replace(0, retData.length, currentBlz.get() ?: "")
+                }
+                NEED_USERID, NEED_CUSTOMERID -> {
+                    retData?.replace(0, retData.length, currentUserId.get() ?: "")
                 }
                 NEED_NEW_INST_KEYS_ACK -> {
                     retData?.replace(0, retData.length, "")

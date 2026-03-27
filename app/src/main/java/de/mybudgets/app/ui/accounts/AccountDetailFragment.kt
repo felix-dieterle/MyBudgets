@@ -75,6 +75,10 @@ class AccountDetailFragment : Fragment() {
                 Snackbar.make(view, getString(R.string.error_account_missing_iban), Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
+            if (account.userId.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_account_missing_user_id), Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
             registerPinTanProviders()
             Snackbar.make(view, getString(R.string.bank_sync_started), Snackbar.LENGTH_SHORT).show()
             enqueueBankSync(fromDateMillis = BankSyncWorker.NO_FROM_DATE, tag = "bank_sync_$accountId")
@@ -84,6 +88,10 @@ class AccountDetailFragment : Fragment() {
             val account = vm.accounts.value.find { it.id == accountId } ?: return@setOnClickListener
             if (account.iban.isBlank()) {
                 Snackbar.make(view, getString(R.string.error_account_missing_iban), Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            if (account.userId.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_account_missing_user_id), Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             showDatePickerForHistoricalSync()

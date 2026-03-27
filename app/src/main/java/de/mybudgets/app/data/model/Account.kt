@@ -18,6 +18,8 @@ data class Account(
     val isVirtual: Boolean = false,
     val bankCode: String = "",
     val iban: String = "",
+    /** HBCI/FinTS login name (Nutzerkennung). Required for bank sync. */
+    val userId: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )
