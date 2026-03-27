@@ -40,12 +40,15 @@ class TransferFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Register PIN and TAN providers that show dialogs
+        // Register PIN, TAN, and decoupled-confirm providers that show dialogs
         fintsService.pinProvider = { bankName ->
             pinDialog(requireActivity(), getString(R.string.transfer_pin_title, bankName))
         }
         fintsService.tanProvider = { challenge ->
             tanDialog(requireActivity(), getString(R.string.transfer_tan_title, challenge))
+        }
+        fintsService.decoupledConfirmProvider = { challenge ->
+            decoupledConfirmDialog(requireActivity(), challenge)
         }
 
         // Populate source account spinner (all accounts – virtual and real)
@@ -263,6 +266,7 @@ class TransferFragment : Fragment() {
     override fun onDestroyView() {
         fintsService.pinProvider = null
         fintsService.tanProvider = null
+        fintsService.decoupledConfirmProvider = null
         super.onDestroyView()
         _binding = null
     }

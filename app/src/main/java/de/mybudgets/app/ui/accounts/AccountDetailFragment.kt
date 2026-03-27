@@ -18,6 +18,7 @@ import de.mybudgets.app.databinding.FragmentAccountDetailBinding
 import de.mybudgets.app.ui.transactions.TransactionAdapter
 import de.mybudgets.app.ui.transfers.pinDialog
 import de.mybudgets.app.ui.transfers.tanDialog
+import de.mybudgets.app.ui.transfers.decoupledConfirmDialog
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.viewmodel.AccountViewModel
 import de.mybudgets.app.worker.BankSyncWorker
@@ -107,6 +108,9 @@ class AccountDetailFragment : Fragment() {
         fintsService.tanProvider = { challenge ->
             tanDialog(requireActivity(), getString(R.string.transfer_tan_title, challenge))
         }
+        fintsService.decoupledConfirmProvider = { challenge ->
+            decoupledConfirmDialog(requireActivity(), challenge)
+        }
     }
 
     private fun showDatePickerForHistoricalSync() {
@@ -193,6 +197,7 @@ class AccountDetailFragment : Fragment() {
     override fun onDestroyView() {
         fintsService.pinProvider = null
         fintsService.tanProvider = null
+        fintsService.decoupledConfirmProvider = null
         super.onDestroyView()
         _binding = null
     }

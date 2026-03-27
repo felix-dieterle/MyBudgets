@@ -49,12 +49,25 @@ class FintsService @Inject constructor(
     /** Set by the active UI fragment before banking operations. Cleared on fragment destroy. */
     @Volatile var pinProvider: (suspend (bankName: String) -> String)? = null
     @Volatile var tanProvider: (suspend (tanChallenge: String) -> String)? = null
+    /**
+     * Called for decoupled TAN methods (e.g. BBBank BestSign / pushTAN).
+     * The UI should show a message asking the user to approve in their banking app
+     * and wait for the user to tap OK before returning.
+     */
+    @Volatile var decoupledConfirmProvider: (suspend (challenge: String) -> Unit)? = null
 
     /** BLZ of the account currently being connected. Set in openSession, read by HbciCallback. */
     private val currentBlz = ThreadLocal<String>()
 
     /** Nutzerkennung (HBCI/FinTS login name) of the account currently being connected. */
     private val currentUserId = ThreadLocal<String>()
+
+    /**
+     * TAN security mechanism code (Sicherheitsfunktion) of the account being connected.
+     * Returned when hbci4j asks which TAN method to use (NEED_PT_SECMECH).
+     * Empty string means hbci4j auto-selects the first available method.
+     */
+    private val currentTanMethod = ThreadLocal<String>()
 
     private val passportDir: File by lazy {
         File(context.filesDir, "hbci_passports").also { it.mkdirs() }
@@ -218,6 +231,7 @@ class FintsService @Inject constructor(
         AppLogger.d(TAG, "openSession: BLZ=$blz accountId=${account.id}")
         currentBlz.set(blz)
         currentUserId.set(account.userId)
+        currentTanMethod.set(account.tanMethod)
         initHbciOnce()
 
         val passportFile = File(passportDir, "passport_${blz}_${account.id}.dat")
@@ -250,6 +264,7 @@ class FintsService @Inject constructor(
         try { handler.close() } catch (e: Exception) { AppLogger.w(TAG, "Handler close error: ${e.message}", e) }
         currentBlz.remove()
         currentUserId.remove()
+        currentTanMethod.remove()
     }
 
     /**
@@ -316,6 +331,26 @@ class FintsService @Inject constructor(
                 }
                 NEED_USERID, NEED_CUSTOMERID -> {
                     retData?.replace(0, retData.length, currentUserId.get() ?: "")
+                }
+                NEED_PT_SECMECH -> {
+                    // Return the user-configured TAN security mechanism code (e.g. "900" for
+                    // BBBank BestSign / pushTAN). Empty string lets hbci4j auto-select.
+                    val method = currentTanMethod.get() ?: ""
+                    AppLogger.i(TAG, "TAN-Verfahren-Auswahl: '${method.ifBlank { "auto" }}'")
+                    retData?.replace(0, retData.length, method)
+                }
+                NEED_PT_DECOUPLED_CONFIRM -> {
+                    // Decoupled TAN (BBBank BestSign / pushTAN): user confirms in banking app.
+                    AppLogger.i(TAG, "Decoupled TAN-Bestätigung erforderlich: $msg")
+                    if (decoupledConfirmProvider != null) {
+                        requestFromUi {
+                            decoupledConfirmProvider?.invoke(msg ?: "")
+                            ""
+                        }
+                    } else {
+                        AppLogger.w(TAG, "Kein decoupledConfirmProvider gesetzt – Bestätigung übersprungen")
+                    }
+                    retData?.replace(0, retData.length, "")
                 }
                 NEED_NEW_INST_KEYS_ACK -> {
                     retData?.replace(0, retData.length, "")
