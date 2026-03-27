@@ -61,5 +61,15 @@
             android:text="@string/bank_sync_button"
             android:visibility="gone" />
 
+        <!-- Historical Sync Button – imports all historical transactions from a chosen date -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_historical_sync"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/bank_historical_sync_button"
+            android:visibility="gone" />
+
     </LinearLayout>
 </ScrollView>

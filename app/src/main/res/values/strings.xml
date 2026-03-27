@@ -78,10 +78,17 @@
     <string name="error_required">Pflichtfeld</string>
     <string name="error_select_account">Bitte wähle ein Konto</string>
     <string name="error_account_missing_bank_data">Das Konto hat keine BLZ/IBAN. Bitte zuerst hinterlegen.</string>
+    <string name="error_account_missing_iban">Das Konto hat keine IBAN. Bitte zuerst unter Konto bearbeiten eintragen.</string>
 
     <!-- Bank Sync -->
     <string name="bank_sync_button">Kontoauszug synchronisieren</string>
     <string name="bank_sync_started">Kontoauszug wird abgerufen…</string>
+    <string name="bank_historical_sync_button">Historischen Verlauf importieren</string>
+    <string name="bank_historical_sync_dialog_title">Zeitraum auswählen</string>
+    <string name="bank_historical_sync_dialog_message">Buchungen ab diesem Datum von der Bank importieren:</string>
+    <string name="bank_historical_sync_started">Historischer Import wird durchgeführt…</string>
+    <string name="bank_sync_result">%d neue Buchungen importiert</string>
+    <string name="bank_sync_failed">Synchronisation fehlgeschlagen</string>
 
     <!-- Backend Sync -->
     <string name="sync_now">Jetzt synchronisieren</string>

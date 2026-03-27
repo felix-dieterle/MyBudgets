@@ -1,5 +1,6 @@
 package de.mybudgets.app.ui.accounts
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
@@ -18,6 +19,7 @@ import de.mybudgets.app.ui.transfers.tanDialog
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.viewmodel.AccountViewModel
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -49,25 +51,86 @@ class AccountDetailFragment : Fragment() {
 
         binding.btnBankSync.setOnClickListener {
             val account = vm.accounts.value.find { it.id == accountId } ?: return@setOnClickListener
-            if (account.bankCode.isBlank() || account.iban.isBlank()) {
-                Snackbar.make(view, getString(R.string.error_account_missing_bank_data), Snackbar.LENGTH_LONG).show()
+            if (account.iban.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_account_missing_iban), Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-
-            fintsService.pinProvider = { bankName ->
-                pinDialog(requireActivity(), getString(R.string.transfer_pin_title, bankName))
-            }
-            fintsService.tanProvider = { challenge ->
-                tanDialog(requireActivity(), getString(R.string.transfer_tan_title, challenge))
-            }
-
+            registerPinTanProviders()
             Snackbar.make(view, getString(R.string.bank_sync_started), Snackbar.LENGTH_SHORT).show()
+            enqueueBankSync(fromDateMillis = BankSyncWorker.NO_FROM_DATE, tag = "bank_sync_$accountId")
+        }
 
-            val request = OneTimeWorkRequestBuilder<de.mybudgets.app.worker.BankSyncWorker>()
-                .setInputData(workDataOf("account_id" to accountId))
-                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-                .build()
-            WorkManager.getInstance(requireContext()).enqueue(request)
+        binding.btnHistoricalSync.setOnClickListener {
+            val account = vm.accounts.value.find { it.id == accountId } ?: return@setOnClickListener
+            if (account.iban.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_account_missing_iban), Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            showDatePickerForHistoricalSync()
+        }
+    }
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+    private fun registerPinTanProviders() {
+        fintsService.pinProvider = { bankName ->
+            pinDialog(requireActivity(), getString(R.string.transfer_pin_title, bankName))
+        }
+        fintsService.tanProvider = { challenge ->
+            tanDialog(requireActivity(), getString(R.string.transfer_tan_title, challenge))
+        }
+    }
+
+    private fun showDatePickerForHistoricalSync() {
+        val cal = Calendar.getInstance().apply {
+            // Default start date: 1 year ago
+            add(Calendar.YEAR, -1)
+        }
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, day ->
+                val fromCal = Calendar.getInstance().apply {
+                    set(year, month, day, 0, 0, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                registerPinTanProviders()
+                Snackbar.make(requireView(), getString(R.string.bank_historical_sync_started), Snackbar.LENGTH_SHORT).show()
+                enqueueBankSync(fromDateMillis = fromCal.timeInMillis, tag = "bank_historical_sync_$accountId")
+            },
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            datePicker.maxDate = System.currentTimeMillis()
+            setTitle(getString(R.string.bank_historical_sync_dialog_title))
+        }.show()
+    }
+
+    private fun enqueueBankSync(fromDateMillis: Long, tag: String) {
+        val inputData = workDataOf(
+            BankSyncWorker.KEY_ACCOUNT_ID to accountId,
+            BankSyncWorker.KEY_FROM_DATE  to fromDateMillis
+        )
+        val request = OneTimeWorkRequestBuilder<BankSyncWorker>()
+            .setInputData(inputData)
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .addTag(tag)
+            .build()
+        val workManager = WorkManager.getInstance(requireContext())
+        workManager.enqueue(request)
+
+        // Observe the work to show result feedback
+        workManager.getWorkInfoByIdLiveData(request.id).observe(viewLifecycleOwner) { info ->
+            if (info?.state == WorkInfo.State.SUCCEEDED) {
+                val count = info.outputData.getInt(BankSyncWorker.KEY_IMPORTED_COUNT, 0)
+                Snackbar.make(
+                    requireView(),
+                    getString(R.string.bank_sync_result, count),
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } else if (info?.state == WorkInfo.State.FAILED) {
+                Snackbar.make(requireView(), getString(R.string.bank_sync_failed), Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -83,8 +146,10 @@ class AccountDetailFragment : Fragment() {
         }
         binding.tvAccountType.text = typeLabel
 
-        // Show sync button only for accounts with bank data
-        binding.btnBankSync.visibility = if (acc.bankCode.isNotBlank() || acc.iban.isNotBlank()) View.VISIBLE else View.GONE
+        // Show sync buttons only for accounts with bank data
+        val hasBankData = acc.bankCode.isNotBlank() || acc.iban.isNotBlank()
+        binding.btnBankSync.visibility       = if (hasBankData) View.VISIBLE else View.GONE
+        binding.btnHistoricalSync.visibility = if (hasBankData) View.VISIBLE else View.GONE
 
         if (acc.isVirtual && acc.parentAccountId != null) {
             val parent = allAccounts.find { it.id == acc.parentAccountId }
@@ -104,4 +169,3 @@ class AccountDetailFragment : Fragment() {
         _binding = null
     }
 }
-
