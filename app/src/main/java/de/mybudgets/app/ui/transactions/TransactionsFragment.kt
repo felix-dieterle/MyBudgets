@@ -35,6 +35,9 @@ class TransactionsFragment : Fragment() {
         binding.fabAddTransaction.setOnClickListener {
             findNavController().navigate(R.id.action_transactionsFragment_to_addEditTransactionFragment)
         }
+        binding.fabNewTransfer.setOnClickListener {
+            findNavController().navigate(R.id.action_transactionsFragment_to_transferFragment)
+        }
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.transactions.collect { list ->
