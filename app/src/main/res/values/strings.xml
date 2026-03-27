@@ -16,6 +16,8 @@
     <string name="account_type">Kontotyp</string>
     <string name="account_iban">IBAN</string>
     <string name="account_bank_code">BLZ</string>
+    <string name="account_user_id">Nutzerkennung (Online-Banking-Login)</string>
+    <string name="account_tan_method">TAN-Verfahren-Code (leer = automatisch, z.B. 900 für BBBank BestSign/pushTAN)</string>
     <string name="account_parent_label">Verknüpftes echtes Konto</string>
     <string name="account_parent_hint">Bitte wähle das echte Konto aus, das diesem virtuellen Konto zugrunde liegt.</string>
     <string name="account_linked_to">Verknüpft mit:</string>
@@ -79,6 +81,7 @@
     <string name="error_select_account">Bitte wähle ein Konto</string>
     <string name="error_account_missing_bank_data">Das Konto hat keine IBAN. Bitte zuerst unter Konto bearbeiten eintragen.</string>
     <string name="error_account_missing_iban">Das Konto hat keine IBAN. Bitte zuerst unter Konto bearbeiten eintragen.</string>
+    <string name="error_account_missing_user_id">Das Konto hat keine Nutzerkennung. Bitte zuerst unter Konto bearbeiten eintragen.</string>
 
     <!-- Bank Sync -->
     <string name="bank_sync_button">Kontoauszug synchronisieren</string>

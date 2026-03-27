@@ -79,3 +79,39 @@ suspend fun tanDialog(activity: Activity, challenge: String): String =
             }
         }
     }
+
+/**
+ * Shows a confirmation dialog for decoupled TAN methods (e.g. BBBank BestSign / pushTAN).
+ * Tells the user to approve the action in their banking app and suspends until they tap OK.
+ * No TAN input is required.
+ */
+suspend fun decoupledConfirmDialog(activity: Activity, challenge: String): Unit =
+    suspendCancellableCoroutine { cont ->
+        if (activity.isFinishing || activity.isDestroyed) {
+            AppLogger.w(TAG, "decoupledConfirmDialog: Activity nicht verfügbar")
+            if (cont.isActive) cont.resume(Unit)
+            return@suspendCancellableCoroutine
+        }
+        activity.runOnUiThread {
+            if (activity.isFinishing || activity.isDestroyed) {
+                AppLogger.w(TAG, "decoupledConfirmDialog: Activity nach runOnUiThread nicht mehr verfügbar")
+                if (cont.isActive) cont.resume(Unit)
+                return@runOnUiThread
+            }
+            try {
+                val message = if (challenge.isNotBlank()) challenge
+                    else "Bitte bestätige die Aktion in deiner Banking-App und tippe dann OK."
+                AlertDialog.Builder(activity)
+                    .setTitle("App-TAN / Banking-App")
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        if (cont.isActive) cont.resume(Unit)
+                    }
+                    .setCancelable(false)
+                    .show()
+            } catch (e: Exception) {
+                AppLogger.e(TAG, "decoupledConfirmDialog: Dialog konnte nicht angezeigt werden: ${e.message}", e)
+                if (cont.isActive) cont.resume(Unit)
+            }
+        }
+    }
