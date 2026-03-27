@@ -1,11 +1,12 @@
 package de.mybudgets.app.data.banking
 
 import android.content.Context
-import android.util.Log
 import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.StandingOrder
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.model.TransactionType
+import de.mybudgets.app.util.AppLogger
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -80,6 +81,7 @@ class FintsService @Inject constructor(
         amount: Double,
         purpose: String
     ): Result<String> = withContext(Dispatchers.IO) {
+        AppLogger.i(TAG, "executeTransfer: start – von ${fromAccount.iban} an $toName ($toIban) Betrag=$amount")
         runCatching {
             val (handler, passport) = openSession(fromAccount)
             try {
@@ -91,15 +93,20 @@ class FintsService @Inject constructor(
                 handler.addJob(job)
 
                 val status = handler.execute()
+                AppLogger.d(TAG, "execute() status: isOK=${status.isOK} – $status")
                 if (!status.isOK) {
                     error("Überweisung fehlgeschlagen: $status")
                 }
                 val result = job.jobResult
+                AppLogger.d(TAG, "jobResult: isOK=${result.isOK} – $result")
                 if (!result.isOK) error("Bankfehler: $result")
+                AppLogger.i(TAG, "executeTransfer: erfolgreich")
                 "Überweisung erfolgreich ausgeführt"
             } finally {
                 safeClose(handler)
             }
+        }.onFailure { e ->
+            AppLogger.e(TAG, "executeTransfer fehlgeschlagen: ${e.message}", e)
         }
     }
 
@@ -110,6 +117,7 @@ class FintsService @Inject constructor(
         fromAccount: Account,
         order: StandingOrder
     ): Result<String> = withContext(Dispatchers.IO) {
+        AppLogger.i(TAG, "createStandingOrder: ${order.recipientName} Betrag=${order.amount}")
         runCatching {
             val (handler, _) = openSession(fromAccount)
             try {
@@ -131,10 +139,13 @@ class FintsService @Inject constructor(
                 if (!status.isOK) error("Dauerauftrag fehlgeschlagen: $status")
                 val result = job.jobResult
                 if (!result.isOK) error("Bankfehler: $result")
+                AppLogger.i(TAG, "createStandingOrder: erfolgreich")
                 "Dauerauftrag erfolgreich angelegt"
             } finally {
                 safeClose(handler)
             }
+        }.onFailure { e ->
+            AppLogger.e(TAG, "createStandingOrder fehlgeschlagen: ${e.message}", e)
         }
     }
 
@@ -146,6 +157,7 @@ class FintsService @Inject constructor(
         account: Account,
         fromDate: Date? = null
     ): Result<List<Transaction>> = withContext(Dispatchers.IO) {
+        AppLogger.i(TAG, "fetchAccountStatement: ${account.iban} ab $fromDate")
         runCatching {
             val (handler, _) = openSession(account)
             try {
@@ -163,7 +175,7 @@ class FintsService @Inject constructor(
                 val result = job.jobResult as? GVRKUms
                     ?: error("Unerwartetes Ergebnis vom Kontoauszug-Job")
 
-                result.flatData.map { entry ->
+                val transactions = result.flatData.map { entry ->
                     val isIncome = entry.value.longValue >= 0
                     Transaction(
                         accountId   = account.id,
@@ -175,9 +187,13 @@ class FintsService @Inject constructor(
                         remoteId    = entry.id
                     )
                 }
+                AppLogger.i(TAG, "fetchAccountStatement: ${transactions.size} Buchungen empfangen")
+                transactions
             } finally {
                 safeClose(handler)
             }
+        }.onFailure { e ->
+            AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
         }
     }
 
@@ -185,6 +201,7 @@ class FintsService @Inject constructor(
 
     private fun openSession(account: Account): Pair<HBCIHandler, HBCIPassport> {
         val blz = account.bankCode.ifBlank { error("BLZ fehlt für Konto '${account.name}'") }
+        AppLogger.d(TAG, "openSession: BLZ=$blz accountId=${account.id}")
         initHbciOnce()
 
         val passportFile = File(passportDir, "passport_${blz}_${account.id}.dat")
@@ -210,7 +227,7 @@ class FintsService @Inject constructor(
     }
 
     private fun safeClose(handler: HBCIHandler) {
-        try { handler.close() } catch (e: Exception) { Log.w(TAG, "Handler close error", e) }
+        try { handler.close() } catch (e: Exception) { AppLogger.w(TAG, "Handler close error: ${e.message}", e) }
     }
 
     private fun buildKonto(account: Account): Konto {
@@ -234,7 +251,7 @@ class FintsService @Inject constructor(
     inner class HbciCallback : AbstractHBCICallback() {
 
         override fun log(msg: String?, level: Int, date: Date?, trace: StackTraceElement?) {
-            Log.d(TAG, "HBCI log level=$level msg=$msg")
+            AppLogger.d(TAG, "HBCI log level=$level msg=$msg")
         }
 
         override fun callback(
@@ -247,11 +264,13 @@ class FintsService @Inject constructor(
             when (reason) {
                 NEED_PT_PIN -> {
                     val bankName = passport?.blz ?: "Bank"
+                    AppLogger.i(TAG, "PIN-Anfrage für BLZ $bankName")
                     val pin = requestFromUi { pinProvider?.invoke(bankName) ?: "" }
                     retData?.replace(0, retData.length, pin)
                 }
                 NEED_PT_TAN -> {
                     val challenge = msg ?: "TAN erforderlich"
+                    AppLogger.i(TAG, "TAN-Anfrage: $challenge")
                     val tan = requestFromUi { tanProvider?.invoke(challenge) ?: "" }
                     retData?.replace(0, retData.length, tan)
                 }
@@ -261,25 +280,35 @@ class FintsService @Inject constructor(
                 NEED_NEW_INST_KEYS_ACK -> {
                     retData?.replace(0, retData.length, "")
                 }
-                HAVE_INST_MSG -> Log.i(TAG, "Bank message: $msg")
-                else -> Log.d(TAG, "HBCI callback reason=$reason msg=$msg")
+                HAVE_INST_MSG -> AppLogger.i(TAG, "Bank-Nachricht: $msg")
+                else -> AppLogger.d(TAG, "HBCI callback reason=$reason msg=$msg")
             }
         }
 
         override fun status(passport: HBCIPassport?, statusTag: Int, o: Array<out Any>?) {
-            Log.d(TAG, "HBCI status tag=$statusTag")
+            AppLogger.d(TAG, "HBCI status tag=$statusTag")
         }
 
         /**
          * Bridges a suspend UI call to the synchronous HBCI callback thread.
          * Blocks the HBCI thread until the UI responds.
+         *
+         * A [CoroutineExceptionHandler] is installed so that any exception thrown
+         * by [block] (e.g. BadTokenException when the Activity is finishing) is
+         * caught, logged, and resolved as an empty string instead of crashing the app.
          */
         private fun requestFromUi(block: suspend () -> String): String {
             val result = AtomicReference("")
-            val latch = CountDownLatch(1)
-            CoroutineScope(Dispatchers.Main).launch {
+            val latch  = CountDownLatch(1)
+            val handler = CoroutineExceptionHandler { _, throwable ->
+                AppLogger.e(TAG, "requestFromUi: Fehler im UI-Coroutine: ${throwable.message}", throwable)
+                latch.countDown()
+            }
+            CoroutineScope(Dispatchers.Main).launch(handler) {
                 try {
                     result.set(block())
+                } catch (e: Exception) {
+                    AppLogger.e(TAG, "requestFromUi: block() fehlgeschlagen: ${e.message}", e)
                 } finally {
                     latch.countDown()
                 }

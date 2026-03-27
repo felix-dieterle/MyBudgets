@@ -70,6 +70,8 @@
             app:destination="@id/legalFragment" />
         <action android:id="@+id/action_settingsFragment_to_standingOrdersFragment"
             app:destination="@id/standingOrdersFragment" />
+        <action android:id="@+id/action_settingsFragment_to_logConsoleFragment"
+            app:destination="@id/logConsoleFragment" />
     </fragment>
 
     <fragment android:id="@+id/legalFragment"
@@ -93,5 +95,9 @@
         <argument android:name="standingOrderId"
             app:argType="long" android:defaultValue="0L" />
     </fragment>
+
+    <fragment android:id="@+id/logConsoleFragment"
+        android:name="de.mybudgets.app.ui.log.LogConsoleFragment"
+        android:label="@string/log_console_title" />
 
 </navigation>
