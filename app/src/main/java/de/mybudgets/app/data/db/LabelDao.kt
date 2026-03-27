@@ -19,6 +19,9 @@ interface LabelDao {
     @Delete
     suspend fun delete(label: Label)
 
+    @Query("DELETE FROM labels WHERE id NOT IN (SELECT MIN(id) FROM labels GROUP BY name)")
+    suspend fun deleteDuplicates()
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addLabelToTransaction(link: TransactionLabel)
 

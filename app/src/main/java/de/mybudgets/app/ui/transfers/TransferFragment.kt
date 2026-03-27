@@ -104,7 +104,9 @@ class TransferFragment : Fragment() {
             if (toIban.isBlank() || !isValidIban(toIban)) { binding.etRecipientIban.error = getString(R.string.error_invalid_iban); return@setOnClickListener }
             val amount = amtStr.toDoubleOrNull()
             if (amount == null || amount <= 0) { binding.etTransferAmount.error = getString(R.string.error_invalid_amount); return@setOnClickListener }
-            if (fromAccount.bankCode.isBlank() || fromAccount.iban.isBlank()) {
+            // Virtual accounts are resolved to their parent real account in the ViewModel.
+            // For real accounts only the IBAN is required; BLZ is derived automatically by FintsService.
+            if (!fromAccount.isVirtual && fromAccount.iban.isBlank()) {
                 Snackbar.make(view, getString(R.string.error_account_missing_bank_data), Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }

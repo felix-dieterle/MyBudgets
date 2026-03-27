@@ -6,6 +6,7 @@ import androidx.work.*
 import dagger.hilt.android.HiltAndroidApp
 import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.data.repository.GamificationRepository
+import de.mybudgets.app.data.repository.LabelRepository
 import de.mybudgets.app.util.DataSeeder
 import de.mybudgets.app.worker.BackendSyncWorker
 import de.mybudgets.app.worker.StandingOrderWorker
@@ -23,6 +24,7 @@ class MyBudgetsApp : Application(), Configuration.Provider {
 
     @Inject lateinit var categoryRepository: CategoryRepository
     @Inject lateinit var gamificationRepository: GamificationRepository
+    @Inject lateinit var labelRepository: LabelRepository
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
     override val workManagerConfiguration: Configuration
@@ -42,6 +44,9 @@ class MyBudgetsApp : Application(), Configuration.Provider {
             if (!gamificationRepository.hasBadges()) {
                 gamificationRepository.seed(DataSeeder.defaultBadges())
             }
+            // Remove any duplicate labels (same name, different ids) that may have
+            // accumulated from prior imports or UI interactions.
+            labelRepository.deduplicateByName()
         }
 
         scheduleBackgroundWorkers()
