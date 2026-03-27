@@ -217,7 +217,11 @@ class FintsService @Inject constructor(
         HBCIUtils.setParam("client.passport.PinTan.init", "1")
         HBCIUtils.setParam("client.passport.default", "PinTan")
 
-        val passport = AbstractHBCIPassport.getInstance("PinTan")
+        val passport = AbstractHBCIPassport.getInstance("PinTan") as AbstractHBCIPassport
+        // Set country and BLZ on the passport so that HBCI4Java can resolve the bank server URL.
+        // Without this, a fresh passport triggers "bankleitzahl darf nicht leer sein".
+        passport.country = "DE"
+        passport.blz = blz
         val handler = HBCIHandler("300", passport)
         return Pair(handler, passport)
     }
