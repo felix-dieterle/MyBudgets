@@ -12,8 +12,18 @@ class LabelRepository @Inject constructor(
 ) {
     fun observeAll(): Flow<List<Label>> = dao.observeAll()
 
-    suspend fun save(label: Label): Long =
-        if (label.id == 0L) dao.insert(label) else { dao.update(label); label.id }
+    suspend fun save(label: Label): Long {
+        if (label.id != 0L) {
+            dao.update(label)
+            return label.id
+        }
+        // Insert with IGNORE conflict strategy: returns -1 if the name already exists.
+        // Fall back to the existing row in that case (handles both the normal path and
+        // any concurrent save calls for the same name).
+        val newId = dao.insert(label)
+        if (newId != -1L) return newId
+        return dao.findByName(label.name)!!.id
+    }
 
     suspend fun delete(label: Label) = dao.delete(label)
 

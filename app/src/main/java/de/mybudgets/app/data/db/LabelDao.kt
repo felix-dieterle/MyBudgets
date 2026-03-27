@@ -10,7 +10,7 @@ interface LabelDao {
     @Query("SELECT * FROM labels ORDER BY name")
     fun observeAll(): Flow<List<Label>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(label: Label): Long
 
     @Update
@@ -18,6 +18,9 @@ interface LabelDao {
 
     @Delete
     suspend fun delete(label: Label)
+
+    @Query("SELECT * FROM labels WHERE name = :name LIMIT 1")
+    suspend fun findByName(name: String): Label?
 
     @Query("DELETE FROM labels WHERE id NOT IN (SELECT MIN(id) FROM labels GROUP BY name)")
     suspend fun deleteDuplicates()
