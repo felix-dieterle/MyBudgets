@@ -10,6 +10,7 @@ import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.data.repository.AccountRepository
 import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.util.AppLogger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -50,38 +51,51 @@ class TransferViewModel @Inject constructor(
         AppLogger.i(TAG, "executeTransfer gestartet – von ${fromAccount.name} an $toName ($toIban) Betrag=$amount")
         _state.value = TransferState.Loading
 
-        // Resolve virtual → real account for FinTS
-        val realAccount = if (fromAccount.isVirtual && fromAccount.parentAccountId != null) {
-            accountRepo.getById(fromAccount.parentAccountId) ?: fromAccount
-        } else {
-            fromAccount
-        }
+        try {
+            // Resolve virtual → real account for FinTS
+            val realAccount = if (fromAccount.isVirtual && fromAccount.parentAccountId != null) {
+                accountRepo.getById(fromAccount.parentAccountId) ?: fromAccount
+            } else {
+                fromAccount
+            }
 
-        val result = fintsService.executeTransfer(
-            fromAccount = realAccount,
-            toName      = toName,
-            toIban      = toIban,
-            toBic       = toBic,
-            amount      = amount,
-            purpose     = purpose
-        )
-
-        result.onSuccess { msg ->
-            // Record local transaction
-            transactionRepo.save(
-                Transaction(
-                    accountId        = realAccount.id,
-                    virtualAccountId = if (fromAccount.isVirtual) fromAccount.id else null,
-                    amount           = amount,
-                    description      = "Überweisung an $toName",
-                    type             = TransactionType.EXPENSE,
-                    note             = purpose
-                )
+            val result = fintsService.executeTransfer(
+                fromAccount = realAccount,
+                toName      = toName,
+                toIban      = toIban,
+                toBic       = toBic,
+                amount      = amount,
+                purpose     = purpose
             )
-            AppLogger.i(TAG, "executeTransfer: Lokale Buchung gespeichert")
-            _state.value = TransferState.Success(msg)
-        }.onFailure { e ->
-            AppLogger.e(TAG, "executeTransfer fehlgeschlagen: ${e.message}", e)
+
+            result.onSuccess { msg ->
+                // Record local transaction; failure here must not crash the app
+                try {
+                    transactionRepo.save(
+                        Transaction(
+                            accountId        = realAccount.id,
+                            virtualAccountId = if (fromAccount.isVirtual) fromAccount.id else null,
+                            amount           = amount,
+                            description      = "Überweisung an $toName",
+                            type             = TransactionType.EXPENSE,
+                            note             = purpose
+                        )
+                    )
+                    AppLogger.i(TAG, "executeTransfer: Lokale Buchung gespeichert")
+                } catch (e: CancellationException) {
+                    throw e // Always propagate coroutine cancellation
+                } catch (e: Exception) {
+                    AppLogger.w(TAG, "executeTransfer: Lokale Buchung fehlgeschlagen (nicht kritisch): ${e.message}", e)
+                }
+                _state.value = TransferState.Success(msg)
+            }.onFailure { e ->
+                AppLogger.e(TAG, "executeTransfer fehlgeschlagen: ${e.message}", e)
+                _state.value = TransferState.Error(e.message ?: "Unbekannter Fehler")
+            }
+        } catch (e: CancellationException) {
+            throw e // Always propagate coroutine cancellation
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "executeTransfer: Unerwarteter Fehler: ${e.message}", e)
             _state.value = TransferState.Error(e.message ?: "Unbekannter Fehler")
         }
     }
