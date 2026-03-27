@@ -20,6 +20,7 @@ import de.mybudgets.app.ui.transfers.pinDialog
 import de.mybudgets.app.ui.transfers.tanDialog
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.viewmodel.AccountViewModel
+import de.mybudgets.app.worker.BankSyncWorker
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
