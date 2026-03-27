@@ -6,7 +6,12 @@
 
     <fragment android:id="@+id/dashboardFragment"
         android:name="de.mybudgets.app.ui.dashboard.DashboardFragment"
-        android:label="@string/nav_dashboard" />
+        android:label="@string/nav_dashboard">
+        <action android:id="@+id/action_dashboardFragment_to_transactionsFragment"
+            app:destination="@id/transactionsFragment" />
+        <action android:id="@+id/action_dashboardFragment_to_transactionDetailFragment"
+            app:destination="@id/transactionDetailFragment" />
+    </fragment>
 
     <fragment android:id="@+id/accountsFragment"
         android:name="de.mybudgets.app.ui.accounts.AccountsFragment"
@@ -24,6 +29,8 @@
             app:argType="long" android:defaultValue="0L" />
         <action android:id="@+id/action_accountDetailFragment_to_transferFragment"
             app:destination="@id/transferFragment" />
+        <action android:id="@+id/action_accountDetailFragment_to_transactionDetailFragment"
+            app:destination="@id/transactionDetailFragment" />
     </fragment>
 
     <fragment android:id="@+id/addEditAccountFragment"

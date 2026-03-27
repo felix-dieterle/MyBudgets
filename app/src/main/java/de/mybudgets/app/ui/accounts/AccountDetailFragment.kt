@@ -6,6 +6,7 @@ import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.*
+import androidx.navigation.fragment.findNavController
 import androidx.work.*
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -14,6 +15,7 @@ import de.mybudgets.app.data.banking.FintsService
 import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.AccountType
 import de.mybudgets.app.databinding.FragmentAccountDetailBinding
+import de.mybudgets.app.ui.transactions.TransactionAdapter
 import de.mybudgets.app.ui.transfers.pinDialog
 import de.mybudgets.app.ui.transfers.tanDialog
 import de.mybudgets.app.util.CurrencyFormatter
@@ -29,6 +31,7 @@ class AccountDetailFragment : Fragment() {
     private val binding get() = _binding!!
     private val vm: AccountViewModel by viewModels()
     private var accountId: Long = 0L
+    private lateinit var txAdapter: TransactionAdapter
 
     @Inject lateinit var fintsService: FintsService
 
@@ -41,10 +44,26 @@ class AccountDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         accountId = arguments?.getLong("accountId") ?: 0L
 
+        txAdapter = TransactionAdapter { tx ->
+            val bundle = Bundle().apply { putLong("transactionId", tx.id) }
+            findNavController().navigate(R.id.action_accountDetailFragment_to_transactionDetailFragment, bundle)
+        }
+        binding.rvAccountTransactions.adapter = txAdapter
+        vm.selectAccount(accountId)
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.accounts.collect { list ->
-                    list.find { it.id == accountId }?.let { showAccount(it, list) }
+                launch {
+                    vm.accounts.collect { list ->
+                        list.find { it.id == accountId }?.let { showAccount(it, list) }
+                    }
+                }
+                launch {
+                    vm.accountTransactions.collect { txList ->
+                        txAdapter.submitList(txList)
+                        binding.tvNoAccountTransactions.visibility =
+                            if (txList.isEmpty()) View.VISIBLE else View.GONE
+                    }
                 }
             }
         }
