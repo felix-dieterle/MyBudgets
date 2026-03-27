@@ -7,6 +7,7 @@ import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.util.AppLogger
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -106,6 +107,7 @@ class FintsService @Inject constructor(
                 safeClose(handler)
             }
         }.onFailure { e ->
+            if (e is CancellationException) throw e
             AppLogger.e(TAG, "executeTransfer fehlgeschlagen: ${e.message}", e)
         }
     }
@@ -145,6 +147,7 @@ class FintsService @Inject constructor(
                 safeClose(handler)
             }
         }.onFailure { e ->
+            if (e is CancellationException) throw e
             AppLogger.e(TAG, "createStandingOrder fehlgeschlagen: ${e.message}", e)
         }
     }
@@ -193,6 +196,7 @@ class FintsService @Inject constructor(
                 safeClose(handler)
             }
         }.onFailure { e ->
+            if (e is CancellationException) throw e
             AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
         }
     }
