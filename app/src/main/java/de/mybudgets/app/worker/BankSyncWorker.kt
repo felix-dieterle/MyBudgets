@@ -43,8 +43,8 @@ class BankSyncWorker @AssistedInject constructor(
             AppLogger.w(TAG, "doWork: Konto $accountId nicht gefunden")
             return Result.failure()
         }
-        if (account.bankCode.isBlank() || account.iban.isBlank()) {
-            AppLogger.w(TAG, "doWork: Konto ${account.name} hat keine BLZ/IBAN")
+        if (account.iban.isBlank()) {
+            AppLogger.w(TAG, "doWork: Konto ${account.name} hat keine IBAN")
             return Result.failure()
         }
         if (fintsService.pinProvider == null) {

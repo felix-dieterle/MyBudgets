@@ -51,8 +51,8 @@ class AccountDetailFragment : Fragment() {
 
         binding.btnBankSync.setOnClickListener {
             val account = vm.accounts.value.find { it.id == accountId } ?: return@setOnClickListener
-            if (account.bankCode.isBlank() || account.iban.isBlank()) {
-                Snackbar.make(view, getString(R.string.error_account_missing_bank_data), Snackbar.LENGTH_LONG).show()
+            if (account.iban.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_account_missing_iban), Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             registerPinTanProviders()
@@ -62,8 +62,8 @@ class AccountDetailFragment : Fragment() {
 
         binding.btnHistoricalSync.setOnClickListener {
             val account = vm.accounts.value.find { it.id == accountId } ?: return@setOnClickListener
-            if (account.bankCode.isBlank() || account.iban.isBlank()) {
-                Snackbar.make(view, getString(R.string.error_account_missing_bank_data), Snackbar.LENGTH_LONG).show()
+            if (account.iban.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_account_missing_iban), Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             showDatePickerForHistoricalSync()

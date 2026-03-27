@@ -78,6 +78,7 @@
     <string name="error_required">Pflichtfeld</string>
     <string name="error_select_account">Bitte wähle ein Konto</string>
     <string name="error_account_missing_bank_data">Das Konto hat keine BLZ/IBAN. Bitte zuerst hinterlegen.</string>
+    <string name="error_account_missing_iban">Das Konto hat keine IBAN. Bitte zuerst unter Konto bearbeiten eintragen.</string>
 
     <!-- Bank Sync -->
     <string name="bank_sync_button">Kontoauszug synchronisieren</string>

@@ -200,7 +200,11 @@ class FintsService @Inject constructor(
     // ─── Internal helpers ─────────────────────────────────────────────────────────
 
     private fun openSession(account: Account): Pair<HBCIHandler, HBCIPassport> {
-        val blz = account.bankCode.ifBlank { error("BLZ fehlt für Konto '${account.name}'") }
+        val blz = account.bankCode.ifBlank {
+            // Derive BLZ from German IBAN (DE + 2 check digits + 8-digit BLZ + account number)
+            blzFromIban(account.iban)
+                ?: error("BLZ fehlt und kann nicht aus der IBAN ermittelt werden für Konto '${account.name}'")
+        }
         AppLogger.d(TAG, "openSession: BLZ=$blz accountId=${account.id}")
         initHbciOnce()
 
@@ -230,9 +234,21 @@ class FintsService @Inject constructor(
         try { handler.close() } catch (e: Exception) { AppLogger.w(TAG, "Handler close error: ${e.message}", e) }
     }
 
+    /**
+     * Extracts the 8-digit BLZ from a German IBAN.
+     * German IBAN format: DE + 2 check digits + 8-digit BLZ + 10-digit account number.
+     * Returns null for non-German or malformed IBANs.
+     */
+    private fun blzFromIban(iban: String): String? {
+        val normalized = iban.replace(" ", "").uppercase()
+        return if (normalized.length == 22 && normalized.startsWith("DE")) {
+            normalized.substring(4, 12)
+        } else null
+    }
+
     private fun buildKonto(account: Account): Konto {
         val k = Konto()
-        k.blz  = account.bankCode
+        k.blz  = account.bankCode.ifBlank { blzFromIban(account.iban) ?: "" }
         k.iban = account.iban
         k.curr = account.currency.ifBlank { "EUR" }
         return k
