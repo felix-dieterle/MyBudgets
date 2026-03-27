@@ -50,6 +50,9 @@ class FintsService @Inject constructor(
     @Volatile var pinProvider: (suspend (bankName: String) -> String)? = null
     @Volatile var tanProvider: (suspend (tanChallenge: String) -> String)? = null
 
+    /** BLZ of the account currently being connected. Set in openSession, read by HbciCallback. */
+    private val currentBlz = ThreadLocal<String>()
+
     private val passportDir: File by lazy {
         File(context.filesDir, "hbci_passports").also { it.mkdirs() }
     }
@@ -210,6 +213,7 @@ class FintsService @Inject constructor(
                 ?: error("BLZ fehlt und kann nicht aus der IBAN ermittelt werden für Konto '${account.name}'")
         }
         AppLogger.d(TAG, "openSession: BLZ=$blz accountId=${account.id}")
+        currentBlz.set(blz)
         initHbciOnce()
 
         val passportFile = File(passportDir, "passport_${blz}_${account.id}.dat")
@@ -296,6 +300,9 @@ class FintsService @Inject constructor(
                 }
                 NEED_PASSPHRASE_LOAD, NEED_PASSPHRASE_SAVE -> {
                     retData?.replace(0, retData.length, passportPassphrase)
+                }
+                NEED_BLZ -> {
+                    retData?.replace(0, retData.length, currentBlz.get() ?: "")
                 }
                 NEED_NEW_INST_KEYS_ACK -> {
                     retData?.replace(0, retData.length, "")
