@@ -16,6 +16,7 @@
     <string name="account_type">Kontotyp</string>
     <string name="account_iban">IBAN</string>
     <string name="account_bank_code">BLZ</string>
+    <string name="account_user_id">Online-Banking-Kennung (Nutzerkennung)</string>
     <string name="account_parent_label">Verknüpftes echtes Konto</string>
     <string name="account_parent_hint">Bitte wähle das echte Konto aus, das diesem virtuellen Konto zugrunde liegt.</string>
     <string name="account_linked_to">Verknüpft mit:</string>

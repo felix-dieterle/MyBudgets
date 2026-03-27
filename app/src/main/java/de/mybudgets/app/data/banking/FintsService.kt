@@ -53,6 +53,9 @@ class FintsService @Inject constructor(
     /** BLZ of the account currently being connected. Set in openSession, read by HbciCallback. */
     private val currentBlz = ThreadLocal<String>()
 
+    /** Online-Banking user ID (Nutzerkennung) of the account currently being connected. */
+    private val currentUserId = ThreadLocal<String>()
+
     private val passportDir: File by lazy {
         File(context.filesDir, "hbci_passports").also { it.mkdirs() }
     }
@@ -214,9 +217,15 @@ class FintsService @Inject constructor(
         }
         AppLogger.d(TAG, "openSession: BLZ=$blz accountId=${account.id}")
         currentBlz.set(blz)
+        currentUserId.set(account.userId)
         initHbciOnce()
 
         val passportFile = File(passportDir, "passport_${blz}_${account.id}.dat")
+        // If creating a fresh passport and no userId is configured, fail early with a helpful message
+        // rather than letting HBCI4Java throw "Nutzerkennung darf nicht leer sein".
+        if (account.userId.isBlank() && !passportFile.exists()) {
+            error("Für das Konto '${account.name}' fehlt die Online-Banking-Kennung (Nutzerkennung). Bitte unter Konto bearbeiten eintragen.")
+        }
         HBCIUtils.setParam("client.passport.PinTan.filename", passportFile.absolutePath)
         HBCIUtils.setParam("client.passport.PinTan.init", "1")
         HBCIUtils.setParam("client.passport.default", "PinTan")
@@ -226,6 +235,11 @@ class FintsService @Inject constructor(
         // Without this, a fresh passport triggers "bankleitzahl darf nicht leer sein".
         passport.country = "DE"
         passport.blz = blz
+        // Set userId (Nutzerkennung) directly on the passport to avoid the
+        // "Nutzerkennung darf nicht leer sein" error from askForMissingData.
+        if (account.userId.isNotBlank()) {
+            passport.userId = account.userId
+        }
         val handler = HBCIHandler("300", passport)
         return Pair(handler, passport)
     }
@@ -307,6 +321,9 @@ class FintsService @Inject constructor(
                 }
                 NEED_BLZ -> {
                     retData?.replace(0, retData.length, currentBlz.get() ?: "")
+                }
+                NEED_USERID -> {
+                    retData?.replace(0, retData.length, currentUserId.get() ?: "")
                 }
                 NEED_NEW_INST_KEYS_ACK -> {
                     retData?.replace(0, retData.length, "")
