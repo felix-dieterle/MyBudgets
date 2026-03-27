@@ -15,6 +15,9 @@ interface GamificationDao {
     @Query("SELECT * FROM gamification_badges WHERE type = :type LIMIT 1")
     suspend fun getByType(type: String): GamificationBadge?
 
+    @Query("SELECT COUNT(*) FROM gamification_badges")
+    suspend fun count(): Int
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(badges: List<GamificationBadge>)
 

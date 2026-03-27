@@ -18,6 +18,9 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE pattern != '' ORDER BY level DESC")
     suspend fun getWithPatterns(): List<Category>
 
+    @Query("SELECT COUNT(*) FROM categories WHERE isDefault = 1")
+    suspend fun countDefaults(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(category: Category): Long
 
