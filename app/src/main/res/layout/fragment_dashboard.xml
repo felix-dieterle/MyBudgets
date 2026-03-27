@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -30,22 +31,71 @@
                     android:text="0,00 €"
                     android:textAppearance="?attr/textAppearanceHeadlineLarge"
                     android:textColor="@color/income_green" />
+                <TextView
+                    android:id="@+id/tv_account_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="0 Konten"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <TextView
-            android:id="@+id/tv_account_count"
-            android:layout_width="wrap_content"
+        <!-- Recent transactions section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="0 Konten"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:layout_marginBottom="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tv_transaction_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 Buchungen"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/recent_transactions"
+                        android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                    <TextView
+                        android:id="@+id/tv_see_all_transactions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/see_all_transactions"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
+                        android:textColor="?attr/colorPrimary"
+                        android:padding="4dp" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_recent_transactions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                <TextView
+                    android:id="@+id/tv_no_recent_transactions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="@string/no_transactions"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:alpha="0.6"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 </ScrollView>
