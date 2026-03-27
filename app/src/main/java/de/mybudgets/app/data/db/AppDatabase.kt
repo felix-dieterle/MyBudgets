@@ -83,7 +83,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "DELETE FROM labels WHERE id NOT IN (SELECT MIN(id) FROM labels GROUP BY name)"
                 )
                 database.execSQL(
-                    "CREATE UNIQUE INDEX IF NOT EXISTS idx_labels_name ON labels(name)"
+                    "CREATE UNIQUE INDEX IF NOT EXISTS index_labels_name ON labels(name)"
                 )
             }
         }
