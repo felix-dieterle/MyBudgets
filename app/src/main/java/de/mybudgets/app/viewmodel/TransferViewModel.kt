@@ -7,8 +7,10 @@ import de.mybudgets.app.data.banking.FintsService
 import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.model.TransactionType
+import de.mybudgets.app.data.model.TransferTemplate
 import de.mybudgets.app.data.repository.AccountRepository
 import de.mybudgets.app.data.repository.TransactionRepository
+import de.mybudgets.app.data.repository.TransferTemplateRepository
 import de.mybudgets.app.util.AppLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,11 +33,13 @@ sealed class TransferState {
 class TransferViewModel @Inject constructor(
     private val accountRepo: AccountRepository,
     private val transactionRepo: TransactionRepository,
-    private val fintsService: FintsService
+    private val fintsService: FintsService,
+    private val templateRepo: TransferTemplateRepository
 ) : ViewModel() {
 
     val accounts = accountRepo.observeAll().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val realAccounts = accountRepo.observeRealAccounts().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val templates = templateRepo.observeAll().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _state = MutableStateFlow<TransferState>(TransferState.Idle)
     val state: StateFlow<TransferState> = _state
@@ -101,4 +105,44 @@ class TransferViewModel @Inject constructor(
     }
 
     fun resetState() { _state.value = TransferState.Idle }
+
+    fun saveTemplate(
+        name: String,
+        sourceAccountId: Long,
+        toName: String,
+        toIban: String,
+        toBic: String,
+        amount: Double,
+        purpose: String
+    ) = viewModelScope.launch {
+        AppLogger.i(TAG, "Vorlage speichern: $name")
+        try {
+            templateRepo.save(
+                TransferTemplate(
+                    name = name,
+                    sourceAccountId = sourceAccountId,
+                    recipientName = toName,
+                    recipientIban = toIban,
+                    recipientBic = toBic,
+                    amount = amount,
+                    purpose = purpose
+                )
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Vorlage speichern fehlgeschlagen: ${e.message}", e)
+        }
+    }
+
+    fun deleteTemplate(template: TransferTemplate) = viewModelScope.launch {
+        AppLogger.i(TAG, "Vorlage löschen: ${template.name}")
+        try {
+            templateRepo.delete(template)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "Vorlage löschen fehlgeschlagen: ${e.message}", e)
+        }
+    }
 }

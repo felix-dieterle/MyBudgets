@@ -3,6 +3,8 @@ package de.mybudgets.app.ui.transfers
 import android.os.Bundle
 import android.view.*
 import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -12,6 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.R
 import de.mybudgets.app.data.banking.FintsService
+import de.mybudgets.app.data.model.TransferTemplate
 import de.mybudgets.app.databinding.FragmentTransferBinding
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.viewmodel.TransferState
@@ -126,6 +129,117 @@ class TransferFragment : Fragment() {
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
+
+        // Save as template
+        binding.btnSaveTemplate.setOnClickListener {
+            val toName  = binding.etRecipientName.text.toString().trim()
+            val toIban  = binding.etRecipientIban.text.toString().trim().replace(" ", "")
+            val amtStr  = binding.etTransferAmount.text.toString().trim()
+            val amount  = amtStr.toDoubleOrNull()
+
+            if (toName.isBlank() || toIban.isBlank() || amount == null || amount <= 0) {
+                Snackbar.make(view, getString(R.string.template_error_fill_fields), Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val nameInput = EditText(requireContext()).apply {
+                hint = getString(R.string.template_name_hint)
+                setSingleLine()
+            }
+            val container = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                val dp16 = (16 * resources.displayMetrics.density).toInt()
+                setPadding(dp16, 0, dp16, 0)
+                addView(nameInput)
+            }
+
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.template_name_title)
+                .setMessage(R.string.template_name_message)
+                .setView(container)
+                .setPositiveButton(R.string.save) { _, _ ->
+                    val templateName = nameInput.text.toString().trim()
+                    if (templateName.isBlank()) {
+                        Snackbar.make(view, getString(R.string.template_error_name_required), Snackbar.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
+                    val accounts = vm.accounts.value
+                    val fromAccount = accounts.getOrNull(binding.spinnerFromAccount.selectedItemPosition)
+                    val toBic   = binding.etRecipientBic.text.toString().trim()
+                    val purpose = binding.etPurpose.text.toString().trim()
+
+                    vm.saveTemplate(
+                        name            = templateName,
+                        sourceAccountId = fromAccount?.id ?: 0L,
+                        toName          = toName,
+                        toIban          = toIban,
+                        toBic           = toBic,
+                        amount          = amount,
+                        purpose         = purpose
+                    )
+                    Snackbar.make(view, getString(R.string.template_saved), Snackbar.LENGTH_SHORT).show()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
+        // Load from template
+        binding.btnLoadTemplate.setOnClickListener {
+            val templates = vm.templates.value
+            if (templates.isEmpty()) {
+                Snackbar.make(view, getString(R.string.template_empty), Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            showLoadTemplateDialog(templates, view)
+        }
+    }
+
+    private fun showLoadTemplateDialog(templates: List<TransferTemplate>, view: View) {
+        val names = templates.map { it.name }.toTypedArray()
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.template_load)
+            .setItems(names) { _, index ->
+                applyTemplate(templates[index])
+                Snackbar.make(view, getString(R.string.template_loaded), Snackbar.LENGTH_SHORT).show()
+            }
+            .setNeutralButton(R.string.template_manage_button) { _, _ ->
+                showDeleteTemplateDialog(templates, view)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showDeleteTemplateDialog(templates: List<TransferTemplate>, view: View) {
+        val names = templates.map { it.name }.toTypedArray()
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.template_delete_title)
+            .setItems(names) { _, index ->
+                val template = templates[index]
+                AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.template_delete_title)
+                    .setMessage(getString(R.string.template_delete_message, template.name))
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        vm.deleteTemplate(template)
+                        Snackbar.make(view, getString(R.string.template_deleted), Snackbar.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun applyTemplate(template: TransferTemplate) {
+        binding.etRecipientName.setText(template.recipientName)
+        binding.etRecipientIban.setText(template.recipientIban)
+        binding.etRecipientBic.setText(template.recipientBic)
+        binding.etTransferAmount.setText(if (template.amount > 0) template.amount.toString() else "")
+        binding.etPurpose.setText(template.purpose)
+
+        // Select the matching source account in the spinner
+        val accounts = vm.accounts.value
+        val index = accounts.indexOfFirst { it.id == template.sourceAccountId }
+        if (index >= 0) binding.spinnerFromAccount.setSelection(index)
     }
 
     private fun isValidIban(iban: String): Boolean {
@@ -151,3 +265,4 @@ class TransferFragment : Fragment() {
         _binding = null
     }
 }
+

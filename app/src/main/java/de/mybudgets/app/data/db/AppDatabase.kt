@@ -16,9 +16,10 @@ import de.mybudgets.app.data.model.*
         Label::class,
         TransactionLabel::class,
         GamificationBadge::class,
-        StandingOrder::class
+        StandingOrder::class,
+        TransferTemplate::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,6 +29,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun labelDao(): LabelDao
     abstract fun gamificationDao(): GamificationDao
     abstract fun standingOrderDao(): StandingOrderDao
+    abstract fun transferTemplateDao(): TransferTemplateDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -56,13 +58,31 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """CREATE TABLE IF NOT EXISTS transfer_templates (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        sourceAccountId INTEGER NOT NULL,
+                        recipientName TEXT NOT NULL,
+                        recipientIban TEXT NOT NULL,
+                        recipientBic TEXT NOT NULL DEFAULT '',
+                        amount REAL NOT NULL,
+                        purpose TEXT NOT NULL DEFAULT '',
+                        createdAt INTEGER NOT NULL
+                    )"""
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "mybudgets.db"
-                ).addMigrations(MIGRATION_1_2).build().also { INSTANCE = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { INSTANCE = it }
             }
     }
 }

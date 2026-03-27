@@ -125,6 +125,23 @@
     <string name="log_export_chooser_title">Fehlerprotokoll teilen</string>
     <string name="settings_log_console">Fehlerprotokoll anzeigen</string>
 
+    <!-- Transfer Templates / Überweisungsvorlagen -->
+    <string name="template_save">Als Vorlage speichern</string>
+    <string name="template_load">Aus Vorlage laden</string>
+    <string name="template_name_hint">Vorlagenname</string>
+    <string name="template_name_title">Vorlage speichern</string>
+    <string name="template_name_message">Gib einen Namen für diese Vorlage ein:</string>
+    <string name="template_saved">Vorlage gespeichert</string>
+    <string name="template_loaded">Vorlage geladen</string>
+    <string name="template_deleted">Vorlage gelöscht</string>
+    <string name="template_empty">Keine Vorlagen vorhanden</string>
+    <string name="template_delete_title">Vorlage löschen</string>
+    <string name="template_delete_button">Löschen</string>
+    <string name="template_manage_button">Vorlagen verwalten</string>
+    <string name="template_delete_message">Vorlage „%s" wirklich löschen?</string>
+    <string name="template_error_fill_fields">Bitte zuerst Empfänger, IBAN und Betrag ausfüllen</string>
+    <string name="template_error_name_required">Bitte einen Vorlagennamen eingeben</string>
+
     <!-- Dashboard / Account detail transaction sections -->
     <string name="recent_transactions">Letzte Buchungen</string>
     <string name="see_all_transactions">Alle anzeigen</string>
