@@ -20,6 +20,8 @@ class TransactionRepository @Inject constructor(
 
     suspend fun getRecent(limit: Int = 10): List<Transaction> = dao.getRecent(limit)
 
+    suspend fun getAllRemoteIds(): Set<String> = dao.getAllRemoteIds().toHashSet()
+
     suspend fun save(transaction: Transaction): Long {
         val categorized = if (transaction.categoryId == null) {
             val matched = PatternMatcher.match(

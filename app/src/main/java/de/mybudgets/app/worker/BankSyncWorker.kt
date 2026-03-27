@@ -32,7 +32,7 @@ class BankSyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        val accountId = inputData.getLong("account_id", -1L)
+        val accountId = inputData.getLong(KEY_ACCOUNT_ID, -1L)
         if (accountId < 0) {
             AppLogger.w(TAG, "doWork: keine account_id – Abbruch")
             return Result.failure()
@@ -52,12 +52,17 @@ class BankSyncWorker @AssistedInject constructor(
             return Result.failure()
         }
 
-        AppLogger.i(TAG, "doWork: Starte Kontoauszug-Abruf für ${account.iban}")
-        val syncResult = fintsService.fetchAccountStatement(account)
+        val fromDateMillis = inputData.getLong(KEY_FROM_DATE, NO_FROM_DATE)
+        val fromDate = if (fromDateMillis != NO_FROM_DATE) java.util.Date(fromDateMillis) else null
+
+        AppLogger.i(TAG, "doWork: Starte Kontoauszug-Abruf für ${account.iban} ab $fromDate")
+        val syncResult = fintsService.fetchAccountStatement(account, fromDate)
+        var importedCount = 0
         syncResult.onSuccess { transactions ->
-            val existingRemoteIds = transactionRepo.getRecent(500).mapNotNull { it.remoteId }.toHashSet()
-            val newTx = transactions.filter { it.remoteId !in existingRemoteIds }
+            val existingRemoteIds = transactionRepo.getAllRemoteIds()
+            val newTx = transactions.filter { it.remoteId == null || it.remoteId !in existingRemoteIds }
             newTx.forEach { tx -> transactionRepo.save(tx.copy(accountId = account.id)) }
+            importedCount = newTx.size
             AppLogger.i(TAG, "doWork: ${newTx.size} neue Buchungen importiert")
             applicationContext.getSharedPreferences("mybudgets_prefs", Context.MODE_PRIVATE)
                 .edit().putLong("last_bank_sync_${accountId}", System.currentTimeMillis()).apply()
@@ -65,6 +70,22 @@ class BankSyncWorker @AssistedInject constructor(
             AppLogger.e(TAG, "doWork: Kontoauszug-Abruf fehlgeschlagen: ${e.message}", e)
         }
 
-        return if (syncResult.isSuccess) Result.success() else Result.failure()
+        return if (syncResult.isSuccess)
+            Result.success(
+                androidx.work.workDataOf(
+                    KEY_IMPORTED_COUNT to importedCount,
+                    KEY_FROM_DATE to (fromDateMillis.takeIf { it != NO_FROM_DATE } ?: NO_FROM_DATE)
+                )
+            )
+        else Result.failure()
+    }
+
+    companion object {
+        const val KEY_ACCOUNT_ID    = "account_id"
+        /** Epoch-millis for the earliest date to fetch. Use [NO_FROM_DATE] to fetch all. */
+        const val KEY_FROM_DATE     = "from_date"
+        const val KEY_IMPORTED_COUNT = "imported_count"
+        /** Sentinel value meaning "no date filter – fetch complete history". */
+        const val NO_FROM_DATE      = -1L
     }
 }
