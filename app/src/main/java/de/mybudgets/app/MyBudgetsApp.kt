@@ -36,8 +36,12 @@ class MyBudgetsApp : Application(), Configuration.Provider {
         installGlobalExceptionHandler()
 
         CoroutineScope(Dispatchers.IO).launch {
-            categoryRepository.insertAll(DataSeeder.defaultCategories())
-            gamificationRepository.seed(DataSeeder.defaultBadges())
+            if (!categoryRepository.hasDefaultCategories()) {
+                categoryRepository.insertAll(DataSeeder.defaultCategories())
+            }
+            if (!gamificationRepository.hasBadges()) {
+                gamificationRepository.seed(DataSeeder.defaultBadges())
+            }
         }
 
         scheduleBackgroundWorkers()

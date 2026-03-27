@@ -15,6 +15,7 @@ class GamificationRepository @Inject constructor(
     fun observeEarned(): Flow<List<GamificationBadge>> = dao.observeEarned()
 
     suspend fun seed(badges: List<GamificationBadge>) = dao.insertAll(badges)
+    suspend fun hasBadges(): Boolean = dao.count() > 0
 
     suspend fun checkAndAward(transactionCount: Int) {
         when (transactionCount) {

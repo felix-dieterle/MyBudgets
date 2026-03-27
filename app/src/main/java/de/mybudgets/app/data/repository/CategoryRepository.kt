@@ -16,5 +16,6 @@ class CategoryRepository @Inject constructor(
     suspend fun getWithPatterns(): List<Category> = dao.getWithPatterns()
     suspend fun save(category: Category): Long = if (category.id == 0L) dao.insert(category) else { dao.update(category); category.id }
     suspend fun insertAll(categories: List<Category>) = dao.insertAll(categories)
+    suspend fun hasDefaultCategories(): Boolean = dao.countDefaults() > 0
     suspend fun delete(category: Category) = dao.delete(category)
 }
