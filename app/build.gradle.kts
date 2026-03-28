@@ -10,11 +10,22 @@ android {
     namespace = "de.mybudgets.app"
     compileSdk = 34
 
+    val buildVersionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull()
+        ?: try {
+            ProcessBuilder("git", "rev-list", "--count", "HEAD")
+                .directory(rootDir)
+                .start()
+                .inputStream.bufferedReader().readText().trim().toInt()
+        } catch (e: Exception) {
+            logger.warn("Could not determine versionCode via git (${e.message}); defaulting to 1")
+            1
+        }
+
     defaultConfig {
         applicationId = "de.mybudgets.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
+        versionCode = buildVersionCode
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
