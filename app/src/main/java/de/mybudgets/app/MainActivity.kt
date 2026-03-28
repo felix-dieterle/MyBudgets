@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.databinding.ActivityMainBinding
 
@@ -33,6 +34,13 @@ class MainActivity : AppCompatActivity() {
                 showOnboardingDialog(prefs)
             }
         }
+
+        showVersionInfo()
+    }
+
+    private fun showVersionInfo() {
+        val message = getString(R.string.app_version_info, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun showLegalAcceptDialog(prefs: android.content.SharedPreferences) {
