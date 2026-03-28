@@ -9,6 +9,7 @@
     <string name="total_balance">Gesamtsaldo</string>
     <string name="accounts">Konten</string>
     <string name="add_account">Konto hinzufügen</string>
+    <string name="edit_account">Konto bearbeiten</string>
     <string name="add_transaction">Buchung hinzufügen</string>
     <string name="add_category">Kategorie hinzufügen</string>
 

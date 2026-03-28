@@ -15,6 +15,7 @@ import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.AccountType
 import de.mybudgets.app.databinding.FragmentAddEditAccountBinding
 import de.mybudgets.app.viewmodel.AccountViewModel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -24,6 +25,10 @@ class AddEditAccountFragment : Fragment() {
     private val binding get() = _binding!!
     private val vm: AccountViewModel by viewModels()
 
+    private var editAccountId: Long = 0L
+    /** Holds the original account when editing, so we can preserve immutable fields like balance/createdAt. */
+    private var originalAccount: Account? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, s: Bundle?): View {
         _binding = FragmentAddEditAccountBinding.inflate(inflater, container, false)
         return binding.root
@@ -31,6 +36,8 @@ class AddEditAccountFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        editAccountId = arguments?.getLong("accountId", 0L) ?: 0L
 
         val typeLabels = AccountType.values().map { type ->
             when (type) {
@@ -52,21 +59,32 @@ class AddEditAccountFragment : Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
-        // Populate parent account spinner with real accounts
+        // Populate parent account spinner with real accounts, and prefill form when editing.
+        // Combine both flows so prefill always uses fresh realAccounts alongside loaded accounts.
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.realAccounts.collect { realAccounts ->
-                    val names = realAccounts.map { it.name }
-                    binding.spinnerParentAccount.adapter =
-                        ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, names)
-                            .also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-                }
+                vm.realAccounts
+                    .combine(vm.accounts) { realAccounts, allAccounts -> Pair(realAccounts, allAccounts) }
+                    .collect { (realAccounts, allAccounts) ->
+                        val names = realAccounts.map { it.name }
+                        binding.spinnerParentAccount.adapter =
+                            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, names)
+                                .also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+
+                        // Pre-fill once when in edit mode
+                        if (editAccountId != 0L && originalAccount == null) {
+                            allAccounts.find { it.id == editAccountId }?.let { acc ->
+                                originalAccount = acc
+                                prefillForm(acc, realAccounts)
+                            }
+                        }
+                    }
             }
         }
 
         binding.btnSave.setOnClickListener {
             val name = binding.etName.text.toString().trim()
-            if (name.isBlank()) { binding.etName.error = "Name fehlt"; return@setOnClickListener }
+            if (name.isBlank()) { binding.etName.error = getString(R.string.error_required); return@setOnClickListener }
 
             val selectedType = AccountType.values()[binding.spinnerType.selectedItemPosition]
             val isVirtual = selectedType == AccountType.VIRTUAL
@@ -81,19 +99,55 @@ class AddEditAccountFragment : Fragment() {
                 parentAccountId = realAccounts[binding.spinnerParentAccount.selectedItemPosition].id
             }
 
-            val account = Account(
-                name            = name,
-                type            = selectedType,
-                iban            = binding.etIban.text.toString().trim(),
-                bankCode        = binding.etBankCode.text.toString().trim(),
-                userId          = binding.etUserId.text.toString().trim(),
-                tanMethod       = binding.etTanMethod.text.toString().trim(),
-                isVirtual       = isVirtual,
-                parentAccountId = parentAccountId
-            )
+            val existing = originalAccount
+            val account = if (existing != null) {
+                // Edit mode: preserve immutable fields (id, balance, createdAt, icon, color)
+                existing.copy(
+                    name            = name,
+                    type            = selectedType,
+                    iban            = binding.etIban.text.toString().trim(),
+                    bankCode        = binding.etBankCode.text.toString().trim(),
+                    userId          = binding.etUserId.text.toString().trim(),
+                    tanMethod       = binding.etTanMethod.text.toString().trim(),
+                    isVirtual       = isVirtual,
+                    parentAccountId = parentAccountId,
+                    updatedAt       = System.currentTimeMillis()
+                )
+            } else {
+                // Create mode
+                Account(
+                    name            = name,
+                    type            = selectedType,
+                    iban            = binding.etIban.text.toString().trim(),
+                    bankCode        = binding.etBankCode.text.toString().trim(),
+                    userId          = binding.etUserId.text.toString().trim(),
+                    tanMethod       = binding.etTanMethod.text.toString().trim(),
+                    isVirtual       = isVirtual,
+                    parentAccountId = parentAccountId
+                )
+            }
             vm.save(account)
             findNavController().navigateUp()
         }
+    }
+
+    private fun prefillForm(acc: Account, realAccounts: List<Account>) {
+        binding.etName.setText(acc.name)
+        binding.etIban.setText(acc.iban)
+        binding.etBankCode.setText(acc.bankCode)
+        binding.etUserId.setText(acc.userId)
+        binding.etTanMethod.setText(acc.tanMethod)
+
+        val typePos = AccountType.values().indexOf(acc.type)
+        if (typePos >= 0) binding.spinnerType.setSelection(typePos)
+
+        if (acc.isVirtual && acc.parentAccountId != null) {
+            val parentPos = realAccounts.indexOfFirst { it.id == acc.parentAccountId }
+            if (parentPos >= 0) binding.spinnerParentAccount.setSelection(parentPos)
+        }
+
+        // Update toolbar label to "Konto bearbeiten"
+        activity?.title = getString(R.string.edit_account)
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
