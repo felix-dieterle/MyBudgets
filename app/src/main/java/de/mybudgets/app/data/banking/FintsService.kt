@@ -59,6 +59,13 @@ class FintsService @Inject constructor(
     /** BLZ of the account currently being connected. Set in openSession, read by HbciCallback. */
     private val currentBlz = ThreadLocal<String>()
 
+    /**
+     * Set to `true` on the current thread by [HbciCallback] when the bank signals an invalid PIN
+     * (callback reason [org.kapott.hbci.callback.HBCICallback.WRONG_PIN] = 40).
+     * Checked after each FinTS operation to produce a user-friendly error message.
+     */
+    private val wrongPinOnThread = ThreadLocal<Boolean>()
+
     /** Nutzerkennung (HBCI/FinTS login name) of the account currently being connected. */
     private val currentUserId = ThreadLocal<String>()
 
@@ -102,7 +109,9 @@ class FintsService @Inject constructor(
         purpose: String
     ): Result<String> = withContext(Dispatchers.IO) {
         AppLogger.i(TAG, "executeTransfer: start – von ${fromAccount.iban} an $toName ($toIban) Betrag=$amount")
-        runCatching {
+        // Clear any stale wrong-PIN flag from a previous operation on this thread.
+        wrongPinOnThread.remove()
+        val operationResult = runCatching {
             val (handler, passport) = openSession(fromAccount)
             try {
                 val job = handler.newJob("UebSEPA")
@@ -129,6 +138,7 @@ class FintsService @Inject constructor(
             if (e is CancellationException) throw e
             AppLogger.e(TAG, "executeTransfer fehlgeschlagen: ${e.message}", e)
         }
+        wrapWrongPinResult(operationResult)
     }
 
     /**
@@ -139,7 +149,9 @@ class FintsService @Inject constructor(
         order: StandingOrder
     ): Result<String> = withContext(Dispatchers.IO) {
         AppLogger.i(TAG, "createStandingOrder: ${order.recipientName} Betrag=${order.amount}")
-        runCatching {
+        // Clear any stale wrong-PIN flag from a previous operation on this thread.
+        wrongPinOnThread.remove()
+        val operationResult = runCatching {
             val (handler, _) = openSession(fromAccount)
             try {
                 val job = handler.newJob("DauerNewSEPA")
@@ -169,6 +181,7 @@ class FintsService @Inject constructor(
             if (e is CancellationException) throw e
             AppLogger.e(TAG, "createStandingOrder fehlgeschlagen: ${e.message}", e)
         }
+        wrapWrongPinResult(operationResult)
     }
 
     /**
@@ -180,7 +193,9 @@ class FintsService @Inject constructor(
         fromDate: Date? = null
     ): Result<List<Transaction>> = withContext(Dispatchers.IO) {
         AppLogger.i(TAG, "fetchAccountStatement: ${account.iban} ab $fromDate")
-        runCatching {
+        // Clear any stale wrong-PIN flag from a previous operation on this thread.
+        wrongPinOnThread.remove()
+        val operationResult = runCatching {
             val (handler, _) = openSession(account)
             try {
                 val jobName = if (fromDate != null) "KUmsZeit" else "KUmsAll"
@@ -218,6 +233,7 @@ class FintsService @Inject constructor(
             if (e is CancellationException) throw e
             AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
         }
+        wrapWrongPinResult(operationResult)
     }
 
     // ─── Internal helpers ─────────────────────────────────────────────────────────
@@ -363,6 +379,10 @@ class FintsService @Inject constructor(
                     retData?.replace(0, retData.length, "")
                 }
                 HAVE_INST_MSG -> AppLogger.i(TAG, "Bank-Nachricht: $msg")
+                WRONG_PIN -> {
+                    AppLogger.w(TAG, "HBCI: PIN ungültig (callback reason=$reason)")
+                    wrongPinOnThread.set(true)
+                }
                 else -> AppLogger.d(TAG, "HBCI callback reason=$reason msg=$msg")
             }
         }
@@ -398,6 +418,23 @@ class FintsService @Inject constructor(
             latch.await()
             return result.get()
         }
+    }
+
+    private fun wrongPinException(cause: Throwable?): Exception =
+        Exception("PIN ungültig – bitte überprüfe deine Online-Banking-Zugangsdaten.", cause)
+
+    /**
+     * Checks whether [HbciCallback] signalled a wrong PIN on the current thread.
+     * If so, rewraps the failure with a user-friendly [wrongPinException].
+     * Clears the [wrongPinOnThread] flag regardless.
+     */
+    private fun <T> wrapWrongPinResult(operationResult: Result<T>): Result<T> {
+        val wrongPin = wrongPinOnThread.get() == true
+        wrongPinOnThread.remove()
+        return if (operationResult.isFailure && wrongPin)
+            Result.failure(wrongPinException(operationResult.exceptionOrNull()))
+        else
+            operationResult
     }
 
     companion object {
