@@ -31,11 +31,16 @@
             app:destination="@id/transferFragment" />
         <action android:id="@+id/action_accountDetailFragment_to_transactionDetailFragment"
             app:destination="@id/transactionDetailFragment" />
+        <action android:id="@+id/action_accountDetailFragment_to_addEditAccountFragment"
+            app:destination="@id/addEditAccountFragment" />
     </fragment>
 
     <fragment android:id="@+id/addEditAccountFragment"
         android:name="de.mybudgets.app.ui.accounts.AddEditAccountFragment"
-        android:label="@string/add_account" />
+        android:label="@string/add_account">
+        <argument android:name="accountId"
+            app:argType="long" android:defaultValue="0L" />
+    </fragment>
 
     <fragment android:id="@+id/transactionsFragment"
         android:name="de.mybudgets.app.ui.transactions.TransactionsFragment"

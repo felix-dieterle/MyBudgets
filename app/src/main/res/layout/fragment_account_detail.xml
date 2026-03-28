@@ -52,6 +52,14 @@
                 android:textAppearance="?attr/textAppearanceBodyMedium" />
         </LinearLayout>
 
+        <!-- Edit Account Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_edit_account"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/edit_account" />
+
         <!-- Bank Sync Button – visible only for accounts with bank data -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_bank_sync"

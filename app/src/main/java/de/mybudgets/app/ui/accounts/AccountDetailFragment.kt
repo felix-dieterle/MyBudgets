@@ -70,6 +70,11 @@ class AccountDetailFragment : Fragment() {
             }
         }
 
+        binding.btnEditAccount.setOnClickListener {
+            val bundle = Bundle().apply { putLong("accountId", accountId) }
+            findNavController().navigate(R.id.action_accountDetailFragment_to_addEditAccountFragment, bundle)
+        }
+
         binding.btnBankSync.setOnClickListener {
             val account = vm.accounts.value.find { it.id == accountId } ?: return@setOnClickListener
             if (account.iban.isBlank()) {
