@@ -18,6 +18,7 @@
     <string name="account_iban">IBAN</string>
     <string name="account_bank_code">BLZ</string>
     <string name="account_user_id">Nutzerkennung (Online-Banking-Login)</string>
+    <string name="account_user_id_help">Das ist dein Login-Name fürs Online-Banking – nicht die IBAN oder Kontonummer. Bei vielen Banken ist es eine Ziffernfolge (z. B. 9-stellige VR-NetKey oder Sparkassen-Anmeldenummer).</string>
     <string name="account_tan_method">TAN-Verfahren-Code (leer = automatisch, z.B. 900 für BBBank Secure Go/BestSign)</string>
     <string name="account_parent_label">Verknüpftes echtes Konto</string>
     <string name="account_parent_hint">Bitte wähle das echte Konto aus, das diesem virtuellen Konto zugrunde liegt.</string>
@@ -70,7 +71,8 @@
     <string name="transfer_recipient_bic">Empfänger BIC (optional)</string>
     <string name="transfer_purpose">Verwendungszweck</string>
     <string name="transfer_execute">Jetzt überweisen</string>
-    <string name="transfer_pin_title">PIN für %s</string>
+    <string name="transfer_pin_dialog_title">Online-Banking-PIN</string>
+    <string name="transfer_pin_title">Bitte gib deine Online-Banking-PIN für %s ein.\n\nVerwende die PIN, die du auch für das Internetbanking (z. B. Banking-Portal deiner Bank) verwendest.</string>
     <string name="transfer_tan_title">TAN-Eingabe: %s</string>
     <string name="transfer_legal_notice">⚠ Überweisungen sind unwiderruflich. Bitte prüfe alle Angaben sorgfältig.</string>
     <string name="transfer_confirm_title">Überweisung bestätigen</string>

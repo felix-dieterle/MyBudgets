@@ -30,6 +30,7 @@ suspend fun pinDialog(activity: Activity, prompt: String): String =
             }
             try {
                 AlertDialog.Builder(activity)
+                    .setTitle(R.string.transfer_pin_dialog_title)
                     .setMessage(prompt)
                     .setView(input)
                     .setPositiveButton(android.R.string.ok) { _, _ ->

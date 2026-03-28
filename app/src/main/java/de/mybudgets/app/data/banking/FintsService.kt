@@ -421,7 +421,7 @@ class FintsService @Inject constructor(
     }
 
     private fun wrongPinException(cause: Throwable?): Exception =
-        Exception("PIN ungültig – bitte überprüfe deine Online-Banking-Zugangsdaten.", cause)
+        Exception("Anmeldung fehlgeschlagen: PIN oder Nutzerkennung ungültig. Bitte überprüfe deine Online-Banking-Zugangsdaten (Nutzerkennung = dein Online-Banking-Login; PIN = deine Online-Banking-PIN).", cause)
 
     /**
      * Checks whether [HbciCallback] signalled a wrong PIN on the current thread.
