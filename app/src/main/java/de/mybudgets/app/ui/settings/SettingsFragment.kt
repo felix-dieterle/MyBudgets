@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.work.*
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import de.mybudgets.app.BuildConfig
 import de.mybudgets.app.R
 import de.mybudgets.app.databinding.FragmentSettingsBinding
 import de.mybudgets.app.viewmodel.SettingsViewModel
@@ -39,6 +40,7 @@ class SettingsFragment : Fragment() {
         binding.etApiKey.setText(vm.apiKey)
         binding.etOpenrouterKey.setText(vm.openrouterApiKey)
         binding.switchOfflineMode.isChecked = vm.offlineMode
+        binding.tvAppVersion.text = getString(R.string.app_version_info, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
 
         updateSyncStatus()
 

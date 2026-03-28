@@ -146,7 +146,7 @@
     <string name="template_error_fill_fields">Bitte zuerst Empfänger, IBAN und Betrag ausfüllen</string>
     <string name="template_error_name_required">Bitte einen Vorlagennamen eingeben</string>
 
-    <!-- Version info at startup -->
+    <!-- Version info in settings -->
     <string name="app_version_info">Version %1$s (Build %2$d)</string>
 
     <!-- Dashboard / Account detail transaction sections -->
