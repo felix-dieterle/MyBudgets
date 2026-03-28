@@ -77,7 +77,11 @@ class BankSyncWorker @AssistedInject constructor(
                     KEY_FROM_DATE to (fromDateMillis.takeIf { it != NO_FROM_DATE } ?: NO_FROM_DATE)
                 )
             )
-        else Result.failure()
+        else Result.failure(
+            androidx.work.workDataOf(
+                KEY_ERROR_MESSAGE to (syncResult.exceptionOrNull()?.message ?: "")
+            )
+        )
     }
 
     companion object {
@@ -85,6 +89,8 @@ class BankSyncWorker @AssistedInject constructor(
         /** Epoch-millis for the earliest date to fetch. Use [NO_FROM_DATE] to fetch all. */
         const val KEY_FROM_DATE     = "from_date"
         const val KEY_IMPORTED_COUNT = "imported_count"
+        /** Error message set in [Result.failure] output data when the sync fails. */
+        const val KEY_ERROR_MESSAGE  = "error_message"
         /** Sentinel value meaning "no date filter – fetch complete history". */
         const val NO_FROM_DATE      = -1L
     }

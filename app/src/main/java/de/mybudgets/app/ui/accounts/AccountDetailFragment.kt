@@ -166,7 +166,10 @@ class AccountDetailFragment : Fragment() {
                     Snackbar.LENGTH_LONG
                 ).show()
             } else if (info?.state == WorkInfo.State.FAILED) {
-                Snackbar.make(requireView(), getString(R.string.bank_sync_failed), Snackbar.LENGTH_LONG).show()
+                val errorMessage = info.outputData.getString(BankSyncWorker.KEY_ERROR_MESSAGE)
+                val message = if (!errorMessage.isNullOrBlank()) errorMessage
+                              else getString(R.string.bank_sync_failed)
+                Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()
             }
         }
     }
