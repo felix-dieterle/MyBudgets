@@ -339,7 +339,7 @@ class FintsService @Inject constructor(
                     AppLogger.i(TAG, "TAN-Verfahren-Auswahl: '${method.ifBlank { "auto" }}'")
                     retData?.replace(0, retData.length, method)
                 }
-                NEED_PT_DECOUPLED_CONFIRM -> {
+                NEED_PT_DECOUPLED, NEED_PT_DECOUPLED_RETRY -> {
                     // Decoupled TAN (BBBank BestSign / pushTAN): user confirms in banking app.
                     AppLogger.i(TAG, "Decoupled TAN-Bestätigung erforderlich: $msg")
                     if (decoupledConfirmProvider != null) {
