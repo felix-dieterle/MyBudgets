@@ -50,9 +50,9 @@ class FintsService @Inject constructor(
     @Volatile var pinProvider: (suspend (bankName: String) -> String)? = null
     @Volatile var tanProvider: (suspend (tanChallenge: String) -> String)? = null
     /**
-     * Called for decoupled TAN methods (e.g. BBBank BestSign / pushTAN).
-     * The UI should show a message asking the user to approve in their banking app
-     * and wait for the user to tap OK before returning.
+     * Called for decoupled TAN methods (e.g. BBBank Secure Go / BestSign / pushTAN).
+     * The UI should show a message asking the user to approve in their Secure Go (or banking)
+     * app and wait for the user to tap OK before returning.
      */
     @Volatile var decoupledConfirmProvider: (suspend (challenge: String) -> Unit)? = null
 
@@ -341,14 +341,14 @@ class FintsService @Inject constructor(
                 }
                 NEED_PT_SECMECH -> {
                     // Return the user-configured TAN security mechanism code (e.g. "900" for
-                    // BBBank BestSign / pushTAN). Empty string lets hbci4j auto-select.
+                    // BBBank Secure Go / BestSign / pushTAN). Empty string lets hbci4j auto-select.
                     val method = currentTanMethod.get() ?: ""
                     AppLogger.i(TAG, "TAN-Verfahren-Auswahl: '${method.ifBlank { "auto" }}'")
                     retData?.replace(0, retData.length, method)
                 }
                 NEED_PT_DECOUPLED, NEED_PT_DECOUPLED_RETRY -> {
-                    // Decoupled TAN (BBBank BestSign / pushTAN): user confirms in banking app.
-                    AppLogger.i(TAG, "Decoupled TAN-Bestätigung erforderlich: $msg")
+                    // Decoupled TAN (BBBank Secure Go / BestSign / pushTAN): user confirms in banking app.
+                    AppLogger.i(TAG, "Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): $msg")
                     if (decoupledConfirmProvider != null) {
                         requestFromUi {
                             decoupledConfirmProvider?.invoke(msg ?: "")

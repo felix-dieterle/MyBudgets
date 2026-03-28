@@ -18,7 +18,7 @@
     <string name="account_iban">IBAN</string>
     <string name="account_bank_code">BLZ</string>
     <string name="account_user_id">Nutzerkennung (Online-Banking-Login)</string>
-    <string name="account_tan_method">TAN-Verfahren-Code (leer = automatisch, z.B. 900 für BBBank BestSign/pushTAN)</string>
+    <string name="account_tan_method">TAN-Verfahren-Code (leer = automatisch, z.B. 900 für BBBank Secure Go/BestSign)</string>
     <string name="account_parent_label">Verknüpftes echtes Konto</string>
     <string name="account_parent_hint">Bitte wähle das echte Konto aus, das diesem virtuellen Konto zugrunde liegt.</string>
     <string name="account_linked_to">Verknüpft mit:</string>
@@ -76,6 +76,8 @@
     <string name="transfer_confirm_title">Überweisung bestätigen</string>
     <string name="transfer_confirm_message">Empfänger: %1$s\nIBAN: %2$s\nBetrag: %3$s\nVerwendungszweck: %4$s\n\nDie Überweisung wird unwiderruflich an deine Bank übermittelt. Anschließend wirst du zur PIN/TAN-Eingabe aufgefordert.\n\nFortfahren?</string>
     <string name="transfer_confirm_ok">Bestätigen &amp; PIN/TAN eingeben</string>
+    <string name="decoupled_confirm_title">BBBank Secure Go / App-TAN</string>
+    <string name="decoupled_confirm_message">Bitte bestätige die Aktion in der BBBank Secure Go App (oder Banking-App) und tippe anschließend auf OK.</string>
     <string name="error_invalid_iban">Ungültige IBAN</string>
     <string name="error_invalid_amount">Ungültiger Betrag</string>
     <string name="error_required">Pflichtfeld</string>

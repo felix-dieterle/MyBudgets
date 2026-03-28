@@ -23,7 +23,8 @@ data class Account(
     /**
      * HBCI/FinTS TAN security mechanism code (Sicherheitsfunktion).
      * Leave empty to let hbci4j auto-select the first available method.
-     * For BBBank BestSign / pushTAN use the code assigned by your bank (e.g. "900").
+     * For BBBank Secure Go / BestSign use the code assigned by your bank (e.g. "900").
+     * Both apps use the decoupled TAN flow: the user confirms directly in the Secure Go app.
      */
     val tanMethod: String = "",
     val createdAt: Long = System.currentTimeMillis(),
