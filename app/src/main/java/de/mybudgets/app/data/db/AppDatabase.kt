@@ -78,7 +78,23 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Remove duplicate labels (keep lowest id per name) before adding unique index
+                // Step 1: Re-link transaction_labels entries that point to a duplicate label
+                // so they point to the kept (lowest-id) label with the same name instead.
+                // OR IGNORE prevents conflicts when the transaction is already linked to the kept label.
+                database.execSQL("""
+                    INSERT OR IGNORE INTO transaction_labels (transactionId, labelId)
+                    SELECT tl.transactionId,
+                           (SELECT MIN(l2.id) FROM labels l2 WHERE l2.name = l.name)
+                    FROM transaction_labels tl
+                    JOIN labels l ON l.id = tl.labelId
+                    WHERE tl.labelId NOT IN (SELECT MIN(id) FROM labels GROUP BY name)
+                """.trimIndent())
+                // Step 2: Remove the now-superseded entries that still point to duplicate label IDs.
+                database.execSQL("""
+                    DELETE FROM transaction_labels
+                    WHERE labelId NOT IN (SELECT MIN(id) FROM labels GROUP BY name)
+                """.trimIndent())
+                // Step 3: Remove duplicate label rows (keep lowest id per name).
                 database.execSQL(
                     "DELETE FROM labels WHERE id NOT IN (SELECT MIN(id) FROM labels GROUP BY name)"
                 )
