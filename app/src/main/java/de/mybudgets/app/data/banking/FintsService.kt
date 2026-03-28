@@ -251,6 +251,13 @@ class FintsService @Inject constructor(
     @Synchronized
     private fun initHbciOnce() {
         if (hbciInitialized) return
+        // Android's default DocumentBuilderFactory does not support DTD validation, but
+        // hbci4java's MsgGen unconditionally calls setValidating(true). Replace the factory
+        // with our wrapper that silently ignores the validation flag.
+        System.setProperty(
+            "javax.xml.parsers.DocumentBuilderFactory",
+            NonValidatingDocumentBuilderFactory::class.java.name
+        )
         val props = Properties().apply {
             setProperty("client.product.id", "MyBudgets")
             setProperty("client.product.version", "1.0")
