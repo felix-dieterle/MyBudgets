@@ -3,6 +3,7 @@ package de.mybudgets.app.ui.transfers
 import android.app.Activity
 import android.app.AlertDialog
 import android.widget.EditText
+import de.mybudgets.app.R
 import de.mybudgets.app.util.AppLogger
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -81,9 +82,9 @@ suspend fun tanDialog(activity: Activity, challenge: String): String =
     }
 
 /**
- * Shows a confirmation dialog for decoupled TAN methods (e.g. BBBank BestSign / pushTAN).
- * Tells the user to approve the action in their banking app and suspends until they tap OK.
- * No TAN input is required.
+ * Shows a confirmation dialog for decoupled TAN methods (BBBank Secure Go / BestSign / pushTAN).
+ * Tells the user to approve the action in their Secure Go (or other banking) app and suspends
+ * until they tap OK. No TAN input is required — the bank confirms via the app.
  */
 suspend fun decoupledConfirmDialog(activity: Activity, challenge: String): Unit =
     suspendCancellableCoroutine { cont ->
@@ -100,9 +101,9 @@ suspend fun decoupledConfirmDialog(activity: Activity, challenge: String): Unit 
             }
             try {
                 val message = if (challenge.isNotBlank()) challenge
-                    else "Bitte bestätige die Aktion in deiner Banking-App und tippe dann OK."
+                    else activity.getString(R.string.decoupled_confirm_message)
                 AlertDialog.Builder(activity)
-                    .setTitle("App-TAN / Banking-App")
+                    .setTitle(R.string.decoupled_confirm_title)
                     .setMessage(message)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
                         if (cont.isActive) cont.resume(Unit)
