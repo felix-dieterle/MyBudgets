@@ -41,3 +41,4 @@ Thumbs.db
 
 # Debug keystore IS committed intentionally for reproducible CI builds
 # keystore/debug.keystore  <-- do NOT add this line
+META-INF/
