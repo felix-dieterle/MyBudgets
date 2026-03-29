@@ -244,7 +244,7 @@ class FintsService @Inject constructor(
             blzFromIban(account.iban)
                 ?: error("BLZ fehlt und kann nicht aus der IBAN ermittelt werden für Konto '${account.name}'")
         }
-        AppLogger.d(TAG, "openSession: BLZ=$blz accountId=${account.id}")
+        AppLogger.d(TAG, "openSession: BLZ=$blz userId='${account.userId.ifBlank { "(leer)" }}' accountId=${account.id}")
         currentBlz.set(blz)
         currentUserId.set(account.userId)
         currentTanMethod.set(account.tanMethod)
@@ -260,6 +260,19 @@ class FintsService @Inject constructor(
         // Without this, a fresh passport triggers "bankleitzahl darf nicht leer sein".
         passport.country = "DE"
         passport.blz = blz
+        // Always override userId/customerId from the account's current settings.
+        // If the passport file already existed (from a previous session), it may contain a
+        // stale/empty userId – explicitly setting it here ensures the currently configured
+        // Nutzerkennung is always used, regardless of what was persisted in the passport file.
+        //
+        // For standard German retail banking (PIN/TAN), customerId equals userId (Nutzerkennung).
+        // This is consistent with the NEED_USERID/NEED_CUSTOMERID callback below, which also
+        // returns the same account.userId for both.  If a bank ever requires a distinct
+        // Kundenkennung, a dedicated customerId field can be added to Account.
+        if (account.userId.isNotBlank()) {
+            passport.userId = account.userId
+            passport.customerId = account.userId
+        }
         val handler = HBCIHandler("300", passport)
         return Pair(handler, passport)
     }
@@ -353,7 +366,9 @@ class FintsService @Inject constructor(
                     retData?.replace(0, retData.length, currentBlz.get() ?: "")
                 }
                 NEED_USERID, NEED_CUSTOMERID -> {
-                    retData?.replace(0, retData.length, currentUserId.get() ?: "")
+                    val uid = currentUserId.get() ?: ""
+                    AppLogger.d(TAG, "HBCI Nutzerkennung-Anfrage (reason=$reason): userId='${uid.ifBlank { "(leer)" }}'")
+                    retData?.replace(0, retData.length, uid)
                 }
                 NEED_PT_SECMECH -> {
                     // Return the user-configured TAN security mechanism code (e.g. "900" for
