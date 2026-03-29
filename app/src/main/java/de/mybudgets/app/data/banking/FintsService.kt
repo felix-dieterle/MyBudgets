@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.kapott.hbci.GV_Result.GVRKUms
 import org.kapott.hbci.callback.AbstractHBCICallback
+import org.kapott.hbci.exceptions.InvalidUserDataException
 import org.kapott.hbci.manager.HBCIHandler
 import org.kapott.hbci.manager.HBCIUtils
 import org.kapott.hbci.passport.AbstractHBCIPassport
@@ -273,8 +274,48 @@ class FintsService @Inject constructor(
             passport.userId = account.userId
             passport.customerId = account.userId
         }
-        val handler = HBCIHandler("300", passport)
-        return Pair(handler, passport)
+        return try {
+            val handler = HBCIHandler("300", passport)
+            Pair(handler, passport)
+        } catch (e: Exception) {
+            // If the TAN method stored in the passport is no longer supported by the bank
+            // (e.g. the bank updated their TAN method list), delete the stale passport file
+            // and retry once with a fresh passport so hbci4j can re-negotiate.
+            if (e.hasCause<InvalidUserDataException> { it.message?.contains("selected pintan method not supported") == true }
+                && passportFile.exists()
+            ) {
+                AppLogger.w(TAG, "openSession: gespeicherte TAN-Methode ungültig – lösche Passport-Datei und versuche erneut")
+                passportFile.delete()
+                HBCIUtils.setParam("client.passport.PinTan.filename", passportFile.absolutePath)
+                HBCIUtils.setParam("client.passport.PinTan.init", "1")
+                val freshPassport = AbstractHBCIPassport.getInstance("PinTan") as AbstractHBCIPassport
+                freshPassport.country = "DE"
+                freshPassport.blz = blz
+                if (account.userId.isNotBlank()) {
+                    freshPassport.userId = account.userId
+                    freshPassport.customerId = account.userId
+                }
+                val freshHandler = HBCIHandler("300", freshPassport)
+                Pair(freshHandler, freshPassport)
+            } else {
+                throw e
+            }
+        }
+    }
+
+    /**
+     * Returns true if any exception in the cause chain matches the given [predicate].
+     * Limits traversal depth to avoid infinite loops on pathological circular chains.
+     */
+    private inline fun <reified T : Throwable> Throwable.hasCause(predicate: (T) -> Boolean): Boolean {
+        var cause: Throwable? = this
+        var depth = 0
+        while (cause != null && depth < 20) {
+            if (cause is T && predicate(cause)) return true
+            cause = cause.cause
+            depth++
+        }
+        return false
     }
 
     @Synchronized
@@ -371,11 +412,20 @@ class FintsService @Inject constructor(
                     retData?.replace(0, retData.length, uid)
                 }
                 NEED_PT_SECMECH -> {
-                    // Return the user-configured TAN security mechanism code (e.g. "900" for
-                    // BBBank Secure Go / BestSign / pushTAN). Empty string lets hbci4j auto-select.
                     val method = currentTanMethod.get() ?: ""
-                    AppLogger.i(TAG, "TAN-Verfahren-Auswahl: '${method.ifBlank { "auto" }}'")
-                    retData?.replace(0, retData.length, method)
+                    if (method.isNotBlank()) {
+                        // User has explicitly configured a TAN security mechanism code
+                        // (e.g. "900" for BBBank Secure Go / BestSign / pushTAN) → override.
+                        AppLogger.i(TAG, "TAN-Verfahren-Auswahl: '$method'")
+                        retData?.replace(0, retData.length, method)
+                    } else {
+                        // Auto mode: leave retData unchanged so hbci4j can use its internally
+                        // stored TAN method (set during a previous session) or fall back to its
+                        // own auto-selection logic.  Replacing the buffer with "" would cause
+                        // hbci4j to try an empty-string method code which is never valid.
+                        val stored = retData?.toString() ?: ""
+                        AppLogger.i(TAG, "TAN-Verfahren-Auswahl: 'auto' (gespeichert: '${stored.ifBlank { "(leer)" }}')")
+                    }
                 }
                 NEED_PT_DECOUPLED, NEED_PT_DECOUPLED_RETRY -> {
                     // Decoupled TAN (BBBank Secure Go / BestSign / pushTAN): user confirms in banking app.
