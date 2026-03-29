@@ -202,10 +202,10 @@ class FintsService @Inject constructor(
             try {
                 // Create the account statement job. hbci4java's GVKUmsAll (and GVKUmsZeit) both
                 // use the FinTS 3.0 spec name "KUmsZeit" internally. Some banks (e.g. those still
-                // on HBCI 2.x) don't support KUmsZeit and will cause newJob() to throw an
+                // on HBCI 2.x) don't support KUmsZeit/KUmsAll and will cause newJob() to throw an
                 // HBCI_Exception whose cause chain contains a JobNotSupportedException.
-                // In that case, fall back to the older "KUmsNew" job (HBCI 2.x spec) which is
-                // supported by a wider range of banks.
+                // In that case, fall back to the older "KUmsNew" job (HBCI 2.x spec).
+                // If KUmsNew is also unsupported, throw a user-friendly UnsupportedOperationException.
                 fun createKontoauszugJob() = if (fromDate != null) {
                     val j = handler.newJob("KUmsZeit")
                     j.setParam("my", buildKonto(account))
@@ -220,14 +220,29 @@ class FintsService @Inject constructor(
                     createKontoauszugJob()
                 } catch (e: Exception) {
                     if (e.hasCause<JobNotSupportedException> { true }) {
-                        // KUmsZeit (used by both GVKUmsZeit and GVKUmsAll in FinTS 3.0) is not
-                        // listed in the bank's BPD. Fall back to KUmsNew (HBCI 2.x).
+                        // KUmsZeit/KUmsAll (FinTS 3.0 spec) is not listed in the bank's BPD.
+                        // Fall back to KUmsNew (HBCI 2.x spec).
                         // Note: KUmsNew does not support date filtering; more transactions than
                         // requested may be returned when fromDate was set.
-                        AppLogger.w(TAG, "KUmsZeit nicht unterstützt, Fallback auf KUmsNew: ${e.message}")
-                        val j = handler.newJob("KUmsNew")
-                        j.setParam("my", buildKonto(account))
-                        j
+                        AppLogger.w(TAG, "KUmsAll/KUmsZeit nicht unterstützt, Fallback auf KUmsNew: ${e.message}")
+                        try {
+                            val j = handler.newJob("KUmsNew")
+                            j.setParam("my", buildKonto(account))
+                            j
+                        } catch (e2: Exception) {
+                            if (e2.hasCause<JobNotSupportedException> { true }) {
+                                // Neither FinTS 3.0 (KUmsAll/KUmsZeit) nor HBCI 2.x (KUmsNew) is
+                                // listed in the bank's BPD. No further fallback is possible.
+                                AppLogger.w(TAG, "KUmsNew ebenfalls nicht unterstützt – Kontoauszug-Abruf nicht möglich: ${e2.message}")
+                                throw UnsupportedOperationException(
+                                    "Diese Bank unterstützt keinen HBCI-Kontoauszug-Abruf " +
+                                    "(weder KUmsAll/KUmsZeit noch KUmsNew werden in der BPD angeboten).",
+                                    e2
+                                )
+                            } else {
+                                throw e2
+                            }
+                        }
                     } else {
                         throw e
                     }
