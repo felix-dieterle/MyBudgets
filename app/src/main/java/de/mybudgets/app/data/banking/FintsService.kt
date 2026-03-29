@@ -419,12 +419,20 @@ class FintsService @Inject constructor(
                         AppLogger.i(TAG, "TAN-Verfahren-Auswahl: '$method'")
                         retData?.replace(0, retData.length, method)
                     } else {
-                        // Auto mode: leave retData unchanged so hbci4j can use its internally
-                        // stored TAN method (set during a previous session) or fall back to its
-                        // own auto-selection logic.  Replacing the buffer with "" would cause
-                        // hbci4j to try an empty-string method code which is never valid.
+                        // Auto mode: hbci4j passes the available methods as a pipe-delimited
+                        // list in retData (format: "code:name|code:name|…").  If left unchanged
+                        // the full list string is used as the selected method code, which always
+                        // fails with "selected pintan method not supported".  Extract the first
+                        // method code and set it so hbci4j receives a valid single code.
                         val stored = retData?.toString() ?: ""
                         AppLogger.i(TAG, "TAN-Verfahren-Auswahl: 'auto' (gespeichert: '${stored.ifBlank { "(leer)" }}')")
+                        if (stored.contains("|")) {
+                            val firstCode = stored.split("|").firstOrNull()?.substringBefore(":")?.trim() ?: ""
+                            if (firstCode.isNotBlank()) {
+                                AppLogger.i(TAG, "TAN-Verfahren-Auswahl: Auto-Auswahl erste Methode '$firstCode'")
+                                retData?.replace(0, retData.length, firstCode)
+                            }
+                        }
                     }
                 }
                 NEED_PT_DECOUPLED, NEED_PT_DECOUPLED_RETRY -> {
