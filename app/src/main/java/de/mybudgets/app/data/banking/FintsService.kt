@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 import org.kapott.hbci.GV_Result.GVRKUms
 import org.kapott.hbci.callback.AbstractHBCICallback
 import org.kapott.hbci.exceptions.InvalidUserDataException
+import org.kapott.hbci.exceptions.JobNotSupportedException
 import org.kapott.hbci.manager.HBCIHandler
 import org.kapott.hbci.manager.HBCIUtils
 import org.kapott.hbci.passport.AbstractHBCIPassport
@@ -199,11 +200,37 @@ class FintsService @Inject constructor(
         val operationResult = runCatching {
             val (handler, _) = openSession(account)
             try {
-                val jobName = if (fromDate != null) "KUmsZeit" else "KUmsAll"
-                val job = handler.newJob(jobName)
-                job.setParam("my", buildKonto(account))
-                if (fromDate != null) {
-                    job.setParam("startdate", SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY).format(fromDate))
+                // Create the account statement job. hbci4java's GVKUmsAll (and GVKUmsZeit) both
+                // use the FinTS 3.0 spec name "KUmsZeit" internally. Some banks (e.g. those still
+                // on HBCI 2.x) don't support KUmsZeit and will cause newJob() to throw an
+                // HBCI_Exception whose cause chain contains a JobNotSupportedException.
+                // In that case, fall back to the older "KUmsNew" job (HBCI 2.x spec) which is
+                // supported by a wider range of banks.
+                fun createKontoauszugJob() = if (fromDate != null) {
+                    val j = handler.newJob("KUmsZeit")
+                    j.setParam("my", buildKonto(account))
+                    j.setParam("startdate", SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY).format(fromDate))
+                    j
+                } else {
+                    val j = handler.newJob("KUmsAll")
+                    j.setParam("my", buildKonto(account))
+                    j
+                }
+                val job = try {
+                    createKontoauszugJob()
+                } catch (e: Exception) {
+                    if (e.hasCause<JobNotSupportedException> { true }) {
+                        // KUmsZeit (used by both GVKUmsZeit and GVKUmsAll in FinTS 3.0) is not
+                        // listed in the bank's BPD. Fall back to KUmsNew (HBCI 2.x).
+                        // Note: KUmsNew does not support date filtering; more transactions than
+                        // requested may be returned when fromDate was set.
+                        AppLogger.w(TAG, "KUmsZeit nicht unterstützt, Fallback auf KUmsNew: ${e.message}")
+                        val j = handler.newJob("KUmsNew")
+                        j.setParam("my", buildKonto(account))
+                        j
+                    } else {
+                        throw e
+                    }
                 }
                 handler.addJob(job)
 
