@@ -207,15 +207,16 @@ class FintsService @Inject constructor(
                 // Fetch account statement with an ordered fallback strategy:
                 //
                 // Priority order (first success wins):
-                //  1. KUmsZeit  (HKCAZ, FinTS 3.0) — with fromDate if set, else with epoch startdate.
-                //     Modern banks such as BBBank support HKCAZ (KUmsZeit) but NOT HKKAZ (KUmsAll/
-                //     KUmsNew). In hbci4java 3.x, GVKUmsAll internally resolves the spec name
-                //     "KUmsNew" which is absent from the HBCI-300 spec files, so handler.newJob()
-                //     throws JobNotSupportedException even for "KUmsAll". KUmsZeit uses the HKCAZ
-                //     spec which IS present in hbci-300.xml and therefore works for these banks.
+                //  1. KUmsZeitSEPA (HKCAZ SEPA, FinTS 3.0) — with fromDate if set, else with epoch
+                //     startdate. Modern banks such as BBBank support HKCAZ (KUmsZeitSEPA) but NOT
+                //     HKKAZ (KUmsAll/KUmsNew). In hbci4java 3.x, GVKUmsAll internally resolves the
+                //     spec name "KUmsZeit" which may be absent from the BPD, so handler.newJob()
+                //     throws JobNotSupportedException even for "KUmsAll" on those banks.
+                //     KUmsZeitSEPA maps to GVKUmsZeitSEPA (present in hbci4j-core 3.1.88+) and uses
+                //     the HKCAZ SEPA spec which IS advertised in the BPD of modern banks.
                 //  2. KUmsAll   (HKKAZ, FinTS 3.0) — tried first when fromDate == null; also tried
-                //     as a fallback when KUmsZeit fails with fromDate set (returns more transactions
-                //     than requested, which is acceptable).
+                //     as a fallback when KUmsZeitSEPA fails with fromDate set (returns more
+                //     transactions than requested, which is acceptable).
                 //  3. KUmsNew   (HKKAZ, HBCI 2.x)  — legacy fallback for older bank servers.
                 //
                 // Note: KUmsAll and KUmsNew do not support date filtering; if fromDate was set and
@@ -223,17 +224,17 @@ class FintsService @Inject constructor(
                 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY)
 
                 // Build the ordered list of job names + optional startdate to try.
-                // fromDate != null  → KUmsZeit (with date), then KUmsAll, then KUmsNew
-                // fromDate == null  → KUmsAll, then KUmsZeit (epoch startdate to cover banks that
-                //                      only support HKCAZ but not HKKAZ), then KUmsNew
+                // fromDate != null  → KUmsZeitSEPA (with date), then KUmsAll, then KUmsNew
+                // fromDate == null  → KUmsAll, then KUmsZeitSEPA (epoch startdate to cover banks
+                //                      that only support HKCAZ SEPA but not HKKAZ), then KUmsNew
                 data class JobAttempt(val name: String, val startDate: Date? = null)
                 val jobAttempts = if (fromDate != null) listOf(
-                    JobAttempt("KUmsZeit", fromDate),
+                    JobAttempt("KUmsZeitSEPA", fromDate),
                     JobAttempt("KUmsAll"),
                     JobAttempt("KUmsNew"),
                 ) else listOf(
                     JobAttempt("KUmsAll"),
-                    JobAttempt("KUmsZeit", Date(0)),
+                    JobAttempt("KUmsZeitSEPA", Date(0)),
                     JobAttempt("KUmsNew"),
                 )
 
@@ -262,7 +263,7 @@ class FintsService @Inject constructor(
                     AppLogger.w(TAG, "Kein Kontoauszug-Job unterstützt – Abruf nicht möglich: ${lastJobException?.message}")
                     throw UnsupportedOperationException(
                         "Diese Bank unterstützt keinen HBCI-Kontoauszug-Abruf " +
-                        "(weder KUmsAll/KUmsZeit noch KUmsNew werden in der BPD angeboten).",
+                        "(weder KUmsAll/KUmsZeitSEPA noch KUmsNew werden in der BPD angeboten).",
                         lastJobException
                     )
                 }
