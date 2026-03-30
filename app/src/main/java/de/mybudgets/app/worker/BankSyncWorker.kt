@@ -67,7 +67,10 @@ class BankSyncWorker @AssistedInject constructor(
             applicationContext.getSharedPreferences("mybudgets_prefs", Context.MODE_PRIVATE)
                 .edit().putLong("last_bank_sync_${accountId}", System.currentTimeMillis()).apply()
         }.onFailure { e ->
-            AppLogger.e(TAG, "doWork: Kontoauszug-Abruf fehlgeschlagen: ${e.message}", e)
+            if (e is UnsupportedOperationException)
+                AppLogger.w(TAG, "doWork: Kontoauszug-Abruf nicht unterstützt: ${e.message}")
+            else
+                AppLogger.e(TAG, "doWork: Kontoauszug-Abruf fehlgeschlagen: ${e.message}", e)
         }
 
         return if (syncResult.isSuccess)
@@ -79,7 +82,8 @@ class BankSyncWorker @AssistedInject constructor(
             )
         else Result.failure(
             androidx.work.workDataOf(
-                KEY_ERROR_MESSAGE to (syncResult.exceptionOrNull()?.message ?: "")
+                KEY_ERROR_MESSAGE to (syncResult.exceptionOrNull()?.message ?: ""),
+                KEY_UNSUPPORTED to (syncResult.exceptionOrNull() is UnsupportedOperationException)
             )
         )
     }
@@ -91,6 +95,12 @@ class BankSyncWorker @AssistedInject constructor(
         const val KEY_IMPORTED_COUNT = "imported_count"
         /** Error message set in [Result.failure] output data when the sync fails. */
         const val KEY_ERROR_MESSAGE  = "error_message"
+        /**
+         * Boolean flag set to `true` in [Result.failure] output data when the bank does not
+         * support any HBCI account-statement job. Callers can use this to display a
+         * "not supported" hint rather than a generic error.
+         */
+        const val KEY_UNSUPPORTED    = "unsupported"
         /** Sentinel value meaning "no date filter – fetch complete history". */
         const val NO_FROM_DATE      = -1L
     }

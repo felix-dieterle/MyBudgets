@@ -294,7 +294,10 @@ class FintsService @Inject constructor(
             }
         }.onFailure { e ->
             if (e is CancellationException) throw e
-            AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
+            if (e is UnsupportedOperationException)
+                AppLogger.w(TAG, "fetchAccountStatement nicht unterstützt: ${e.message}")
+            else
+                AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
         }
         wrapWrongPinResult(operationResult)
     }
