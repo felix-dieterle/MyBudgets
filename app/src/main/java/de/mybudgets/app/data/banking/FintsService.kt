@@ -38,6 +38,9 @@ import kotlin.math.abs
 
 private const val TAG = "FintsService"
 
+/** Prefix used by hbci4java when a job class is missing from the classpath or spec. */
+private const val HBCI_NO_HIGHLEVEL_JOB_MSG = "there is no highlevel job named"
+
 /**
  * Wraps HBCI4Java for direct FinTS/HBCI bank communication.
  * Supports single SEPA transfers, SEPA standing orders, and account statement fetch.
@@ -246,7 +249,8 @@ class FintsService @Inject constructor(
                         r.getOrThrow()
                     } else {
                         val ex = r.exceptionOrNull() as? Exception ?: throw r.exceptionOrNull()!!
-                        if (ex.hasCause<JobNotSupportedException> { true }) {
+                        if (ex.hasCause<JobNotSupportedException> { true } ||
+                            ex.hasCause<InvalidUserDataException> { it.message?.contains(HBCI_NO_HIGHLEVEL_JOB_MSG) == true }) {
                             AppLogger.w(TAG, "Job nicht unterstützt, nächsten Fallback versuchen: ${ex.message}")
                             lastJobException = ex
                             null  // try next
