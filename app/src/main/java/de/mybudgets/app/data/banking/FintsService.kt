@@ -417,6 +417,23 @@ class FintsService @Inject constructor(
             "javax.xml.parsers.DocumentBuilderFactory",
             NonValidatingDocumentBuilderFactory::class.java.name
         )
+        // Some Android devices expose Unicode locale extensions in Locale.getDefault() such as
+        // "de_DE_#u-fw-mon-mu-celsius" (first-day-of-week=Monday, temperature=Celsius).
+        // hbci4java's CAMT parser calls ResourceBundle.getBundle("j2.g") without an explicit
+        // locale, so it inherits Locale.getDefault(). The library does not ship resource bundles
+        // for locales with Unicode extensions, which causes:
+        //   MissingResourceException: Can't find bundle for base name j2.g,
+        //                             locale de_DE_#u-fw-mon-mu-celsius
+        //   ClassCastException: j2.g cannot be cast to ResourceBundle
+        // Fix: strip all Unicode locale extensions (the "-u-…" segment) from the default locale
+        // so that hbci4java's ResourceBundle lookups resolve to the plain "de_DE" variant.
+        val defaultLocale = Locale.getDefault()
+        val languageTag = defaultLocale.toLanguageTag()
+        if (languageTag.contains("-u-")) {
+            val strippedTag = languageTag.substringBefore("-u-")
+            Locale.setDefault(Locale.forLanguageTag(strippedTag))
+            AppLogger.d(TAG, "initHbciOnce: Locale normalisiert von '$languageTag' zu '$strippedTag' (Unicode-Erweiterungen entfernt)")
+        }
         val props = Properties().apply {
             setProperty("client.product.id", "MyBudgets")
             setProperty("client.product.version", "1.0")
