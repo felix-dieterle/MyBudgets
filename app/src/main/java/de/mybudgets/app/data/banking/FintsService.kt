@@ -207,32 +207,34 @@ class FintsService @Inject constructor(
                 // Fetch account statement with an ordered fallback strategy:
                 //
                 // Priority order (first success wins):
-                //  1. KUmsZeitSEPA (HKCAZ SEPA, FinTS 3.0) — with fromDate if set, else with epoch
-                //     startdate. Modern banks such as BBBank support HKCAZ (KUmsZeitSEPA) but NOT
-                //     HKKAZ (KUmsAll/KUmsNew). In hbci4java 3.x, GVKUmsAll internally resolves the
-                //     spec name "KUmsZeit" which may be absent from the BPD, so handler.newJob()
-                //     throws JobNotSupportedException even for "KUmsAll" on those banks.
-                //     KUmsZeitSEPA maps to GVKUmsZeitSEPA (present in hbci4j-core 3.1.88+) and uses
-                //     the HKCAZ SEPA spec which IS advertised in the BPD of modern banks.
-                //  2. KUmsAll   (HKKAZ, FinTS 3.0) — tried first when fromDate == null; also tried
-                //     as a fallback when KUmsZeitSEPA fails with fromDate set (returns more
-                //     transactions than requested, which is acceptable).
-                //  3. KUmsNew   (HKKAZ, HBCI 2.x)  — legacy fallback for older bank servers.
+                //  1. KUmsAllCamt (HKCAZ CAMT/ISO 20022, FinTS 3.0+) — most modern banks
+                //     (e.g. BBBank / VR cooperative banks) advertise HKCAZ only in CAMT format
+                //     (camt.052) in their BPD. GVKUmsAllCamt handles date filtering natively.
+                //  2. KUmsZeitSEPA (HKCAZ SEPA MT940-style, FinTS 3.0) — banks that advertise
+                //     the SEPA HKCAZ variant (not CAMT). Supports date filtering.
+                //  3. KUmsAll   (HKKAZ, FinTS 3.0) — tried first when fromDate == null; also
+                //     tried as a fallback (returns more transactions than requested when
+                //     fromDate was set, which is acceptable).
+                //  4. KUmsNew   (HKKAZ, HBCI 2.x)  — legacy fallback for older bank servers.
                 //
-                // Note: KUmsAll and KUmsNew do not support date filtering; if fromDate was set and
-                // only these succeed, more transactions than requested will be returned.
+                // Note: KUmsAll and KUmsNew do not support date filtering; if fromDate was set
+                // and only these succeed, more transactions than requested will be returned.
                 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY)
 
                 // Build the ordered list of job names + optional startdate to try.
-                // fromDate != null  → KUmsZeitSEPA (with date), then KUmsAll, then KUmsNew
-                // fromDate == null  → KUmsAll, then KUmsZeitSEPA (epoch startdate to cover banks
-                //                      that only support HKCAZ SEPA but not HKKAZ), then KUmsNew
+                // fromDate != null  → KUmsAllCamt (with date), KUmsZeitSEPA (with date),
+                //                     KUmsAll, KUmsNew
+                // fromDate == null  → KUmsAllCamt (no explicit date, uses BPD timerange),
+                //                     KUmsAll, KUmsZeitSEPA (epoch startdate to cover banks
+                //                     that only support HKCAZ SEPA), KUmsNew
                 data class JobAttempt(val name: String, val startDate: Date? = null)
                 val jobAttempts = if (fromDate != null) listOf(
+                    JobAttempt("KUmsAllCamt", fromDate),
                     JobAttempt("KUmsZeitSEPA", fromDate),
                     JobAttempt("KUmsAll"),
                     JobAttempt("KUmsNew"),
                 ) else listOf(
+                    JobAttempt("KUmsAllCamt"),
                     JobAttempt("KUmsAll"),
                     JobAttempt("KUmsZeitSEPA", Date(0)),
                     JobAttempt("KUmsNew"),
@@ -263,7 +265,7 @@ class FintsService @Inject constructor(
                     AppLogger.w(TAG, "Kein Kontoauszug-Job unterstützt – Abruf nicht möglich: ${lastJobException?.message}")
                     throw UnsupportedOperationException(
                         "Diese Bank unterstützt keinen HBCI-Kontoauszug-Abruf " +
-                        "(weder KUmsAll/KUmsZeitSEPA noch KUmsNew werden in der BPD angeboten).",
+                        "(weder KUmsAllCamt/KUmsZeitSEPA noch KUmsAll/KUmsNew werden in der BPD angeboten).",
                         lastJobException
                     )
                 }
@@ -294,7 +296,10 @@ class FintsService @Inject constructor(
             }
         }.onFailure { e ->
             if (e is CancellationException) throw e
-            AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
+            if (e is UnsupportedOperationException)
+                AppLogger.w(TAG, "fetchAccountStatement nicht unterstützt: ${e.message}")
+            else
+                AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
         }
         wrapWrongPinResult(operationResult)
     }
