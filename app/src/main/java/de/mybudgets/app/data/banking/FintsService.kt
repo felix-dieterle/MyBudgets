@@ -41,6 +41,9 @@ private const val TAG = "FintsService"
 /** Prefix used by hbci4java when a job class is missing from the classpath or spec. */
 private const val HBCI_NO_HIGHLEVEL_JOB_MSG = "there is no highlevel job named"
 
+/** Fragment of the hbci4java error message when a required BIC property was not set. */
+private const val HBCI_MISSING_BIC_MSG = "my.bic"
+
 /**
  * Wraps HBCI4Java for direct FinTS/HBCI bank communication.
  * Supports single SEPA transfers, SEPA standing orders, and account statement fetch.
@@ -120,8 +123,9 @@ class FintsService @Inject constructor(
         val operationResult = runCatching {
             val (handler, passport) = openSession(fromAccount)
             try {
+                val bic = bicFromPassport(passport, fromAccount.iban)
                 val job = handler.newJob("UebSEPA")
-                job.setParam("src", buildKonto(fromAccount))
+                job.setParam("src", buildKonto(fromAccount, bic))
                 job.setParam("dst", buildKontoRecipient(toName, toIban, toBic))
                 job.setParam("btg", Value(amount, "EUR"))
                 job.setParam("usage", purpose)
@@ -158,10 +162,11 @@ class FintsService @Inject constructor(
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
         val operationResult = runCatching {
-            val (handler, _) = openSession(fromAccount)
+            val (handler, passport) = openSession(fromAccount)
             try {
+                val bic = bicFromPassport(passport, fromAccount.iban)
                 val job = handler.newJob("DauerNewSEPA")
-                job.setParam("src", buildKonto(fromAccount))
+                job.setParam("src", buildKonto(fromAccount, bic))
                 job.setParam("dst", buildKontoRecipient(order.recipientName, order.recipientIban, order.recipientBic))
                 job.setParam("btg", Value(order.amount, "EUR"))
                 job.setParam("usage", order.purpose)
@@ -202,8 +207,12 @@ class FintsService @Inject constructor(
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
         val operationResult = runCatching {
-            val (handler, _) = openSession(account)
+            val (handler, passport) = openSession(account)
             try {
+                // Look up the BIC for this account from the passport's UPD accounts.
+                // SEPA/CAMT jobs (KUmsAllCamt, KUmsZeitSEPA) require my.bic to be set;
+                // omitting it causes InvalidUserDataException: "Property my.bic wurde nicht gesetzt".
+                val bic = bicFromPassport(passport, account.iban)
                 // Fetch account statement with an ordered fallback strategy:
                 //
                 // Priority order (first success wins):
@@ -244,8 +253,13 @@ class FintsService @Inject constructor(
                 val job: HBCIJob = jobAttempts.firstNotNullOfOrNull { attempt ->
                     val r = runCatching {
                         val j = handler.newJob(attempt.name)
-                        j.setParam("my", buildKonto(account))
+                        j.setParam("my", buildKonto(account, bic))
                         attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
+                        // addJob is called here (inside the runCatching) so that constraint
+                        // validation errors (e.g. "Property my.bic wurde nicht gesetzt" when
+                        // the BIC could not be resolved from the passport UPD yet) are caught
+                        // and trigger a fallback to the next job instead of aborting entirely.
+                        handler.addJob(j)
                         j
                     }
                     if (r.isSuccess) {
@@ -253,7 +267,12 @@ class FintsService @Inject constructor(
                     } else {
                         val ex = r.exceptionOrNull() as? Exception ?: throw r.exceptionOrNull()!!
                         if (ex.hasCause<JobNotSupportedException> { true } ||
-                            ex.hasCause<InvalidUserDataException> { it.message?.contains(HBCI_NO_HIGHLEVEL_JOB_MSG) == true }) {
+                            ex.hasCause<InvalidUserDataException> { msg ->
+                                msg.message?.let {
+                                    it.contains(HBCI_NO_HIGHLEVEL_JOB_MSG) ||
+                                    it.contains(HBCI_MISSING_BIC_MSG)
+                                } == true
+                            }) {
                             AppLogger.w(TAG, "Job nicht unterstützt, nächsten Fallback versuchen: ${ex.message}")
                             lastJobException = ex
                             null  // try next
@@ -269,7 +288,6 @@ class FintsService @Inject constructor(
                         lastJobException
                     )
                 }
-                handler.addJob(job)
 
                 val status = handler.execute()
                 if (!status.isOK) error("Kontoauszug fehlgeschlagen: $status")
@@ -423,12 +441,25 @@ class FintsService @Inject constructor(
         } else null
     }
 
-    private fun buildKonto(account: Account): Konto {
+    private fun buildKonto(account: Account, bic: String = ""): Konto {
         val k = Konto()
         k.blz  = account.bankCode.ifBlank { blzFromIban(account.iban) ?: "" }
         k.iban = account.iban
+        if (bic.isNotBlank()) k.bic = bic
         k.curr = account.currency.ifBlank { "EUR" }
         return k
+    }
+
+    /**
+     * Looks up the BIC for [iban] from the UPD accounts stored in the given [passport].
+     * Returns an empty string if the account is not found or the passport has no accounts yet
+     * (e.g. on the very first connect before the UPD has been downloaded).
+     */
+    private fun bicFromPassport(passport: HBCIPassport, iban: String): String {
+        val normalized = iban.replace(" ", "").uppercase()
+        return passport.accounts
+            ?.firstOrNull { it.iban?.replace(" ", "")?.uppercase() == normalized }
+            ?.bic.orEmpty()
     }
 
     private fun buildKontoRecipient(name: String, iban: String, bic: String): Konto {
