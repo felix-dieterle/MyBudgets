@@ -44,6 +44,9 @@ private const val HBCI_NO_HIGHLEVEL_JOB_MSG = "there is no highlevel job named"
 /** Fragment of the hbci4java error message when a required BIC property was not set. */
 private const val HBCI_MISSING_BIC_MSG = "my.bic"
 
+/** Fragment of the hbci4java error message when the account-number property was not set. */
+private const val HBCI_MISSING_NUMBER_MSG = "my.number"
+
 /**
  * Wraps HBCI4Java for direct FinTS/HBCI bank communication.
  * Supports single SEPA transfers, SEPA standing orders, and account statement fetch.
@@ -125,7 +128,7 @@ class FintsService @Inject constructor(
             try {
                 val bic = bicFromPassport(passport, fromAccount.iban)
                 val job = handler.newJob("UebSEPA")
-                job.setParam("src", buildKonto(fromAccount, bic))
+                job.setParam("src", buildKonto(fromAccount, bic, passport))
                 job.setParam("dst", buildKontoRecipient(toName, toIban, toBic))
                 job.setParam("btg", Value(amount, "EUR"))
                 job.setParam("usage", purpose)
@@ -166,7 +169,7 @@ class FintsService @Inject constructor(
             try {
                 val bic = bicFromPassport(passport, fromAccount.iban)
                 val job = handler.newJob("DauerNewSEPA")
-                job.setParam("src", buildKonto(fromAccount, bic))
+                job.setParam("src", buildKonto(fromAccount, bic, passport))
                 job.setParam("dst", buildKontoRecipient(order.recipientName, order.recipientIban, order.recipientBic))
                 job.setParam("btg", Value(order.amount, "EUR"))
                 job.setParam("usage", order.purpose)
@@ -253,12 +256,12 @@ class FintsService @Inject constructor(
                 val job: HBCIJob = jobAttempts.firstNotNullOfOrNull { attempt ->
                     val r = runCatching {
                         val j = handler.newJob(attempt.name)
-                        j.setParam("my", buildKonto(account, bic))
+                        j.setParam("my", buildKonto(account, bic, passport))
                         attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
                         // addJob is called here (inside the runCatching) so that constraint
-                        // validation errors (e.g. "Property my.bic wurde nicht gesetzt" when
-                        // the BIC could not be resolved from the passport UPD yet) are caught
-                        // and trigger a fallback to the next job instead of aborting entirely.
+                        // validation errors (e.g. "Property my.bic/my.number wurde nicht gesetzt"
+                        // when BIC or account number could not be resolved from the passport UPD)
+                        // are caught and trigger a fallback to the next job instead of aborting.
                         handler.addJob(j)
                         j
                     }
@@ -270,7 +273,8 @@ class FintsService @Inject constructor(
                             ex.hasCause<InvalidUserDataException> { msg ->
                                 msg.message?.let {
                                     it.contains(HBCI_NO_HIGHLEVEL_JOB_MSG) ||
-                                    it.contains(HBCI_MISSING_BIC_MSG)
+                                    it.contains(HBCI_MISSING_BIC_MSG) ||
+                                    it.contains(HBCI_MISSING_NUMBER_MSG)
                                 } == true
                             }) {
                             AppLogger.w(TAG, "Job nicht unterstützt, nächsten Fallback versuchen: ${ex.message}")
@@ -441,12 +445,17 @@ class FintsService @Inject constructor(
         } else null
     }
 
-    private fun buildKonto(account: Account, bic: String = ""): Konto {
+    private fun buildKonto(account: Account, bic: String = "", passport: HBCIPassport? = null): Konto {
         val k = Konto()
         k.blz  = account.bankCode.ifBlank { blzFromIban(account.iban) ?: "" }
         k.iban = account.iban
         if (bic.isNotBlank()) k.bic = bic
         k.curr = account.currency.ifBlank { "EUR" }
+        // my.number is required by hbci4java for SEPA/CAMT jobs (verifyConstraints).
+        // Look up the exact account number from the passport UPD first (accounts list),
+        // then fall back to extracting the digits from the German IBAN (positions 12–21).
+        k.number = passport?.let { accountNumberFromPassport(it, account.iban) }
+            ?: accountNumberFromIban(account.iban).orEmpty()
         return k
     }
 
@@ -460,6 +469,30 @@ class FintsService @Inject constructor(
         return passport.accounts
             ?.firstOrNull { it.iban?.replace(" ", "")?.uppercase() == normalized }
             ?.bic.orEmpty()
+    }
+
+    /**
+     * Looks up the account number (Kontonummer) for [iban] from the UPD accounts stored in the
+     * given [passport]. Returns null if the account is not found or has no account number set.
+     */
+    private fun accountNumberFromPassport(passport: HBCIPassport, iban: String): String? {
+        val normalized = iban.replace(" ", "").uppercase()
+        return passport.accounts
+            ?.firstOrNull { it.iban?.replace(" ", "")?.uppercase() == normalized }
+            ?.number?.takeIf { it.isNotBlank() }
+    }
+
+    /**
+     * Extracts the 10-digit account number from a German IBAN (0-indexed positions 12–21).
+     * German IBAN format: DE (0–1) + 2 check digits (2–3) + 8-digit BLZ (4–11) + account (12–21).
+     * Leading zeros are preserved to match the bank's own account number representation.
+     * Returns null for non-German or malformed IBANs.
+     */
+    private fun accountNumberFromIban(iban: String): String? {
+        val normalized = iban.replace(" ", "").uppercase()
+        return if (normalized.length == 22 && normalized.startsWith("DE")) {
+            normalized.substring(12, 22)
+        } else null
     }
 
     private fun buildKontoRecipient(name: String, iban: String, bic: String): Konto {
