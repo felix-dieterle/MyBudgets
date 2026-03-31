@@ -417,16 +417,22 @@ class FintsService @Inject constructor(
             "javax.xml.parsers.DocumentBuilderFactory",
             NonValidatingDocumentBuilderFactory::class.java.name
         )
-        // Some Android devices expose Unicode locale extensions in Locale.getDefault() such as
-        // "de_DE_#u-fw-mon-mu-celsius" (first-day-of-week=Monday, temperature=Celsius).
         // hbci4java's CAMT parser calls ResourceBundle.getBundle("j2.g") without an explicit
-        // locale, so it inherits Locale.getDefault(). The library does not ship resource bundles
-        // for locales with Unicode extensions, which causes:
-        //   MissingResourceException: Can't find bundle for base name j2.g,
-        //                             locale de_DE_#u-fw-mon-mu-celsius
-        //   ClassCastException: j2.g cannot be cast to ResourceBundle
-        // Fix: strip all Unicode locale extensions (the "-u-…" segment) from the default locale
-        // so that hbci4java's ResourceBundle lookups resolve to the plain "de_DE" variant.
+        // locale, so it inherits Locale.getDefault(). Two distinct failure modes can occur:
+        //
+        // 1. Unicode locale extensions (e.g. "de_DE_#u-fw-mon-mu-celsius"):
+        //    The library does not ship bundles for locales with Unicode extensions, causing:
+        //      MissingResourceException: Can't find bundle for base name j2.g,
+        //                               locale de_DE_#u-fw-mon-mu-celsius
+        //    Fix (below): strip the "-u-…" segment so lookups resolve to plain "de_DE".
+        //
+        // 2. Release builds (R8 obfuscation):
+        //    hbci4java ships pre-obfuscated with short names; its ResourceBundle subclass is
+        //    named j2.g. R8 may strip that class (not seeing it used directly) and then reuse
+        //    the name "j2.g" for an unrelated class, causing:
+        //      ClassCastException: j2.g cannot be cast to ResourceBundle  (locale de_DE)
+        //    Fix: proguard-rules.pro adds "-keep class j2.** { *; }" (and F2, C0, G2, N2, U1,
+        //    q2) so R8 preserves the original ResourceBundle subclass and cannot reuse its name.
         val defaultLocale = Locale.getDefault()
         val languageTag = defaultLocale.toLanguageTag()
         if (languageTag.contains("-u-")) {
