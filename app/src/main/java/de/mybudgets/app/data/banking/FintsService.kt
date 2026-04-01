@@ -531,7 +531,18 @@ class FintsService @Inject constructor(
     inner class HbciCallback : AbstractHBCICallback() {
 
         override fun log(msg: String?, level: Int, date: Date?, trace: StackTraceElement?) {
-            AppLogger.d(TAG, "HBCI log level=$level msg=$msg")
+            // Map hbci4java log levels to appropriate AppLogger levels:
+            //   1 = LOG_ERR  → Error   (e.g. "unable to parse camt data", HBCI_Exception)
+            //   2 = LOG_WARN → Warning (e.g. product-registration notice)
+            //   3 = LOG_INFO → Info
+            //   4+ = DEBUG / INTERN
+            val logMsg = "HBCI log level=$level msg=$msg"
+            when (level) {
+                1    -> AppLogger.e(TAG, logMsg)
+                2    -> AppLogger.w(TAG, logMsg)
+                3    -> AppLogger.i(TAG, logMsg)
+                else -> AppLogger.d(TAG, logMsg)
+            }
         }
 
         override fun callback(
