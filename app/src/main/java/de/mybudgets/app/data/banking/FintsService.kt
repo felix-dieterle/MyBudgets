@@ -294,12 +294,31 @@ class FintsService @Inject constructor(
                 }
 
                 val status = handler.execute()
-                if (!status.isOK) error("Kontoauszug fehlgeschlagen: $status")
+                if (!status.isOK) {
+                    // Log the full HBCI dialog status at ERROR level to aid root-cause analysis.
+                    // The status string includes dialog initialisation, each message round-trip,
+                    // and any exception traces produced by hbci4java (e.g. CAMT parse errors).
+                    AppLogger.e(TAG, "fetchAccountStatement: HBCIExecStatus nicht OK:\n$status")
+                }
 
                 val result = job.jobResult as? GVRKUms
-                    ?: error("Unerwartetes Ergebnis vom Kontoauszug-Job")
+                    ?: error("Unerwartetes Ergebnis vom Kontoauszug-Job (kein GVRKUms-Objekt)")
 
-                val transactions = result.flatData.map { entry ->
+                val flatData = result.flatData
+                AppLogger.d(TAG, "fetchAccountStatement: ${flatData.size} Rohdatensätze vom HBCI-Job empfangen (status.isOK=${status.isOK})")
+
+                // If the status indicates a failure but partial data was still returned
+                // (e.g. a recoverable CAMT parse error on one of several pages), use the
+                // partial result and log a warning rather than discarding everything.
+                // Only fail hard when there is no data at all.
+                if (!status.isOK && flatData.isEmpty()) {
+                    error("Kontoauszug fehlgeschlagen: $status")
+                }
+                if (!status.isOK) {
+                    AppLogger.w(TAG, "fetchAccountStatement: Status nicht OK, ${flatData.size} Buchung(en) als Teilergebnis verfügbar")
+                }
+
+                val transactions = flatData.map { entry ->
                     val isIncome = entry.value.longValue >= 0
                     Transaction(
                         accountId   = account.id,
@@ -311,7 +330,7 @@ class FintsService @Inject constructor(
                         remoteId    = entry.id
                     )
                 }
-                AppLogger.i(TAG, "fetchAccountStatement: ${transactions.size} Buchungen empfangen")
+                AppLogger.i(TAG, "fetchAccountStatement: ${transactions.size} Buchungen erfolgreich verarbeitet")
                 transactions
             } finally {
                 safeClose(handler)

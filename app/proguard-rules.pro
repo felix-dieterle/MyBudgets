@@ -9,27 +9,33 @@
 -dontwarn org.kapott.hbci.**
 
 # hbci4java uses JAXB (jaxb-runtime:2.3.1 / jaxb-api:2.3.1) to parse CAMT XML.
-# The JAXB runtime contains several Messages Enum classes (e.g.
-# com.sun.xml.bind.v2.runtime.Messages) that load their localised strings from a companion
-# .properties file using the pattern:
+# Two distinct failure modes require preserving the full JAXB classes (names + members):
 #
-#   static { rb = ResourceBundle.getBundle(Messages.class.getName()); }
+# 1. ResourceBundle lookup failure (class-rename issue):
+#    JAXB Messages Enum classes (e.g. com.sun.xml.bind.v2.runtime.Messages) load their
+#    localised strings via:
+#      static { rb = ResourceBundle.getBundle(Messages.class.getName()); }
+#    When R8 renames Messages → e.g. j2.g, Class.getName() returns "j2.g".
+#    ResourceBundle.getBundle("j2.g") then:
+#      a. Finds the class j2.g (the Enum itself) – not a ResourceBundle subclass
+#         → ClassCastException (caught internally by Java 17's ResourceBundle)
+#      b. Falls back to j2/g.properties – which does NOT exist (R8 only renamed
+#         the .class file, not the companion .properties file)
+#      → MissingResourceException → hbci4java "Error parsing CAMT document"
 #
-# When R8 renames Messages → e.g. j2.g, Class.getName() returns "j2.g".
-# ResourceBundle.getBundle("j2.g") then:
-#   1. Finds the class j2.g (the Enum itself) – which is NOT a ResourceBundle subclass
-#      → ClassCastException (caught internally by Java 17's ResourceBundle)
-#   2. Falls back to looking for j2/g.properties – which does NOT exist (R8 only renamed
-#      the .class file, not the companion .properties file)
-#   → MissingResourceException wrapping the ClassCastException
-#   → hbci4java HBCI_Exception: Error parsing CAMT document
+# 2. Reflection-called method stripped (NoSuchMethodException):
+#    javax.xml.bind.ContextFinder calls
+#      ContextFactory.class.getMethod("createContext", Class[].class, Map.class)
+#    via reflection to instantiate the JAXB context.  R8 with "-keepnames" preserves
+#    class names but still strips methods that are not directly referenced in app code.
+#    Result: NoSuchMethodException → javax.xml.bind.JAXBException → CAMT parse failure.
 #
-# Fix: keep the original names of all com.sun.xml.bind and javax.xml.bind classes so that
-# Class.getName() still returns the fully-qualified original name, and ResourceBundle
-# can fall back to the companion .properties file at its original path (e.g.
-# com/sun/xml/bind/v2/runtime/Messages.properties), which IS packaged in the APK.
--keepnames class com.sun.xml.bind.** { *; }
--keepnames class javax.xml.bind.** { *; }
+# Fix: use "-keep" (not "-keepnames") to preserve both the original class names AND all
+# members (methods + fields) of com.sun.xml.bind and javax.xml.bind, so that:
+#  • Class.getName() returns the fully-qualified original name (ResourceBundle path works)
+#  • Class.getMethod("createContext", ...) succeeds (method is not stripped by R8)
+-keep class com.sun.xml.bind.** { *; }
+-keep class javax.xml.bind.** { *; }
 
 # NonValidatingDocumentBuilderFactory is registered as the XML parser factory at runtime
 # via System.setProperty("javax.xml.parsers.DocumentBuilderFactory", <className>).
