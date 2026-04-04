@@ -8,21 +8,28 @@
 -keep class org.kapott.hbci.** { *; }
 -dontwarn org.kapott.hbci.**
 
-# hbci4java ships pre-obfuscated using short package names (j2, F2, C0, G2, N2, U1, q2, …).
-# The library's CAMT parser resolves localisation resources via ResourceBundle.getBundle("j2.g").
-# If R8 strips the original j2.g ResourceBundle subclass (not seeing it used by name) and then
-# reuses the freed name "j2.g" for another, unrelated class, Android's ResourceBundle lookup
-# finds that non-ResourceBundle class and throws:
-#   ClassCastException: j2.g cannot be cast to ResourceBundle  →  Error parsing CAMT document
-# Fix: keep every class in these pre-obfuscated packages so R8 preserves their names and
-# cannot reassign those package/class names to renamed app or library classes.
--keep class j2.** { *; }
--keep class F2.** { *; }
--keep class C0.** { *; }
--keep class G2.** { *; }
--keep class N2.** { *; }
--keep class U1.** { *; }
--keep class q2.** { *; }
+# hbci4java uses JAXB (jaxb-runtime:2.3.1 / jaxb-api:2.3.1) to parse CAMT XML.
+# The JAXB runtime contains several Messages Enum classes (e.g.
+# com.sun.xml.bind.v2.runtime.Messages) that load their localised strings from a companion
+# .properties file using the pattern:
+#
+#   static { rb = ResourceBundle.getBundle(Messages.class.getName()); }
+#
+# When R8 renames Messages → e.g. j2.g, Class.getName() returns "j2.g".
+# ResourceBundle.getBundle("j2.g") then:
+#   1. Finds the class j2.g (the Enum itself) – which is NOT a ResourceBundle subclass
+#      → ClassCastException (caught internally by Java 17's ResourceBundle)
+#   2. Falls back to looking for j2/g.properties – which does NOT exist (R8 only renamed
+#      the .class file, not the companion .properties file)
+#   → MissingResourceException wrapping the ClassCastException
+#   → hbci4java HBCI_Exception: Error parsing CAMT document
+#
+# Fix: keep the original names of all com.sun.xml.bind and javax.xml.bind classes so that
+# Class.getName() still returns the fully-qualified original name, and ResourceBundle
+# can fall back to the companion .properties file at its original path (e.g.
+# com/sun/xml/bind/v2/runtime/Messages.properties), which IS packaged in the APK.
+-keepnames class com.sun.xml.bind.** { *; }
+-keepnames class javax.xml.bind.** { *; }
 
 # NonValidatingDocumentBuilderFactory is registered as the XML parser factory at runtime
 # via System.setProperty("javax.xml.parsers.DocumentBuilderFactory", <className>).

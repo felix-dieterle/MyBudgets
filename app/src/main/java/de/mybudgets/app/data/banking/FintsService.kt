@@ -417,22 +417,28 @@ class FintsService @Inject constructor(
             "javax.xml.parsers.DocumentBuilderFactory",
             NonValidatingDocumentBuilderFactory::class.java.name
         )
-        // hbci4java's CAMT parser calls ResourceBundle.getBundle("j2.g") without an explicit
-        // locale, so it inherits Locale.getDefault(). Two distinct failure modes can occur:
+        // hbci4java uses JAXB (jaxb-runtime) to parse CAMT XML.  JAXB's Messages Enum classes
+        // (e.g. com.sun.xml.bind.v2.runtime.Messages) load their localised strings via
+        //   ResourceBundle.getBundle(Messages.class.getName())
+        // without an explicit locale, inheriting Locale.getDefault().
         //
-        // 1. Unicode locale extensions (e.g. "de_DE_#u-fw-mon-mu-celsius"):
-        //    The library does not ship bundles for locales with Unicode extensions, causing:
-        //      MissingResourceException: Can't find bundle for base name j2.g,
-        //                               locale de_DE_#u-fw-mon-mu-celsius
-        //    Fix (below): strip the "-u-…" segment so lookups resolve to plain "de_DE".
+        // Two distinct failure modes can occur:
+        //
+        // 1. Unicode locale extensions (e.g. "de-DE-u-fw-mon-mu-celsius"):
+        //    ResourceBundle looks for a bundle with the full locale tag, which has no matching
+        //    .properties file, causing MissingResourceException.
+        //    Fix (below): strip the "-u-…" segment so lookups resolve to plain "de-DE" / "de_DE".
         //
         // 2. Release builds (R8 obfuscation):
-        //    hbci4java ships pre-obfuscated with short names; its ResourceBundle subclass is
-        //    named j2.g. R8 may strip that class (not seeing it used directly) and then reuse
-        //    the name "j2.g" for an unrelated class, causing:
-        //      ClassCastException: j2.g cannot be cast to ResourceBundle  (locale de_DE)
-        //    Fix: proguard-rules.pro adds "-keep class j2.** { *; }" (and F2, C0, G2, N2, U1,
-        //    q2) so R8 preserves the original ResourceBundle subclass and cannot reuse its name.
+        //    R8 renames the Messages Enum classes (e.g. com.sun.xml.bind.v2.runtime.Messages →
+        //    j2.g). After renaming, Class.getName() returns "j2.g", so ResourceBundle looks for
+        //    a class or file named "j2.g".  The class j2.g IS found (it is the renamed Enum), but
+        //    it is not a ResourceBundle subclass → ClassCastException (caught internally).
+        //    The fallback to j2/g.properties also fails because R8 only renamed the .class file,
+        //    not the companion .properties file → MissingResourceException → CAMT parse failure.
+        //    Fix: proguard-rules.pro adds "-keepnames class com.sun.xml.bind.** { *; }" (and
+        //    javax.xml.bind.**) so Class.getName() still returns the original fully-qualified
+        //    name, and ResourceBundle can find the companion .properties file at its original path.
         val defaultLocale = Locale.getDefault()
         val languageTag = defaultLocale.toLanguageTag()
         if (languageTag.contains("-u-")) {
