@@ -7,7 +7,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
-import androidx.work.*
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.R
@@ -21,7 +20,7 @@ import de.mybudgets.app.ui.transfers.tanDialog
 import de.mybudgets.app.ui.transfers.decoupledConfirmDialog
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.viewmodel.AccountViewModel
-import de.mybudgets.app.worker.BankSyncWorker
+import de.mybudgets.app.viewmodel.BankSyncState
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -67,6 +66,26 @@ class AccountDetailFragment : Fragment() {
                             if (txList.isEmpty()) View.VISIBLE else View.GONE
                     }
                 }
+                launch {
+                    vm.bankSyncState.collect { state ->
+                        when (state) {
+                            is BankSyncState.Idle -> Unit
+                            is BankSyncState.Loading -> Unit
+                            is BankSyncState.Success -> {
+                                Snackbar.make(
+                                    requireView(),
+                                    getString(R.string.bank_sync_result, state.importedCount),
+                                    Snackbar.LENGTH_LONG
+                                ).show()
+                                vm.resetBankSyncState()
+                            }
+                            is BankSyncState.Error -> {
+                                Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show()
+                                vm.resetBankSyncState()
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -87,7 +106,7 @@ class AccountDetailFragment : Fragment() {
             }
             registerPinTanProviders()
             Snackbar.make(view, getString(R.string.bank_sync_started), Snackbar.LENGTH_SHORT).show()
-            enqueueBankSync(fromDateMillis = BankSyncWorker.NO_FROM_DATE, tag = "bank_sync_$accountId")
+            vm.syncBankTransactions(accountId, AccountViewModel.NO_FROM_DATE)
         }
 
         binding.btnHistoricalSync.setOnClickListener {
@@ -132,7 +151,7 @@ class AccountDetailFragment : Fragment() {
                 }
                 registerPinTanProviders()
                 Snackbar.make(requireView(), getString(R.string.bank_historical_sync_started), Snackbar.LENGTH_SHORT).show()
-                enqueueBankSync(fromDateMillis = fromCal.timeInMillis, tag = "bank_historical_sync_$accountId")
+                vm.syncBankTransactions(accountId, fromCal.timeInMillis)
             },
             cal.get(Calendar.YEAR),
             cal.get(Calendar.MONTH),
@@ -141,37 +160,6 @@ class AccountDetailFragment : Fragment() {
             datePicker.maxDate = System.currentTimeMillis()
             setTitle(getString(R.string.bank_historical_sync_dialog_title))
         }.show()
-    }
-
-    private fun enqueueBankSync(fromDateMillis: Long, tag: String) {
-        val inputData = workDataOf(
-            BankSyncWorker.KEY_ACCOUNT_ID to accountId,
-            BankSyncWorker.KEY_FROM_DATE  to fromDateMillis
-        )
-        val request = OneTimeWorkRequestBuilder<BankSyncWorker>()
-            .setInputData(inputData)
-            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-            .addTag(tag)
-            .build()
-        val workManager = WorkManager.getInstance(requireContext())
-        workManager.enqueue(request)
-
-        // Observe the work to show result feedback
-        workManager.getWorkInfoByIdLiveData(request.id).observe(viewLifecycleOwner) { info ->
-            if (info?.state == WorkInfo.State.SUCCEEDED) {
-                val count = info.outputData.getInt(BankSyncWorker.KEY_IMPORTED_COUNT, 0)
-                Snackbar.make(
-                    requireView(),
-                    getString(R.string.bank_sync_result, count),
-                    Snackbar.LENGTH_LONG
-                ).show()
-            } else if (info?.state == WorkInfo.State.FAILED) {
-                val errorMessage = info.outputData.getString(BankSyncWorker.KEY_ERROR_MESSAGE)
-                val message = if (!errorMessage.isNullOrBlank()) errorMessage
-                              else getString(R.string.bank_sync_failed)
-                Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()
-            }
-        }
     }
 
     private fun showAccount(acc: Account, allAccounts: List<Account>) {

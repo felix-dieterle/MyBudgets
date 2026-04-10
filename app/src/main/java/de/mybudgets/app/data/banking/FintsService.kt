@@ -46,6 +46,7 @@ private const val HBCI_MISSING_BIC_MSG = "my.bic"
 
 /** Fragment of the hbci4java error message when the account-number property was not set. */
 private const val HBCI_MISSING_NUMBER_MSG = "my.number"
+private const val DEFAULT_HBCI_LOG_LEVEL = "2"
 
 /**
  * Wraps HBCI4Java for direct FinTS/HBCI bank communication.
@@ -449,7 +450,14 @@ class FintsService @Inject constructor(
         val props = Properties().apply {
             setProperty("client.product.id", "MyBudgets")
             setProperty("client.product.version", "1.0")
-            setProperty("log.loglevel.default", "2")
+            val hbciLogLevel = System.getProperty("mybudgets.hbci.logLevel")
+                ?.takeIf { it.matches(Regex("[0-9]+")) }
+                ?: DEFAULT_HBCI_LOG_LEVEL
+            setProperty("log.loglevel.default", hbciLogLevel)
+            // Socket-Timeout für TCP-Verbindung zum Bankserver (in ms).
+            // Verhindert unbegrenztes Hängen beim Kontoauszug-Download wenn der Bankserver
+            // sehr langsam antwortet oder die Verbindung nach der TAN-Bestätigung abbricht.
+            setProperty("comm.standard.sktimeout", "60000")  // 60 s read timeout
         }
         HBCIUtils.init(props, HbciCallback())
         hbciInitialized = true

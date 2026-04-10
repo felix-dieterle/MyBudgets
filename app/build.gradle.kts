@@ -78,6 +78,17 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+        unitTests.all { test ->
+            // Leite alle mybudgets.* System Properties vom Gradle-JVM an den Test-JVM weiter.
+            // Wird benötigt, damit -Dmybudgets.live.test=true etc. im Test via System.getProperty() lesbar sind.
+            System.getProperties()
+                .filter { (it.key as? String)?.startsWith("mybudgets.") == true }
+                .forEach { test.systemProperty(it.key as String, it.value) }
+        }
+    }
 }
 
 dependencies {
@@ -103,4 +114,10 @@ dependencies {
     kapt(libs.hilt.work.compiler)
     implementation(libs.hbci4java)
     implementation(libs.security.crypto)
+
+    testImplementation(libs.junit4)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.mockk)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }
