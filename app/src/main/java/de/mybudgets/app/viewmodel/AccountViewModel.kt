@@ -68,6 +68,9 @@ class AccountViewModel @Inject constructor(
 
     fun syncBankTransactions(accountId: Long, fromDateMillis: Long = NO_FROM_DATE) = viewModelScope.launch {
         _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.SESSION_SETUP)
+        // AtomicReference so the syncPhaseUpdateHandler (called from the IO thread) and the
+        // onFailure handler (running on Main) can both access lastPhase without a data race.
+        val lastPhaseRef = java.util.concurrent.atomic.AtomicReference(SyncPhase.SESSION_SETUP)
 
         try {
             val account = repo.getById(accountId)
@@ -79,12 +82,30 @@ class AccountViewModel @Inject constructor(
                 _bankSyncState.value = BankSyncState.Error("IBAN fehlt", SyncPhase.SESSION_SETUP)
                 return@launch
             }
+            if (account.userId.isBlank()) {
+                _bankSyncState.value = BankSyncState.Error("Nutzerkennung fehlt", SyncPhase.SESSION_SETUP)
+                return@launch
+            }
             if (fintsService.pinProvider == null) {
                 _bankSyncState.value = BankSyncState.Error("PIN-Dialog nicht verfügbar", SyncPhase.SESSION_SETUP)
                 return@launch
             }
 
-            _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.BIC_LOOKUP, detailMessage = "BIC wird abgefragt...")
+            // Called from the IO thread inside fetchAccountStatement; MutableStateFlow.value
+            // is thread-safe and AtomicReference ensures lastPhaseRef is safely shared.
+            fintsService.syncPhaseUpdateHandler = { phaseTag, detail ->
+                val phase = when (phaseTag) {
+                    "1-setup" -> SyncPhase.SESSION_SETUP
+                    "2-bic"   -> SyncPhase.BIC_LOOKUP
+                    "3-job"   -> SyncPhase.JOB_SELECTION
+                    "4-exec"  -> SyncPhase.EXECUTE
+                    "5-parse" -> SyncPhase.PARSE_RESULT
+                    else      -> null
+                } ?: return@syncPhaseUpdateHandler
+                lastPhaseRef.set(phase)
+                _bankSyncState.value = BankSyncState.Loading(phase = phase, detailMessage = detail)
+            }
+
             val fromDate = if (fromDateMillis != NO_FROM_DATE) java.util.Date(fromDateMillis) else null
             val syncResult = fintsService.fetchAccountStatement(account, fromDate)
 
@@ -97,21 +118,15 @@ class AccountViewModel @Inject constructor(
                 AppLogger.i(TAG, "syncBankTransactions: ${newTx.size} neue Buchungen für Konto ${account.id}")
             }.onFailure { e ->
                 AppLogger.e(TAG, "syncBankTransactions fehlgeschlagen: ${e.message}", e)
-                // Try to extract phase info from error message or use a default
-                val phase = when {
-                    e.message?.contains("BIC", ignoreCase = true) == true -> SyncPhase.BIC_LOOKUP
-                    e.message?.contains("Job", ignoreCase = true) == true -> SyncPhase.JOB_SELECTION
-                    e.message?.contains("Bankserver", ignoreCase = true) == true -> SyncPhase.EXECUTE
-                    e.message?.contains("Ergebnis", ignoreCase = true) == true -> SyncPhase.PARSE_RESULT
-                    else -> null
-                }
-                _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen", phase)
+                _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen", lastPhaseRef.get())
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             AppLogger.e(TAG, "syncBankTransactions: Unerwarteter Fehler: ${e.message}", e)
-            _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen", SyncPhase.SESSION_SETUP)
+            _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen", lastPhaseRef.get())
+        } finally {
+            fintsService.syncPhaseUpdateHandler = null
         }
     }
 

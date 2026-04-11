@@ -127,6 +127,23 @@ class AccountViewModelBankSyncTest {
     }
 
     @Test
+    fun syncBankTransactions_whenUserIdMissing_setsErrorStateWithoutBankAccess() = runTest {
+        val account = sampleAccount(userId = "")
+
+        coEvery { accountRepo.getById(account.id) } returns account
+        every { fintsService.pinProvider } returns { "1234" }
+
+        viewModel.syncBankTransactions(account.id, AccountViewModel.NO_FROM_DATE)
+        advanceUntilIdle()
+
+        val state = viewModel.bankSyncState.value
+        assertTrue(state is BankSyncState.Error)
+        assertEquals("Nutzerkennung fehlt", (state as BankSyncState.Error).message)
+        coVerify(exactly = 0) { fintsService.fetchAccountStatement(any(), any()) }
+        coVerify(exactly = 0) { txRepo.save(any()) }
+    }
+
+    @Test
     fun syncBankTransactions_whenPinProviderMissing_setsErrorState() = runTest {
         val account = sampleAccount()
 
@@ -163,12 +180,12 @@ class AccountViewModelBankSyncTest {
         coVerify(exactly = 1) { fintsService.fetchAccountStatement(account, Date(fromDateMillis)) }
     }
 
-    private fun sampleAccount(id: Long = 1L): Account = Account(
+    private fun sampleAccount(id: Long = 1L, userId: String = "user"): Account = Account(
         id = id,
         name = "Testkonto",
         type = AccountType.CHECKING,
         iban = "DE02120300000000202051",
-        userId = "user"
+        userId = userId
     )
 
     private fun sampleTransaction(accountId: Long, remoteId: String?): Transaction = Transaction(

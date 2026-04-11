@@ -83,7 +83,7 @@ class AccountViewModelLiveBankSyncTest {
         val decoupledWaitSeconds = sysProp("mybudgets.test.decoupledWaitSeconds")
             ?.toLongOrNull() ?: 30L
         val overallTimeoutSeconds = sysProp("mybudgets.test.overallTimeoutSeconds")
-            ?.toLongOrNull() ?: 420L
+            ?.toLongOrNull() ?: 900L
 
         val account = Account(
             id = 1L,

@@ -69,6 +69,18 @@ class FintsService @Inject constructor(
      */
     @Volatile var decoupledConfirmProvider: (suspend (challenge: String) -> Unit)? = null
 
+    /**
+     * Optional callback invoked at each sync phase transition inside [fetchAccountStatement].
+     * Called from the IO thread; the callback must be thread-safe.
+     * Set by [AccountViewModel] before calling [fetchAccountStatement] and cleared in a
+     * finally block afterwards.
+     *
+     * Parameters:
+     *  - phaseTag: short phase identifier ("1-setup", "2-bic", "3-job", "4-exec", "5-parse")
+     *  - detail:   human-readable description of the current phase step
+     */
+    @Volatile var syncPhaseUpdateHandler: ((phaseTag: String, detail: String) -> Unit)? = null
+
     /** BLZ of the account currently being connected. Set in openSession, read by HbciCallback. */
     private val currentBlz = ThreadLocal<String>()
 
@@ -220,6 +232,7 @@ class FintsService @Inject constructor(
         wrongPinOnThread.remove()
         val operationResult = runCatching {
             AppLogger.i(TAG, "[$syncPhase/1-setup] Initiate HBCI session...")
+            syncPhaseUpdateHandler?.invoke("1-setup", "HBCI-Session wird initialisiert...")
             val (handler, passport) = openSession(account)
             try {
                 // PHASE 2: BIC Lookup
@@ -227,6 +240,7 @@ class FintsService @Inject constructor(
                 // SEPA/CAMT jobs (KUmsAllCamt, KUmsZeitSEPA) require my.bic to be set;
                 // omitting it causes InvalidUserDataException: "Property my.bic wurde nicht gesetzt".
                 AppLogger.i(TAG, "[$syncPhase/2-bic] Lookup BIC from passport UPD for IBAN ${account.iban}")
+                syncPhaseUpdateHandler?.invoke("2-bic", "BIC wird aus Passport UPD abgefragt...")
                 val bic = bicFromPassport(passport, account.iban)
                 AppLogger.i(TAG, "[$syncPhase/2-bic] BIC resolved: $bic")
 
@@ -268,6 +282,7 @@ class FintsService @Inject constructor(
                 )
 
                 AppLogger.i(TAG, "[$syncPhase/3-job] Trying job sequence: ${jobAttempts.map { it.name }.joinToString(" → ")}")
+                syncPhaseUpdateHandler?.invoke("3-job", "Passenden HBCI-Job auswählen (${jobAttempts.map { it.name }.joinToString(" → ")})...")
                 var lastJobException: Exception? = null
                 var attemptIdx = 0
                 val job: HBCIJob = jobAttempts.firstNotNullOfOrNull { attempt ->
@@ -316,6 +331,7 @@ class FintsService @Inject constructor(
 
                 // PHASE 4: Execute
                 AppLogger.i(TAG, "[$syncPhase/4-exec] Sending request to bank...")
+                syncPhaseUpdateHandler?.invoke("4-exec", "Anfrage wird an Bankserver gesendet...")
                 val status = handler.execute()
                 if (!status.isOK) {
                     AppLogger.e(TAG, "[$syncPhase/4-exec] Bank returned non-OK status: $status")
@@ -325,6 +341,7 @@ class FintsService @Inject constructor(
 
                 // PHASE 5: Parse Result
                 AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from response...")
+                syncPhaseUpdateHandler?.invoke("5-parse", "Transaktionsdaten werden aus Bankantwort extrahiert...")
                 val result = job.jobResult as? GVRKUms
                     ?: error("Unerwartetes Ergebnis vom Kontoauszug-Job")
 
@@ -486,6 +503,9 @@ class FintsService @Inject constructor(
             // Verhindert unbegrenztes Hängen beim Kontoauszug-Download wenn der Bankserver
             // sehr langsam antwortet oder die Verbindung nach der TAN-Bestätigung abbricht.
             setProperty("comm.standard.sktimeout", "60000")  // 60 s read timeout
+            // Connect-Timeout verhindert Hängen beim initialen TCP-Handshake (z.B. bei
+            // nicht erreichbarem Bankserver oder Netzwerkproblemen).
+            setProperty("comm.standard.sktconnect", "30000") // 30 s connect timeout
         }
         HBCIUtils.init(props, HbciCallback())
         hbciInitialized = true
