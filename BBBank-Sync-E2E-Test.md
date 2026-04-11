@@ -9,6 +9,19 @@ Dieser Ablauf testet den echten FinTS-Zugriff (BBBank), den Abruf der Buchungen 
 - Neue Buchungen werden lokal gespeichert
 - Ergebnis ist in UI und Log nachvollziehbar
 
+## Sync-Phasen (für Debugging)
+
+Jeder Sync durchläuft folgende überwachte Phasen:
+
+1. **Session-Setup** — HBCI-Handler und Passport initialisieren, Verbindung zum Bankserver aufbauen
+2. **BIC-Lookup** — BIC aus Passport-UPD für die Bank abrufen (notwendig für SEPA/CAMT)
+3. **Job-Auswahl** — Fallback-Sequenz versuchen: KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew
+4. **Bank-Anfrage** — Kontoauszug-Request senden, auf Response warten
+5. **Daten-Verarbeitung** — Transaktionen aus HBCI-Response extrahieren
+6. **Import lokal** — Duplikate filtern, neue Transaktionen in DB speichern
+
+Falls ein Fehler auftritt, zeigt `bankSyncState.Error` die Phase an, in der das Fehler vorkam.
+
 ## Live-Nachweis (was als "bestanden" zählt)
 
 Ein Live-Test gilt nur dann als bestanden, wenn alle Punkte erfüllt sind:
@@ -17,35 +30,99 @@ Ein Live-Test gilt nur dann als bestanden, wenn alle Punkte erfüllt sind:
 - Snackbar zeigt ein technisches Ergebnis (z. B. "X neue Buchungen importiert")
 - In der Kontoansicht sind neue oder erwartete Buchungen sichtbar
 - Im Fehlerprotokoll gibt es korrespondierende Einträge für:
-  - Start des Syncs
-  - Bankabruf erfolgreich/fehlgeschlagen
+  - Start des Syncs mit Phase-Information
+  - Bankabruf erfolgreich/fehlgeschlagen mit Phase-Info
   - Importanzahl
 
-Optional zusätzlicher Nachweis via Logcat:
+Optional zusätzlicher Nachweis via Logcat (Phase-Tracking):
 
 ```bash
-adb logcat -v time | grep -E "FintsService|AccountViewModel|BankSync"
+adb logcat -v time | grep -E "\[fetchAccountStatement/\]|BankSyncState|ERROR|FAILED"
 ```
 
 ## Live-Test ohne App-Start (Terminal)
 
-Für einen direkten Test der Kette Verbindung -> Sync -> Import ohne App-UI:
+Für einen direkten Test der Kette Verbindung → Sync → Import ohne App-UI:
 
 ```bash
 ./scripts/run-live-bbbank-sync-test.sh
 ```
 
-Das Skript fragt relevante Daten im Terminal ab (IBAN, Nutzerkennung, PIN, optional TAN/TAN-Methode) und startet danach gezielt den Live-Test:
+Das Skript fragt relevante Daten im Terminal ab und startet danach gezielt den Live-Test:
 
-- Testklasse: `AccountViewModelLiveBankSyncTest`
-- Kein Start der Android-App-Oberfläche
-- Echter FinTS-Abruf gegen reales Konto
-- Importpfad über `AccountViewModel.syncBankTransactions`
+- **Testklasse**: `AccountViewModelLiveBankSyncTest`
+- **Ablauf**: Kein App-Start, echter FinTS-Abruf gegen echtes Konto
+- **Logging**: Konsolausgabe mit Phase-Transitions und Fehlerdetails
+- **Debug-Level**: 1-5 stufen (Default 4 = Trace)
 
-Hinweis:
+### Interaktive Eingaben
+
+Das Skript führt dich Schritt-für-Schritt durch:
+
+1. **IBAN** — dein Konto (z.B. `DE89 3704 0044 0532 0130 00`)
+2. **Nutzerkennung** — Online-Banking-Login bei der Bank
+3. **PIN** — Online-Banking-PIN (wird NICHT gelogged)
+4. **BLZ** (optional) — falls nicht aus IBAN ableitbar
+5. **TAN-Methode** (optional) — für explizite Auswahl (z.B. `900` für BBBank Secure Go)
+6. **Decoupled-Wartezeit** (optional) — Sek. für Secure Go-Bestätigung (Default: 30s)
+7. **Test-Timeout** (optional) — Gesamtzeit für Test (Default: 420s = 7min)
+8. **TAN** (optional) — falls klassische mTAN/SMS-TAN verlangt wird
+9. **Debug-Level** (optional) — Logging-Detail (1-5, Default: 4)
+
+### Fehleranalyse im Terminal
+
+Das Skript gibt nach Test-Ende detaillierte Hilfe:
+
+```
+✗ Test FAILED (Exit Code: 1)
+
+=== Häufige Fehlerursachen & Lösungen ===
+
+PIN/Nutzerkennung ungültig:
+  → Überprüfe Nutzerkennung und PIN im Online-Banking der Bank
+  → Test nochmal starten und Daten erneut eingeben
+
+TAN-Fehler (falscher TAN, falsches Verfahren):
+  → Nutze den korrekten TAN aus deiner mTAN/pushTAN-App
+  → Oder teste ohne TAN-Eingabe (für Secure Go automatisch funktionieren lässt)
+
+...
+```
+
+### Beispiel: Secure Go / Decoupled-TAN
+
+```bash
+$ ./scripts/run-live-bbbank-sync-test.sh
+...
+TAN-Methode: 900
+Decoupled-Wartezeit Sekunden: 30
+...
+⏳ Syncing Phase: BIC-Abfrage
+⏳ Syncing Phase: Job-Auswahl
+⏳ Syncing Phase: Bank-Anfrage — Decoupled-Bestätigung erforderlich (Secure Go)
+  [Jetzt kannst du in deiner Banking-App bestätigen, das Skript wartet max. 30 Sekunden]
+⏳ Syncing Phase: Daten-Verarbeitung
+✓ Live-Sync SUCCESS: 2 Buchungen importiert
+```
+
+### Beispiel: Fehlerfall (Phase-spezifischer Error)
+
+```bash
+⏳ Syncing Phase: Session-Setup
+⏳ Syncing Phase: BIC-Lookup
+✗ Live-Sync ERROR in phase Job-Auswahl: ALL job attempts failed. Last error: Property my.bic wurde nicht gestellt
+  Recent logs:
+    ...
+    [fetchAccountStatement/3-job] ALL job attempts failed. Last error: Property my.bic wurde nicht gesetzt
+
+Live-Sync fehlgeschlagen in Phase Job-Auswahl: ...
+```
+
+Hinweise:
 
 - Für Decoupled-Verfahren (z. B. BBBank Secure Go) kann die Wartezeit im Skript gesetzt werden.
-- Bei klassischer TAN kann einmalig eine TAN im Prompt gesetzt werden.
+- Bei klassischer TAN kann eine TAN im Prompt gesetzt werden.
+- Debug-Level 5 gibt maximales HBCI-Logging für tiefe Fehleranalyse.
 
 ## Vorbedingungen
 

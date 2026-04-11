@@ -202,21 +202,35 @@ class FintsService @Inject constructor(
     /**
      * Fetches account statement (Kontoauszug) for the given [account].
      * Returns a list of [Transaction] objects populated from bank data.
+     *
+     * Sync phases (tracked in logs):
+     * 1. Session Setup — HBCI handler & passport initialization
+     * 2. BIC Lookup — extract BIC from passport UPD
+     * 3. Job Selection — try fallback sequence (KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew)
+     * 4. Execute — send request to bank, await response
+     * 5. Parse Result — extract transaction list from HBCI result
      */
     suspend fun fetchAccountStatement(
         account: Account,
         fromDate: Date? = null
     ): Result<List<Transaction>> = withContext(Dispatchers.IO) {
-        AppLogger.i(TAG, "fetchAccountStatement: ${account.iban} ab $fromDate")
+        val syncPhase = "fetchAccountStatement"
+        AppLogger.i(TAG, "[$syncPhase/1-setup] START: ${account.iban} ab $fromDate")
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
         val operationResult = runCatching {
+            AppLogger.i(TAG, "[$syncPhase/1-setup] Initiate HBCI session...")
             val (handler, passport) = openSession(account)
             try {
+                // PHASE 2: BIC Lookup
                 // Look up the BIC for this account from the passport's UPD accounts.
                 // SEPA/CAMT jobs (KUmsAllCamt, KUmsZeitSEPA) require my.bic to be set;
                 // omitting it causes InvalidUserDataException: "Property my.bic wurde nicht gesetzt".
+                AppLogger.i(TAG, "[$syncPhase/2-bic] Lookup BIC from passport UPD for IBAN ${account.iban}")
                 val bic = bicFromPassport(passport, account.iban)
+                AppLogger.i(TAG, "[$syncPhase/2-bic] BIC resolved: $bic")
+
+                // PHASE 3: Job Selection
                 // Fetch account statement with an ordered fallback strategy:
                 //
                 // Priority order (first success wins):
@@ -253,9 +267,14 @@ class FintsService @Inject constructor(
                     JobAttempt("KUmsNew"),
                 )
 
+                AppLogger.i(TAG, "[$syncPhase/3-job] Trying job sequence: ${jobAttempts.map { it.name }.joinToString(" → ")}")
                 var lastJobException: Exception? = null
+                var attemptIdx = 0
                 val job: HBCIJob = jobAttempts.firstNotNullOfOrNull { attempt ->
+                    attemptIdx++
                     val r = runCatching {
+                        AppLogger.d(TAG, "[$syncPhase/3-job] Attempt $attemptIdx/${jobAttempts.size}: ${attempt.name}" +
+                            (attempt.startDate?.let { " (fromDate=${sdf.format(it)})" } ?: " (no date filter)"))
                         val j = handler.newJob(attempt.name)
                         j.setParam("my", buildKonto(account, bic, passport))
                         attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
@@ -264,6 +283,7 @@ class FintsService @Inject constructor(
                         // when BIC or account number could not be resolved from the passport UPD)
                         // are caught and trigger a fallback to the next job instead of aborting.
                         handler.addJob(j)
+                        AppLogger.d(TAG, "[$syncPhase/3-job] Job ${attempt.name} added successfully")
                         j
                     }
                     if (r.isSuccess) {
@@ -278,7 +298,7 @@ class FintsService @Inject constructor(
                                     it.contains(HBCI_MISSING_NUMBER_MSG)
                                 } == true
                             }) {
-                            AppLogger.w(TAG, "Job nicht unterstützt, nächsten Fallback versuchen: ${ex.message}")
+                            AppLogger.w(TAG, "[$syncPhase/3-job] Job ${attempt.name} not supported or missing BIC/account: ${ex.message}")
                             lastJobException = ex
                             null  // try next
                         } else {
@@ -286,7 +306,7 @@ class FintsService @Inject constructor(
                         }
                     }
                 } ?: run {
-                    AppLogger.w(TAG, "Kein Kontoauszug-Job unterstützt – Abruf nicht möglich: ${lastJobException?.message}")
+                    AppLogger.e(TAG, "[$syncPhase/3-job] ALL job attempts failed. Last error: ${lastJobException?.message}")
                     throw UnsupportedOperationException(
                         "Diese Bank unterstützt keinen HBCI-Kontoauszug-Abruf " +
                         "(weder KUmsAllCamt/KUmsZeitSEPA noch KUmsAll/KUmsNew werden in der BPD angeboten).",
@@ -294,9 +314,17 @@ class FintsService @Inject constructor(
                     )
                 }
 
+                // PHASE 4: Execute
+                AppLogger.i(TAG, "[$syncPhase/4-exec] Sending request to bank...")
                 val status = handler.execute()
-                if (!status.isOK) error("Kontoauszug fehlgeschlagen: $status")
+                if (!status.isOK) {
+                    AppLogger.e(TAG, "[$syncPhase/4-exec] Bank returned non-OK status: $status")
+                    error("Kontoauszug fehlgeschlagen: $status")
+                }
+                AppLogger.i(TAG, "[$syncPhase/4-exec] Bank response OK")
 
+                // PHASE 5: Parse Result
+                AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from response...")
                 val result = job.jobResult as? GVRKUms
                     ?: error("Unerwartetes Ergebnis vom Kontoauszug-Job")
 
@@ -312,7 +340,7 @@ class FintsService @Inject constructor(
                         remoteId    = entry.id
                     )
                 }
-                AppLogger.i(TAG, "fetchAccountStatement: ${transactions.size} Buchungen empfangen")
+                AppLogger.i(TAG, "[$syncPhase/5-parse] SUCCESS: Extracted ${transactions.size} transactions")
                 transactions
             } finally {
                 safeClose(handler)
@@ -320,9 +348,9 @@ class FintsService @Inject constructor(
         }.onFailure { e ->
             if (e is CancellationException) throw e
             if (e is UnsupportedOperationException)
-                AppLogger.w(TAG, "fetchAccountStatement nicht unterstützt: ${e.message}")
+                AppLogger.w(TAG, "[$syncPhase] FAILED (unsupported): ${e.message}")
             else
-                AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
+                AppLogger.e(TAG, "[$syncPhase] FAILED: ${e.message}", e)
         }
         wrapWrongPinResult(operationResult)
     }

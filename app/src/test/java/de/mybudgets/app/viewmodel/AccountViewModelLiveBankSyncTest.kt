@@ -117,21 +117,54 @@ class AccountViewModelLiveBankSyncTest {
 
         try {
             withTimeout(TimeUnit.SECONDS.toMillis(overallTimeoutSeconds)) {
+                var lastState: BankSyncState? = null
+                var lastLogCount = 0
                 while (true) {
-                    when (val state = viewModel.bankSyncState.value) {
-                        is BankSyncState.Success -> return@withTimeout
-                        is BankSyncState.Error -> {
-                            val logDump = AppLogger.export()
-                            error("Live-Sync fehlgeschlagen: ${state.message}\n\nLetzte App-Logs:\n$logDump")
-                        }
-                        else -> delay(250)
+                    val state = viewModel.bankSyncState.value
+                    if (state != lastState) {
+                        println(">>> State transition: $lastState → $state")
+                        lastState = state
                     }
+                    when (state) {
+                        is BankSyncState.Success -> {
+                            val logs = AppLogger.export()
+                            println("✓ Live-Sync SUCCESS: ${state.importedCount} Buchungen importiert")
+                            println("\n=== Final App Logs ===\n$logs\n")
+                            return@withTimeout
+                        }
+                        is BankSyncState.Error -> {
+                            val logs = AppLogger.export()
+                            val logLines = logs.split("\n").toMutableList()
+                            // Show new log lines since last dump
+                            val newLogLines = logLines.drop(lastLogCount)
+                            println("✗ Live-Sync ERROR in phase ${state.phase?.displayName ?: "unknown"}: ${state.message}")
+                            if (newLogLines.isNotEmpty()) {
+                                println("  Recent logs:\n    " + newLogLines.take(5).joinToString("\n    "))
+                            }
+                            lastLogCount = logLines.size
+                            
+                            error(
+                                "Live-Sync fehlgeschlagen in Phase ${state.phase?.displayName ?: "unknown"}: ${state.message}\n" +
+                                "\nLetzte App-Logs:\n$logs"
+                            )
+                        }
+                        is BankSyncState.Loading -> {
+                            val phase = state.phase.displayName
+                            val detail = if (state.detailMessage.isNotBlank()) " — ${state.detailMessage}" else ""
+                            println("⏳ Syncing Phase: $phase$detail")
+                        }
+                        else -> {
+                            // Continue
+                        }
+                    }
+                    delay(250)
                 }
             }
         } catch (e: TimeoutCancellationException) {
             val logDump = AppLogger.export()
+            val state = viewModel.bankSyncState.value
             error(
-                "Live-Sync Timeout nach ${overallTimeoutSeconds}s. Letzte App-Logs:\n$logDump"
+                "Live-Sync Timeout nach ${overallTimeoutSeconds}s. Final state: $state\n\nLetzte App-Logs:\n$logDump"
             )
         }
 

@@ -22,9 +22,23 @@ private const val TAG = "AccountViewModel"
 
 sealed class BankSyncState {
     object Idle : BankSyncState()
-    object Loading : BankSyncState()
+    data class Loading(
+        val phase: SyncPhase = SyncPhase.SESSION_SETUP,
+        val detailMessage: String = ""
+    ) : BankSyncState() {
+        override fun toString() = "$phase${if (detailMessage.isNotBlank()) ": $detailMessage" else ""}"
+    }
     data class Success(val importedCount: Int) : BankSyncState()
-    data class Error(val message: String) : BankSyncState()
+    data class Error(val message: String, val phase: SyncPhase? = null) : BankSyncState()
+}
+
+enum class SyncPhase(val displayName: String) {
+    SESSION_SETUP("Session-Setup"),
+    BIC_LOOKUP("BIC-Abfrage"),
+    JOB_SELECTION("Job-Auswahl"),
+    EXECUTE("Bank-Anfrage"),
+    PARSE_RESULT("Daten-Verarbeitung"),
+    IMPORT("Import lokal");
 }
 
 @HiltViewModel
@@ -53,27 +67,29 @@ class AccountViewModel @Inject constructor(
     fun delete(account: Account) = viewModelScope.launch { repo.delete(account) }
 
     fun syncBankTransactions(accountId: Long, fromDateMillis: Long = NO_FROM_DATE) = viewModelScope.launch {
-        _bankSyncState.value = BankSyncState.Loading
+        _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.SESSION_SETUP)
 
         try {
             val account = repo.getById(accountId)
             if (account == null) {
-                _bankSyncState.value = BankSyncState.Error("Konto nicht gefunden")
+                _bankSyncState.value = BankSyncState.Error("Konto nicht gefunden", SyncPhase.SESSION_SETUP)
                 return@launch
             }
             if (account.iban.isBlank()) {
-                _bankSyncState.value = BankSyncState.Error("IBAN fehlt")
+                _bankSyncState.value = BankSyncState.Error("IBAN fehlt", SyncPhase.SESSION_SETUP)
                 return@launch
             }
             if (fintsService.pinProvider == null) {
-                _bankSyncState.value = BankSyncState.Error("PIN-Dialog nicht verfügbar")
+                _bankSyncState.value = BankSyncState.Error("PIN-Dialog nicht verfügbar", SyncPhase.SESSION_SETUP)
                 return@launch
             }
 
+            _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.BIC_LOOKUP, detailMessage = "BIC wird abgefragt...")
             val fromDate = if (fromDateMillis != NO_FROM_DATE) java.util.Date(fromDateMillis) else null
             val syncResult = fintsService.fetchAccountStatement(account, fromDate)
 
             syncResult.onSuccess { transactions ->
+                _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.IMPORT, detailMessage = "${transactions.size} Buchungen werden importiert...")
                 val existingRemoteIds = txRepo.getAllRemoteIds()
                 val newTx = transactions.filter { it.remoteId == null || it.remoteId !in existingRemoteIds }
                 newTx.forEach { tx -> txRepo.save(tx.copy(accountId = account.id)) }
@@ -81,13 +97,21 @@ class AccountViewModel @Inject constructor(
                 AppLogger.i(TAG, "syncBankTransactions: ${newTx.size} neue Buchungen für Konto ${account.id}")
             }.onFailure { e ->
                 AppLogger.e(TAG, "syncBankTransactions fehlgeschlagen: ${e.message}", e)
-                _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen")
+                // Try to extract phase info from error message or use a default
+                val phase = when {
+                    e.message?.contains("BIC", ignoreCase = true) == true -> SyncPhase.BIC_LOOKUP
+                    e.message?.contains("Job", ignoreCase = true) == true -> SyncPhase.JOB_SELECTION
+                    e.message?.contains("Bankserver", ignoreCase = true) == true -> SyncPhase.EXECUTE
+                    e.message?.contains("Ergebnis", ignoreCase = true) == true -> SyncPhase.PARSE_RESULT
+                    else -> null
+                }
+                _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen", phase)
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             AppLogger.e(TAG, "syncBankTransactions: Unerwarteter Fehler: ${e.message}", e)
-            _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen")
+            _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen", SyncPhase.SESSION_SETUP)
         }
     }
 
