@@ -64,6 +64,7 @@ PIN="$(trim "$(prompt_secret "PIN: ")")"
 BANK_CODE="$(trim "$(prompt "BLZ (optional, leer=aus IBAN ableiten): ")")"
 TAN_METHOD="$(trim "$(prompt "TAN-Methode (optional, z.B. '900' für Secure Go): ")")"
 DECOUPLED_WAIT="$(trim "$(prompt "Decoupled-Wartezeit Sekunden (Default 30): ")")"
+DECOUPLED_RETRY_WAIT_MS="$(trim "$(prompt "Decoupled-Retry-Wartezeit Millisekunden (Default 2000): ")")"
 
 # For iterative loops, extend timeout a bit
 OVERALL_TIMEOUT="$(trim "$(prompt "Gesamt-Test-Timeout Sekunden (Default 420=7min): ")")"
@@ -84,6 +85,9 @@ fi
 
 if [[ -z "$DECOUPLED_WAIT" ]]; then
   DECOUPLED_WAIT="30"
+fi
+if [[ -z "$DECOUPLED_RETRY_WAIT_MS" ]]; then
+  DECOUPLED_RETRY_WAIT_MS="2000"
 fi
 if [[ -z "$OVERALL_TIMEOUT" ]]; then
   OVERALL_TIMEOUT="420"
@@ -169,6 +173,7 @@ for ((run=1; run<=LOOP_ITERATIONS; run++)); do
   EXTRA_PROPS=(
     "-Dmybudgets.live.test=true"
     "-Dmybudgets.hbci.logLevel=${HBCI_LOG_LEVEL}"
+    "-Dmybudgets.decoupled.retry.wait.millis=${DECOUPLED_RETRY_WAIT_MS}"
     "-Dmybudgets.test.iban=${IBAN}"
     "-Dmybudgets.test.userId=${USER_ID}"
     "-Dmybudgets.test.pin=${PIN}"

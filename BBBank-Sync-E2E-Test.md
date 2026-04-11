@@ -65,9 +65,22 @@ Das Skript führt dich Schritt-für-Schritt durch:
 4. **BLZ** (optional) — falls nicht aus IBAN ableitbar
 5. **TAN-Methode** (optional) — für explizite Auswahl (z.B. `900` für BBBank Secure Go)
 6. **Decoupled-Wartezeit** (optional) — Sek. für Secure Go-Bestätigung (Default: 30s)
-7. **Test-Timeout** (optional) — Gesamtzeit für Test (Default: 420s = 7min)
-8. **TAN** (optional) — falls klassische mTAN/SMS-TAN verlangt wird
-9. **Debug-Level** (optional) — Logging-Detail (1-5, Default: 4)
+7. **Decoupled-Retry-Wartezeit** (optional) — Millisekunden zwischen Status-Checks nach Freigabe (Default: 2000ms)
+8. **Test-Timeout** (optional) — Gesamtzeit für Test (Default: 420s = 7min)
+9. **TAN** (optional) — falls klassische mTAN/SMS-TAN verlangt wird
+10. **Debug-Level** (optional) — Logging-Detail (1-5, Default: 4)
+
+## Neue Erkenntnis aus Run 2
+
+- Authentifizierung inkl. Decoupled-Freigabe funktioniert (Bank antwortet mit `3955::Sicherheitsfreigabe erfolgt über anderen Kanal`)
+- Hänger trat **danach** auf: Timeout mit Final-State `BIC_LOOKUP` nach 420s
+- Ursache war ein wahrscheinlicher Wait-Overhead im Callback bei `NEED_PT_DECOUPLED_RETRY`
+
+Umsetzung für Run 3:
+
+- `NEED_PT_DECOUPLED`: weiterhin ein UI-gebundener Bestätigungs-Wait
+- `NEED_PT_DECOUPLED_RETRY`: nur noch kurzer technischer Wait (Default 2000ms), **kein erneuter UI-Dialog**
+- Konfigurierbar via JVM-Property `mybudgets.decoupled.retry.wait.millis`
 
 ### Fehleranalyse im Terminal
 

@@ -643,15 +643,31 @@ class FintsService @Inject constructor(
                     }
                 }
                 NEED_PT_DECOUPLED, NEED_PT_DECOUPLED_RETRY -> {
-                    // Decoupled TAN (BBBank Secure Go / BestSign / pushTAN): user confirms in banking app.
-                    AppLogger.i(TAG, "Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): $msg")
-                    if (decoupledConfirmProvider != null) {
-                        requestFromUi {
-                            decoupledConfirmProvider?.invoke(msg ?: "")
-                            ""
+                    // Decoupled TAN (Secure Go / BestSign):
+                    // - NEED_PT_DECOUPLED       -> trigger one user confirmation wait via UI provider
+                    // - NEED_PT_DECOUPLED_RETRY -> bank status polling; do short technical wait only
+                    //
+                    // Important: applying a long UI wait on every RETRY callback can multiply to
+                    // many minutes and cause false timeouts although authentication already worked.
+                    if (reason == NEED_PT_DECOUPLED) {
+                        AppLogger.i(TAG, "Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): $msg")
+                        if (decoupledConfirmProvider != null) {
+                            requestFromUi {
+                                decoupledConfirmProvider?.invoke(msg ?: "")
+                                ""
+                            }
+                        } else {
+                            AppLogger.w(TAG, "Kein decoupledConfirmProvider gesetzt – Bestätigung übersprungen")
                         }
                     } else {
-                        AppLogger.w(TAG, "Kein decoupledConfirmProvider gesetzt – Bestätigung übersprungen")
+                        val retryWaitMillis = (System.getProperty("mybudgets.decoupled.retry.wait.millis")
+                            ?.toLongOrNull() ?: 2000L)
+                            .coerceIn(0L, 30_000L)
+                        AppLogger.d(
+                            TAG,
+                            "Decoupled Status-Retry angefordert: kurzer Wait ${retryWaitMillis}ms (ohne erneuten UI-Dialog)"
+                        )
+                        Thread.sleep(retryWaitMillis)
                     }
                     retData?.replace(0, retData.length, "")
                 }
