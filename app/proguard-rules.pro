@@ -36,6 +36,14 @@
 -keep class com.sun.xml.bind.** { *; }
 -keep class javax.xml.bind.** { *; }
 
+# javax.activation (Jakarta Activation Framework / JAF) is used by hbci4java / jaxb-runtime
+# for MIME-type handling (MailcapCommandMap etc.). The implementation class
+# com.sun.activation.registries.LogSupport is NOT shipped with Android, so R8 reports it as
+# a missing class. Suppress the warning since the code path that references it is never
+# executed on Android (no desktop file-type registry is needed).
+-dontwarn com.sun.activation.**
+-dontwarn javax.activation.**
+
 # NonValidatingDocumentBuilderFactory is registered as the XML parser factory at runtime
 # via System.setProperty("javax.xml.parsers.DocumentBuilderFactory", <className>).
 # DocumentBuilderFactory.newInstance() then instantiates it reflectively via
