@@ -67,7 +67,7 @@ DECOUPLED_WAIT="$(trim "$(prompt "Decoupled-Wartezeit Sekunden (Default 30): ")"
 DECOUPLED_RETRY_WAIT_MS="$(trim "$(prompt "Decoupled-Retry-Wartezeit Millisekunden (Default 2000): ")")"
 
 # For iterative loops, extend timeout a bit
-OVERALL_TIMEOUT="$(trim "$(prompt "Gesamt-Test-Timeout Sekunden (Default 420=7min): ")")"
+OVERALL_TIMEOUT="$(trim "$(prompt "Gesamt-Test-Timeout Sekunden (Default 900=15min): ")")"
 
 # DEFAULT: Run in loop mode for iterative debugging
 echo ""
@@ -90,7 +90,7 @@ if [[ -z "$DECOUPLED_RETRY_WAIT_MS" ]]; then
   DECOUPLED_RETRY_WAIT_MS="2000"
 fi
 if [[ -z "$OVERALL_TIMEOUT" ]]; then
-  OVERALL_TIMEOUT="420"
+  OVERALL_TIMEOUT="900"
 fi
 
 echo ""
@@ -240,7 +240,7 @@ for ((run=1; run<=LOOP_ITERATIONS; run++)); do
 done
 
 echo ""
-echo "Cleanup marker files..."
-cleanup_markers
+echo "Marker-Dateien bleiben für Monitoring erhalten (.run-finished / .run-started)."
+echo "Für manuellen Reset: rm -f $RUN_STARTED $RUN_FINISHED $CHANGES_MADE"
 
 exit $TEST_EXIT_CODE

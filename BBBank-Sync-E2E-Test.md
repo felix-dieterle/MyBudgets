@@ -82,6 +82,18 @@ Umsetzung für Run 3:
 - `NEED_PT_DECOUPLED_RETRY`: nur noch kurzer technischer Wait (Default 2000ms), **kein erneuter UI-Dialog**
 - Konfigurierbar via JVM-Property `mybudgets.decoupled.retry.wait.millis`
 
+## Neue Erkenntnis aus Run 3
+
+- Fix für `NEED_PT_DECOUPLED_RETRY` ist aktiv, aber Timeout tritt weiterhin auf.
+- Laufzeit: ~8 Minuten, danach `IllegalStateException` mit `Live-Sync Timeout`.
+- Symptom bleibt: Test hängt nach erfolgreichem Sicherheitskanal-Hinweis (`3955`), bevor ein finaler Success/Error-State erreicht wird.
+
+Empfehlung für nächsten Lauf:
+
+- `Gesamt-Test-Timeout`: 900 Sekunden
+- `Decoupled-Retry-Wartezeit`: 1000-2000 ms
+- Monitoring über Markerdatei `.test-loop/.run-finished` (bleibt nun nach Lauf erhalten)
+
 ### Fehleranalyse im Terminal
 
 Das Skript gibt nach Test-Ende detaillierte Hilfe:
