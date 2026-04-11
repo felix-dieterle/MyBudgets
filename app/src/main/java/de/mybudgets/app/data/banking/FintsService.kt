@@ -46,6 +46,7 @@ private const val HBCI_MISSING_BIC_MSG = "my.bic"
 
 /** Fragment of the hbci4java error message when the account-number property was not set. */
 private const val HBCI_MISSING_NUMBER_MSG = "my.number"
+private const val DEFAULT_HBCI_LOG_LEVEL = "2"
 
 /**
  * Wraps HBCI4Java for direct FinTS/HBCI bank communication.
@@ -67,6 +68,18 @@ class FintsService @Inject constructor(
      * app and wait for the user to tap OK before returning.
      */
     @Volatile var decoupledConfirmProvider: (suspend (challenge: String) -> Unit)? = null
+
+    /**
+     * Optional callback invoked at each sync phase transition inside [fetchAccountStatement].
+     * Called from the IO thread; the callback must be thread-safe.
+     * Set by [AccountViewModel] before calling [fetchAccountStatement] and cleared in a
+     * finally block afterwards.
+     *
+     * Parameters:
+     *  - phaseTag: short phase identifier ("1-setup", "2-bic", "3-job", "4-exec", "5-parse")
+     *  - detail:   human-readable description of the current phase step
+     */
+    @Volatile var syncPhaseUpdateHandler: ((phaseTag: String, detail: String) -> Unit)? = null
 
     /** BLZ of the account currently being connected. Set in openSession, read by HbciCallback. */
     private val currentBlz = ThreadLocal<String>()
@@ -201,21 +214,37 @@ class FintsService @Inject constructor(
     /**
      * Fetches account statement (Kontoauszug) for the given [account].
      * Returns a list of [Transaction] objects populated from bank data.
+     *
+     * Sync phases (tracked in logs):
+     * 1. Session Setup — HBCI handler & passport initialization
+     * 2. BIC Lookup — extract BIC from passport UPD
+     * 3. Job Selection — try fallback sequence (KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew)
+     * 4. Execute — send request to bank, await response
+     * 5. Parse Result — extract transaction list from HBCI result
      */
     suspend fun fetchAccountStatement(
         account: Account,
         fromDate: Date? = null
     ): Result<List<Transaction>> = withContext(Dispatchers.IO) {
-        AppLogger.i(TAG, "fetchAccountStatement: ${account.iban} ab $fromDate")
+        val syncPhase = "fetchAccountStatement"
+        AppLogger.i(TAG, "[$syncPhase/1-setup] START: ${account.iban} ab $fromDate")
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
         val operationResult = runCatching {
+            AppLogger.i(TAG, "[$syncPhase/1-setup] Initiate HBCI session...")
+            syncPhaseUpdateHandler?.invoke("1-setup", "HBCI-Session wird initialisiert...")
             val (handler, passport) = openSession(account)
             try {
+                // PHASE 2: BIC Lookup
                 // Look up the BIC for this account from the passport's UPD accounts.
                 // SEPA/CAMT jobs (KUmsAllCamt, KUmsZeitSEPA) require my.bic to be set;
                 // omitting it causes InvalidUserDataException: "Property my.bic wurde nicht gesetzt".
+                AppLogger.i(TAG, "[$syncPhase/2-bic] Lookup BIC from passport UPD for IBAN ${account.iban}")
+                syncPhaseUpdateHandler?.invoke("2-bic", "BIC wird aus Passport UPD abgefragt...")
                 val bic = bicFromPassport(passport, account.iban)
+                AppLogger.i(TAG, "[$syncPhase/2-bic] BIC resolved: $bic")
+
+                // PHASE 3: Job Selection
                 // Fetch account statement with an ordered fallback strategy:
                 //
                 // Priority order (first success wins):
@@ -252,9 +281,15 @@ class FintsService @Inject constructor(
                     JobAttempt("KUmsNew"),
                 )
 
+                AppLogger.i(TAG, "[$syncPhase/3-job] Trying job sequence: ${jobAttempts.map { it.name }.joinToString(" → ")}")
+                syncPhaseUpdateHandler?.invoke("3-job", "Passenden HBCI-Job auswählen (${jobAttempts.map { it.name }.joinToString(" → ")})...")
                 var lastJobException: Exception? = null
+                var attemptIdx = 0
                 val job: HBCIJob = jobAttempts.firstNotNullOfOrNull { attempt ->
+                    attemptIdx++
                     val r = runCatching {
+                        AppLogger.d(TAG, "[$syncPhase/3-job] Attempt $attemptIdx/${jobAttempts.size}: ${attempt.name}" +
+                            (attempt.startDate?.let { " (fromDate=${sdf.format(it)})" } ?: " (no date filter)"))
                         val j = handler.newJob(attempt.name)
                         j.setParam("my", buildKonto(account, bic, passport))
                         attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
@@ -263,6 +298,7 @@ class FintsService @Inject constructor(
                         // when BIC or account number could not be resolved from the passport UPD)
                         // are caught and trigger a fallback to the next job instead of aborting.
                         handler.addJob(j)
+                        AppLogger.d(TAG, "[$syncPhase/3-job] Job ${attempt.name} added successfully")
                         j
                     }
                     if (r.isSuccess) {
@@ -277,7 +313,7 @@ class FintsService @Inject constructor(
                                     it.contains(HBCI_MISSING_NUMBER_MSG)
                                 } == true
                             }) {
-                            AppLogger.w(TAG, "Job nicht unterstützt, nächsten Fallback versuchen: ${ex.message}")
+                            AppLogger.w(TAG, "[$syncPhase/3-job] Job ${attempt.name} not supported or missing BIC/account: ${ex.message}")
                             lastJobException = ex
                             null  // try next
                         } else {
@@ -285,7 +321,7 @@ class FintsService @Inject constructor(
                         }
                     }
                 } ?: run {
-                    AppLogger.w(TAG, "Kein Kontoauszug-Job unterstützt – Abruf nicht möglich: ${lastJobException?.message}")
+                    AppLogger.e(TAG, "[$syncPhase/3-job] ALL job attempts failed. Last error: ${lastJobException?.message}")
                     throw UnsupportedOperationException(
                         "Diese Bank unterstützt keinen HBCI-Kontoauszug-Abruf " +
                         "(weder KUmsAllCamt/KUmsZeitSEPA noch KUmsAll/KUmsNew werden in der BPD angeboten).",
@@ -293,9 +329,19 @@ class FintsService @Inject constructor(
                     )
                 }
 
+                // PHASE 4: Execute
+                AppLogger.i(TAG, "[$syncPhase/4-exec] Sending request to bank...")
+                syncPhaseUpdateHandler?.invoke("4-exec", "Anfrage wird an Bankserver gesendet...")
                 val status = handler.execute()
-                if (!status.isOK) error("Kontoauszug fehlgeschlagen: $status")
+                if (!status.isOK) {
+                    AppLogger.e(TAG, "[$syncPhase/4-exec] Bank returned non-OK status: $status")
+                    error("Kontoauszug fehlgeschlagen: $status")
+                }
+                AppLogger.i(TAG, "[$syncPhase/4-exec] Bank response OK")
 
+                // PHASE 5: Parse Result
+                AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from response...")
+                syncPhaseUpdateHandler?.invoke("5-parse", "Transaktionsdaten werden aus Bankantwort extrahiert...")
                 val result = job.jobResult as? GVRKUms
                     ?: error("Unerwartetes Ergebnis vom Kontoauszug-Job")
 
@@ -311,7 +357,7 @@ class FintsService @Inject constructor(
                         remoteId    = entry.id
                     )
                 }
-                AppLogger.i(TAG, "fetchAccountStatement: ${transactions.size} Buchungen empfangen")
+                AppLogger.i(TAG, "[$syncPhase/5-parse] SUCCESS: Extracted ${transactions.size} transactions")
                 transactions
             } finally {
                 safeClose(handler)
@@ -319,9 +365,9 @@ class FintsService @Inject constructor(
         }.onFailure { e ->
             if (e is CancellationException) throw e
             if (e is UnsupportedOperationException)
-                AppLogger.w(TAG, "fetchAccountStatement nicht unterstützt: ${e.message}")
+                AppLogger.w(TAG, "[$syncPhase] FAILED (unsupported): ${e.message}")
             else
-                AppLogger.e(TAG, "fetchAccountStatement fehlgeschlagen: ${e.message}", e)
+                AppLogger.e(TAG, "[$syncPhase] FAILED: ${e.message}", e)
         }
         wrapWrongPinResult(operationResult)
     }
@@ -449,7 +495,17 @@ class FintsService @Inject constructor(
         val props = Properties().apply {
             setProperty("client.product.id", "MyBudgets")
             setProperty("client.product.version", "1.0")
-            setProperty("log.loglevel.default", "2")
+            val hbciLogLevel = System.getProperty("mybudgets.hbci.logLevel")
+                ?.takeIf { it.matches(Regex("[0-9]+")) }
+                ?: DEFAULT_HBCI_LOG_LEVEL
+            setProperty("log.loglevel.default", hbciLogLevel)
+            // Socket-Timeout für TCP-Verbindung zum Bankserver (in ms).
+            // Verhindert unbegrenztes Hängen beim Kontoauszug-Download wenn der Bankserver
+            // sehr langsam antwortet oder die Verbindung nach der TAN-Bestätigung abbricht.
+            setProperty("comm.standard.sktimeout", "60000")  // 60 s read timeout
+            // Connect-Timeout verhindert Hängen beim initialen TCP-Handshake (z.B. bei
+            // nicht erreichbarem Bankserver oder Netzwerkproblemen).
+            setProperty("comm.standard.sktconnect", "30000") // 30 s connect timeout
         }
         HBCIUtils.init(props, HbciCallback())
         hbciInitialized = true
@@ -607,15 +663,31 @@ class FintsService @Inject constructor(
                     }
                 }
                 NEED_PT_DECOUPLED, NEED_PT_DECOUPLED_RETRY -> {
-                    // Decoupled TAN (BBBank Secure Go / BestSign / pushTAN): user confirms in banking app.
-                    AppLogger.i(TAG, "Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): $msg")
-                    if (decoupledConfirmProvider != null) {
-                        requestFromUi {
-                            decoupledConfirmProvider?.invoke(msg ?: "")
-                            ""
+                    // Decoupled TAN (Secure Go / BestSign):
+                    // - NEED_PT_DECOUPLED       -> trigger one user confirmation wait via UI provider
+                    // - NEED_PT_DECOUPLED_RETRY -> bank status polling; do short technical wait only
+                    //
+                    // Important: applying a long UI wait on every RETRY callback can multiply to
+                    // many minutes and cause false timeouts although authentication already worked.
+                    if (reason == NEED_PT_DECOUPLED) {
+                        AppLogger.i(TAG, "Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): $msg")
+                        if (decoupledConfirmProvider != null) {
+                            requestFromUi {
+                                decoupledConfirmProvider?.invoke(msg ?: "")
+                                ""
+                            }
+                        } else {
+                            AppLogger.w(TAG, "Kein decoupledConfirmProvider gesetzt – Bestätigung übersprungen")
                         }
                     } else {
-                        AppLogger.w(TAG, "Kein decoupledConfirmProvider gesetzt – Bestätigung übersprungen")
+                        val retryWaitMillis = (System.getProperty("mybudgets.decoupled.retry.wait.millis")
+                            ?.toLongOrNull() ?: 2000L)
+                            .coerceIn(0L, 30_000L)
+                        AppLogger.d(
+                            TAG,
+                            "Decoupled Status-Retry angefordert: kurzer Wait ${retryWaitMillis}ms (ohne erneuten UI-Dialog)"
+                        )
+                        Thread.sleep(retryWaitMillis)
                     }
                     retData?.replace(0, retData.length, "")
                 }
