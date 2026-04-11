@@ -24,12 +24,17 @@
 #   → MissingResourceException wrapping the ClassCastException
 #   → hbci4java HBCI_Exception: Error parsing CAMT document
 #
-# Fix: keep the original names of all com.sun.xml.bind and javax.xml.bind classes so that
-# Class.getName() still returns the fully-qualified original name, and ResourceBundle
-# can fall back to the companion .properties file at its original path (e.g.
-# com/sun/xml/bind/v2/runtime/Messages.properties), which IS packaged in the APK.
--keepnames class com.sun.xml.bind.** { *; }
--keepnames class javax.xml.bind.** { *; }
+# Fix: keep the original names AND all members of all com.sun.xml.bind and javax.xml.bind
+# classes so that:
+# 1. Class.getName() still returns the fully-qualified original name, allowing ResourceBundle
+#    to fall back to the companion .properties file at its original path (e.g.
+#    com/sun/xml/bind/v2/runtime/Messages.properties), which IS packaged in the APK.
+# 2. Methods called via reflection (e.g. ContextFactory.createContext, invoked by
+#    javax.xml.bind.ContextFinder via Class.getMethod()) are not removed by R8.
+#    Without this, JAXB.unmarshal() throws:
+#    NoSuchMethodException: com.sun.xml.bind.v2.ContextFactory.createContext(...)
+-keep class com.sun.xml.bind.** { *; }
+-keep class javax.xml.bind.** { *; }
 
 # NonValidatingDocumentBuilderFactory is registered as the XML parser factory at runtime
 # via System.setProperty("javax.xml.parsers.DocumentBuilderFactory", <className>).
