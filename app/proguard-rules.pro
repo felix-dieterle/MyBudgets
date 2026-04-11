@@ -44,6 +44,11 @@
 -dontwarn com.sun.activation.**
 -dontwarn javax.activation.**
 
+# java.awt.* (AWT) is not available on Android. jaxb-runtime references it in
+# RuntimeBuiltinLeafInfoImpl (e.g. java.awt.Component) for desktop image/rendering
+# support that is never reached on Android. Suppress the R8 missing-class warning.
+-dontwarn java.awt.**
+
 # NonValidatingDocumentBuilderFactory is registered as the XML parser factory at runtime
 # via System.setProperty("javax.xml.parsers.DocumentBuilderFactory", <className>).
 # DocumentBuilderFactory.newInstance() then instantiates it reflectively via
