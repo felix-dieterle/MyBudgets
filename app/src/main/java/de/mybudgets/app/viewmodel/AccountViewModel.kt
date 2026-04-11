@@ -101,9 +101,11 @@ class AccountViewModel @Inject constructor(
                     "4-exec"  -> SyncPhase.EXECUTE
                     "5-parse" -> SyncPhase.PARSE_RESULT
                     else      -> null
-                } ?: return@syncPhaseUpdateHandler
-                lastPhaseRef.set(phase)
-                _bankSyncState.value = BankSyncState.Loading(phase = phase, detailMessage = detail)
+                }
+                if (phase != null) {
+                    lastPhaseRef.set(phase)
+                    _bankSyncState.value = BankSyncState.Loading(phase = phase, detailMessage = detail)
+                }
             }
 
             val fromDate = if (fromDateMillis != NO_FROM_DATE) java.util.Date(fromDateMillis) else null
