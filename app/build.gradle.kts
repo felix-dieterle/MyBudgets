@@ -113,6 +113,11 @@ dependencies {
     implementation(libs.hilt.work)
     kapt(libs.hilt.work.compiler)
     implementation(libs.hbci4java)
+    // Pre-compiled stub that provides java.awt.Image for jaxb-runtime's static initializer.
+    // Placing it in a JAR (rather than src/main/java) avoids the Java-17 module-system
+    // error "package exists in another module: java.desktop" that kapt would produce when
+    // it finds a source file in the java.awt package.
+    implementation(files("libs/java-awt-stub.jar"))
     implementation(libs.security.crypto)
 
     testImplementation(libs.junit4)
