@@ -49,6 +49,25 @@
 # support that is never reached on Android. Suppress the R8 missing-class warning.
 -dontwarn java.awt.**
 
+# java.beans.* is a Java SE desktop API not available on Android. jaxb-runtime
+# references java.beans.Introspector in GetterSetterPropertySeed. Never executed on Android.
+-dontwarn java.beans.**
+
+# javax.imageio.* is a Java SE desktop image I/O API not available on Android.
+# jaxb-runtime references it in RuntimeBuiltinLeafInfoImpl for image serialization.
+# That code path is never reached on Android.
+-dontwarn javax.imageio.**
+
+# javax.lang.model.* is a Java compiler API not available on Android. jaxb-runtime
+# references javax.lang.model.SourceVersion in NameConverter. Never executed on Android.
+-dontwarn javax.lang.model.**
+
+# javax.xml.stream.* (StAX API) is not available on Android. jaxb-runtime references
+# StAX classes (XMLStreamReader, XMLStreamWriter, XMLEventReader, XMLEventWriter, etc.)
+# for streaming XML processing. The HKCAZ CAMT parser in hbci4java uses DOM, not StAX,
+# so these code paths are never reached on Android.
+-dontwarn javax.xml.stream.**
+
 # NonValidatingDocumentBuilderFactory is registered as the XML parser factory at runtime
 # via System.setProperty("javax.xml.parsers.DocumentBuilderFactory", <className>).
 # DocumentBuilderFactory.newInstance() then instantiates it reflectively via
