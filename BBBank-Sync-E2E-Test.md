@@ -40,7 +40,108 @@ Optional zusätzlicher Nachweis via Logcat (Phase-Tracking):
 adb logcat -v time | grep -E "\[fetchAccountStatement/\]|BankSyncState|ERROR|FAILED"
 ```
 
-## Live-Test ohne App-Start (Terminal)
+## Python-Skript (eigenständig, kein Gradle erforderlich)
+
+Für schnelle Iteration und AI-gestütztes Debugging gibt es ein **eigenständiges Python-Skript**
+das den vollständigen FinTS-Ablauf (connect → auth Secure Go → Transaktionen) **ohne**
+Android-Build oder Gradle repliziert:
+
+```bash
+# Einmalig: Abhängigkeit installieren
+pip install fints
+
+# Skript starten (interaktiv – fragt IBAN, Nutzerkennung, PIN ab)
+python3 scripts/bbbank-sync-debug.py
+
+# Oder mit Argumenten (für BBBank Secure Go):
+python3 scripts/bbbank-sync-debug.py \
+    --iban   "DE89 3704 0044 0532 0130 00" \
+    --user   NUTZERKENNUNG \
+    --tan-method 900 \
+    --server https://finanzportal.bbbank.de/banking \
+    --debug
+```
+
+### Parameter
+
+| Parameter | Bedeutung | Default |
+|-----------|-----------|---------|
+| `--iban` | Konto-IBAN | (Prompt) |
+| `--user` | Nutzerkennung (Online-Banking Login) | (Prompt) |
+| `--pin` | PIN – besser weglassen (Sicherheit) | (Prompt) |
+| `--server` | FinTS-Server-URL (**Pflichtfeld**) | — |
+| `--tan-method` | TAN-Methoden-Code, z.B. `900` für Secure Go | (auto) |
+| `--decoupled-wait` | Wartezeit für App-Bestätigung in Sek. | `60` |
+| `--days-back` | Buchungshistorie in Tagen | `30` |
+| `--max-entries` | Max. angezeigte Buchungen (0 = alle) | `2` |
+| `--debug` | Vollständiges FinTS-Wire-Logging | `false` |
+
+### FinTS-Server-URL für BBBank ermitteln
+
+Die Server-URL ist bankspezifisch und wird **nicht** aus der IBAN abgeleitet.
+Drei Wege zum richtigen Wert:
+
+1. **Aus hbci4java-Logs** (zuverlässigste Methode):
+   `./scripts/run-live-bbbank-sync-test.sh` mit HBCI-Log-Level 4 starten,
+   in der Ausgabe nach `host=` oder `HBCI url` suchen.
+
+2. **BBBank Online-Portal**: Unter „Mein Konto / Technische Einstellungen" oder
+   via Support direkt erfragen.
+
+3. **Bekannte BBBank-URLs** (ohne Garantie auf Aktualität):
+   `https://finanzportal.bbbank.de/banking`
+
+### Ablauf des Skripts (Phasen)
+
+```
+[1/5] Verbindungsaufbau – Client initialisieren, Dialog öffnen
+[2/5] TAN-Methoden – verfügbare Verfahren aus BPD auflisten, Methode wählen
+[3/5] Konten – SEPA-Konten und BIC aus UPD abrufen, Zielkonto identifizieren
+[4/5] Transaktionen – HKCAZ senden (CAMT.052 oder MT940), Decoupled-TAN behandeln
+[5/5] Parsen – Buchungen extrahieren und anzeigen
+```
+
+### Secure Go / Decoupled-TAN Ablauf
+
+```
+[4/5] Transaktionen abrufen (HKCAZ) …
+── SECURE GO BESTÄTIGUNG ──────────────────────────────────────
+  Challenge: FLURP-12345
+  ➜ Bitte jetzt in der BBBank Secure Go App bestätigen.
+[Enter drücken, wenn die App-Bestätigung erfolgt ist]
+[TAN] Nutzer hat bestätigt – poll Bank …
+[TAN] Decoupled-Bestätigung erfolgreich.
+[5/5] Ergebnis parsen …
+[5/5] 3 Buchung(en) empfangen und geparst
+── ✓ 3 Buchung(en) – zeige 2 ──────────────────────────────────
+
+  Buchung 1:
+    Datum     : 2026-04-10
+    Betrag    : -45.00 EUR
+    Verwendung: Lastschrift Supermarkt Berlin
+    Name      : REWE GmbH
+
+  Buchung 2:
+    ...
+✓ SYNC ERFOLGREICH – 3 Buchung(en) geparst
+```
+
+### Zweck dieses Skripts vs. Gradle-Test
+
+| Kriterium | Python-Skript | Gradle-Test (`run-live-bbbank-sync-test.sh`) |
+|-----------|---------------|----------------------------------------------|
+| Abhängigkeit | `pip install fints` | Gradle, Android SDK, Java 21 |
+| Startzeit | ~2 Sekunden | ~60–120 Sekunden |
+| Bibliothek | python-fints | hbci4java (gleich wie App) |
+| Debugging | Wire-Level-Log mit `--debug` | JUnit-Logs, AppLogger-Export |
+| Zweck | Protokoll-Diagnose, Schnelltest | Exakte App-Verhalten-Prüfung |
+
+Wenn das Python-Skript Buchungen empfängt, aber der Gradle-Test hängt → Problem liegt
+in hbci4java oder der Android-Integration, nicht im Bank-Endpoint.
+
+---
+
+## Live-Test ohne App-Start (Terminal, Gradle-basiert)
 
 Für einen direkten Test der Kette Verbindung → Sync → Import ohne App-UI:
 
