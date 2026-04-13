@@ -53,10 +53,13 @@
 # time). Without java.awt.Image being resolvable, loading the class throws:
 #   java.lang.NoClassDefFoundError: Failed resolution of: Ljava/awt/Image;
 #
-# Fix: app/src/main/java/java/awt/Image.java provides a minimal stub so ART can
+# Fix: app/libs/java-awt-stub.jar provides a minimal pre-compiled stub so ART can
 # resolve the class literal at load time. Android ART looks up missing classes in the
 # app DEX after failing to find them in the boot classpath (java.awt is absent from
-# Android's boot classpath entirely, so there is no split-package conflict).
+# Android's boot classpath entirely, so there is no split-package conflict at runtime).
+# The stub is pre-compiled (javac --release 8) rather than kept as a .java source file
+# to avoid the Java-17 module-system compile error "package exists in another module:
+# java.desktop" that kapt raises when it finds source in the java.awt package.
 #
 # Other java.awt.* references (BufferedImage, Component, MediaTracker, Graphics, …)
 # live only in method bodies that are never called during CAMT XML parsing; ART's soft
