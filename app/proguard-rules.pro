@@ -45,8 +45,23 @@
 -dontwarn javax.activation.**
 
 # java.awt.* (AWT) is not available on Android. jaxb-runtime references it in
-# RuntimeBuiltinLeafInfoImpl (e.g. java.awt.Component) for desktop image/rendering
-# support that is never reached on Android. Suppress the R8 missing-class warning.
+# RuntimeBuiltinLeafInfoImpl for desktop image/rendering support that is never
+# reached on Android.
+#
+# RuntimeBuiltinLeafInfoImpl's *static initializer* contains a direct class literal
+# "Image.class", which is resolved at class-loading time (not lazily at method call
+# time). Without java.awt.Image being resolvable, loading the class throws:
+#   java.lang.NoClassDefFoundError: Failed resolution of: Ljava/awt/Image;
+#
+# Fix: app/src/main/java/java/awt/Image.java provides a minimal stub so ART can
+# resolve the class literal at load time. Android ART looks up missing classes in the
+# app DEX after failing to find them in the boot classpath (java.awt is absent from
+# Android's boot classpath entirely, so there is no split-package conflict).
+#
+# Other java.awt.* references (BufferedImage, Component, MediaTracker, Graphics, …)
+# live only in method bodies that are never called during CAMT XML parsing; ART's soft
+# verification allows those methods to be loaded without error as long as they are not
+# invoked. Suppress the R8 missing-class warnings for those remaining references.
 -dontwarn java.awt.**
 
 # java.beans.* is a Java SE desktop API not available on Android. jaxb-runtime
