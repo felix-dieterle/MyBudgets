@@ -48,23 +48,41 @@
 # RuntimeBuiltinLeafInfoImpl for desktop image/rendering support that is never
 # reached on Android.
 #
-# RuntimeBuiltinLeafInfoImpl's *static initializer* contains a direct class literal
-# "Image.class", which is resolved at class-loading time (not lazily at method call
-# time). Without java.awt.Image being resolvable, loading the class throws:
-#   java.lang.NoClassDefFoundError: Failed resolution of: Ljava/awt/Image;
+# RuntimeBuiltinLeafInfoImpl's *static initializer* contains direct class literals
+# that are resolved at class-loading time (not lazily at method call time):
 #
-# Fix: app/libs/java-awt-stub.jar provides a minimal pre-compiled stub so ART can
-# resolve the class literal at load time. Android ART looks up missing classes in the
-# app DEX after failing to find them in the boot classpath (java.awt is absent from
-# Android's boot classpath entirely, so there is no split-package conflict at runtime).
-# The stub is pre-compiled (javac --release 8) rather than kept as a .java source file
-# to avoid the Java-17 module-system compile error "package exists in another module:
-# java.desktop" that kapt raises when it finds source in the java.awt package.
+# 1. "Image.class" – resolved at static init of RuntimeBuiltinLeafInfoImpl itself:
+#    java.lang.NoClassDefFoundError: Failed resolution of: Ljava/awt/Image;
 #
-# Other java.awt.* references (BufferedImage, Component, MediaTracker, Graphics, …)
-# live only in method bodies that are never called during CAMT XML parsing; ART's soft
-# verification allows those methods to be loaded without error as long as they are not
-# invoked. Suppress the R8 missing-class warnings for those remaining references.
+# 2. javax.activation.DataHandler (from the jaxb-runtime transitive dep
+#    javax.activation:javax.activation-api:1.2.0) implements
+#    java.awt.datatransfer.Transferable and carries fields of type
+#    java.awt.datatransfer.DataFlavor[].  R8 renames DataHandler to an obfuscated
+#    name (e.g. p2/c) but keeps the reference to Transferable/DataFlavor as-is
+#    because those classes are not on the Android boot-classpath.  When ART tries
+#    to load p2/c it cannot resolve Transferable → p2/c is marked "failed" →
+#    RuntimeBuiltinLeafInfoImpl's static init throws:
+#    java.lang.NoClassDefFoundError: Failed resolution of: Lp2/c;
+#
+# Fix for both: app/libs/java-awt-stub.jar provides minimal pre-compiled stubs so
+# ART can resolve the class literals at load time:
+#   • java.awt.Image                         (fixes case 1)
+#   • java.awt.datatransfer.Transferable     (fixes case 2)
+#   • java.awt.datatransfer.DataFlavor       (field/method-sig type in DataHandler)
+#   • java.awt.datatransfer.UnsupportedFlavorException  (method-sig type)
+#
+# Android ART looks up missing classes in the app DEX after failing to find them
+# in the boot classpath (java.awt is absent from Android's boot classpath entirely,
+# so there is no split-package conflict at runtime).
+# The stubs are pre-compiled (javac --release 8) rather than kept as .java source
+# files to avoid the Java-17 module-system compile error "package exists in another
+# module: java.desktop" that kapt raises when it finds source in the java.awt package.
+#
+# Other java.awt.* / java.awt.datatransfer.* references (BufferedImage, Component,
+# MediaTracker, Graphics, …) live only in method bodies that are never called during
+# CAMT XML parsing; ART's soft verification allows those methods to be loaded without
+# error as long as they are not invoked. Suppress the R8 missing-class warnings for
+# those remaining references.
 -dontwarn java.awt.**
 
 # java.beans.* is a Java SE desktop API not available on Android. jaxb-runtime
