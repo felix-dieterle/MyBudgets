@@ -463,6 +463,17 @@ class FintsService @Inject constructor(
             "javax.xml.parsers.DocumentBuilderFactory",
             NonValidatingDocumentBuilderFactory::class.java.name
         )
+        // Android's SAXParserFactoryImpl does not support the
+        // http://javax.xml.XMLConstants/feature/secure-processing feature that JAXB's
+        // XmlFactory.createParserFactory() unconditionally requests when creating the SAX
+        // parser for CAMT XML unmarshalling.  The missing feature causes a
+        // SAXNotRecognizedException which JAXB re-wraps as IllegalStateException, killing
+        // the CAMT parse entirely.  Replace the factory with our wrapper that silently
+        // ignores unsupported features.
+        System.setProperty(
+            "javax.xml.parsers.SAXParserFactory",
+            FeatureIgnoringSAXParserFactory::class.java.name
+        )
         // hbci4java uses JAXB (jaxb-runtime) to parse CAMT XML.  JAXB's Messages Enum classes
         // (e.g. com.sun.xml.bind.v2.runtime.Messages) load their localised strings via
         //   ResourceBundle.getBundle(Messages.class.getName())
