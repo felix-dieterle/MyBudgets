@@ -106,7 +106,7 @@ Drei Wege zum richtigen Wert:
 ```
 [4/5] Transaktionen abrufen (HKCAZ) …
 ── SECURE GO BESTÄTIGUNG ──────────────────────────────────────
-  Challenge: FLURP-12345
+  Challenge: Bitte bestätigen Sie den Auftrag in Ihrer Secure-Go-App (Beispiel-Challenge)
   ➜ Bitte jetzt in der BBBank Secure Go App bestätigen.
 [Enter drücken, wenn die App-Bestätigung erfolgt ist]
 [TAN] Nutzer hat bestätigt – poll Bank …

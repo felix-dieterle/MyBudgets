@@ -2,7 +2,7 @@
 """
 BBBank FinTS Sync Debug Script
 ================================
-Replikation des Ablaufs  connect → auth (Secure Go / Decoupled-TAN) → Transaktionen abrufen
+Replikation des Ablaufs connect → auth (Secure Go / Decoupled-TAN) → Transaktionen abrufen
 aus der MyBudgets App – als schlankes, eigenständiges Python-Skript.
 
 Ziel: AI-gestützte Fehleranalyse anhand von Logs bis mindestens 1–2 Buchungen empfangen
@@ -189,7 +189,8 @@ def _print_transaction(idx: int, tx: Any) -> None:
             amount_str = f"{amount_obj.amount} {amount_obj.currency}"
         else:
             amount_str = str(amount_obj)
-        # Prefer value date (Wertstellungsdatum) over booking date
+        # Prefer value date (Wertstellungsdatum) over booking date; guessed_entry_date
+        # is a python-fints fallback that copies BookingDate when ValueDate is absent.
         tx_date = data.get("date") or data.get("entry_date") or data.get("guessed_entry_date", "?")
         purpose_raw = data.get("purpose") or data.get("transaction_details", "")
         purpose_str = (
