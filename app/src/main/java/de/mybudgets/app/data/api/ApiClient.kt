@@ -1,5 +1,6 @@
 package de.mybudgets.app.data.api
 
+import de.mybudgets.app.util.AppLogger
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -23,7 +24,9 @@ object ApiClient {
     }
 
     private fun buildRetrofit(baseUrl: String, apiKey: String): Retrofit {
-        val logging = HttpLoggingInterceptor().apply {
+        val logging = HttpLoggingInterceptor { message ->
+            AppLogger.d("HTTP", message)
+        }.apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
         val authInterceptor = Interceptor { chain ->
