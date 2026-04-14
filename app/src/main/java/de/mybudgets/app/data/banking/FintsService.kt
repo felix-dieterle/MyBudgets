@@ -133,7 +133,7 @@ class FintsService @Inject constructor(
         amount: Double,
         purpose: String
     ): Result<String> = withContext(Dispatchers.IO) {
-        AppLogger.i(TAG, "executeTransfer: start – von ${fromAccount.iban} an $toName ($toIban) Betrag=$amount")
+        AppLogger.i(TAG, "executeTransfer: start – von ${maskIban(fromAccount.iban)} an $toName (${maskIban(toIban)}) Betrag=$amount")
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
         val operationResult = runCatching {
@@ -227,19 +227,20 @@ class FintsService @Inject constructor(
         fromDate: Date? = null
     ): Result<List<Transaction>> = withContext(Dispatchers.IO) {
         val syncPhase = "fetchAccountStatement"
-        AppLogger.i(TAG, "[$syncPhase/1-setup] START: ${account.iban} ab $fromDate")
+        AppLogger.i(TAG, "[$syncPhase/1-setup] START: iban=${maskIban(account.iban)} userId=${maskUserId(account.userId)} blz=${account.bankCode.ifBlank { blzFromIban(account.iban) ?: "?" }} ab $fromDate")
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
         val operationResult = runCatching {
             AppLogger.i(TAG, "[$syncPhase/1-setup] Initiate HBCI session...")
             syncPhaseUpdateHandler?.invoke("1-setup", "HBCI-Session wird initialisiert...")
             val (handler, passport) = openSession(account)
+            AppLogger.i(TAG, "[$syncPhase/1-setup] Session geöffnet – Server=${passport.host}:${passport.port}")
             try {
                 // PHASE 2: BIC Lookup
                 // Look up the BIC for this account from the passport's UPD accounts.
                 // SEPA/CAMT jobs (KUmsAllCamt, KUmsZeitSEPA) require my.bic to be set;
                 // omitting it causes InvalidUserDataException: "Property my.bic wurde nicht gesetzt".
-                AppLogger.i(TAG, "[$syncPhase/2-bic] Lookup BIC from passport UPD for IBAN ${account.iban}")
+                AppLogger.i(TAG, "[$syncPhase/2-bic] Lookup BIC from passport UPD for iban=${maskIban(account.iban)}")
                 syncPhaseUpdateHandler?.invoke("2-bic", "BIC wird aus Passport UPD abgefragt...")
                 val bic = bicFromPassport(passport, account.iban)
                 AppLogger.i(TAG, "[$syncPhase/2-bic] BIC resolved: $bic")
@@ -372,6 +373,38 @@ class FintsService @Inject constructor(
         wrapWrongPinResult(operationResult)
     }
 
+    // ─── Sensitive data masking helpers ──────────────────────────────────────────────
+
+    /**
+     * Returns a masked IBAN showing first 4 characters (country + check digits) and last 4.
+     * Provides a recognisable hint while protecting the full account number.
+     * Example: "DE89370400440532013000" → "DE89****3000"
+     */
+    private fun maskIban(iban: String): String {
+        val norm = iban.replace(" ", "").uppercase()
+        return when {
+            norm.isBlank() -> "(leer)"
+            norm.length > 8 -> "${norm.take(4)}****${norm.takeLast(4)}"
+            else -> norm
+        }
+    }
+
+    /**
+     * Returns a masked user ID showing the first 2 and last character.
+     * Example: "myloginname" → "my****e"
+     */
+    private fun maskUserId(userId: String): String = when {
+        userId.isBlank() -> "(leer)"
+        userId.length <= 3 -> "${userId[0]}***"
+        else -> "${userId.take(2)}****${userId.last()}"
+    }
+
+    /**
+     * Returns a PIN indicator showing only its length – never the actual content.
+     * Example: "12345" → "[PIN: 5 Stellen]"
+     */
+    private fun maskPin(pin: String): String = "[PIN: ${pin.length} Stellen]"
+
     // ─── Internal helpers ─────────────────────────────────────────────────────────
 
     private fun openSession(account: Account): Pair<HBCIHandler, HBCIPassport> {
@@ -380,13 +413,14 @@ class FintsService @Inject constructor(
             blzFromIban(account.iban)
                 ?: error("BLZ fehlt und kann nicht aus der IBAN ermittelt werden für Konto '${account.name}'")
         }
-        AppLogger.d(TAG, "openSession: BLZ=$blz userId='${account.userId.ifBlank { "(leer)" }}' accountId=${account.id}")
+        AppLogger.i(TAG, "openSession: BLZ=$blz iban=${maskIban(account.iban)} userId='${maskUserId(account.userId)}' tanMethod='${account.tanMethod.ifBlank { "(auto)" }}' accountId=${account.id}")
         currentBlz.set(blz)
         currentUserId.set(account.userId)
         currentTanMethod.set(account.tanMethod)
         initHbciOnce()
 
         val passportFile = File(passportDir, "passport_${blz}_${account.id}.dat")
+        AppLogger.d(TAG, "openSession: Passport-Datei: ${passportFile.absolutePath}")
         HBCIUtils.setParam("client.passport.PinTan.filename", passportFile.absolutePath)
         HBCIUtils.setParam("client.passport.PinTan.init", "1")
         HBCIUtils.setParam("client.passport.default", "PinTan")
@@ -411,6 +445,7 @@ class FintsService @Inject constructor(
         }
         return try {
             val handler = HBCIHandler("300", passport)
+            AppLogger.i(TAG, "openSession: HBCI-Handler bereit – Server=${passport.host}:${passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=300 Produkt=MyBudgets")
             Pair(handler, passport)
         } catch (e: Exception) {
             // If the TAN method stored in the passport is no longer supported by the bank
@@ -431,6 +466,7 @@ class FintsService @Inject constructor(
                     freshPassport.customerId = account.userId
                 }
                 val freshHandler = HBCIHandler("300", freshPassport)
+                AppLogger.i(TAG, "openSession: HBCI-Handler bereit (nach Passport-Reset) – Server=${freshPassport.host}:${freshPassport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=300 Produkt=MyBudgets")
                 Pair(freshHandler, freshPassport)
             } else {
                 throw e
@@ -628,8 +664,9 @@ class FintsService @Inject constructor(
             when (reason) {
                 NEED_PT_PIN -> {
                     val bankName = passport?.blz ?: "Bank"
-                    AppLogger.i(TAG, "PIN-Anfrage für BLZ $bankName")
+                    AppLogger.i(TAG, "PIN-Anfrage für BLZ $bankName userId='${maskUserId(currentUserId.get() ?: "")}'")
                     val pin = requestFromUi { pinProvider?.invoke(bankName) ?: "" }
+                    AppLogger.d(TAG, "PIN erhalten: ${maskPin(pin)}")
                     retData?.replace(0, retData.length, pin)
                 }
                 NEED_PT_TAN -> {
@@ -646,7 +683,7 @@ class FintsService @Inject constructor(
                 }
                 NEED_USERID, NEED_CUSTOMERID -> {
                     val uid = currentUserId.get() ?: ""
-                    AppLogger.d(TAG, "HBCI Nutzerkennung-Anfrage (reason=$reason): userId='${uid.ifBlank { "(leer)" }}'")
+                    AppLogger.d(TAG, "HBCI Nutzerkennung-Anfrage (reason=$reason): userId='${maskUserId(uid)}'")
                     retData?.replace(0, retData.length, uid)
                 }
                 NEED_PT_SECMECH -> {
@@ -707,7 +744,7 @@ class FintsService @Inject constructor(
                 }
                 HAVE_INST_MSG -> AppLogger.i(TAG, "Bank-Nachricht: $msg")
                 WRONG_PIN -> {
-                    AppLogger.w(TAG, "HBCI: PIN ungültig (callback reason=$reason)")
+                    AppLogger.w(TAG, "HBCI: PIN ungültig für userId='${maskUserId(currentUserId.get() ?: "")}' (callback reason=$reason)")
                     wrongPinOnThread.set(true)
                 }
                 else -> AppLogger.d(TAG, "HBCI callback reason=$reason msg=$msg")
