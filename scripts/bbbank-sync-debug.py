@@ -98,11 +98,12 @@ def _mask_login(login: str) -> str:
     """Zeigt Nutzerkennung teilweise maskiert: erste 2 Zeichen + **** + letztes Zeichen.
     Beispiel: 'myloginname' → 'my****e'
     """
-    if not login:
+    stripped = login.strip()
+    if not stripped:
         return "(leer)"
-    if len(login) <= 3:
-        return f"{login[0]}***"
-    return f"{login[:2]}****{login[-1]}"
+    if len(stripped) <= 3:
+        return f"{stripped[0]}***"
+    return f"{stripped[:2]}****{stripped[-1]}"
 
 
 def _mask_pin(pin: str) -> str:
