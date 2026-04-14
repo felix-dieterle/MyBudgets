@@ -265,6 +265,9 @@ def run(args: argparse.Namespace) -> int:  # noqa: C901
     start_date = date.today() - timedelta(days=args.days_back)
     end_date = date.today()
 
+    # Normalise server URL early so it's available for the connection-info header
+    server: Optional[str] = args.server.strip() if args.server else None
+
     _sep("BBBank FinTS Sync Debug – Verbindungsparameter")
     LOG.info("IBAN         : %s  (BLZ %s)", _mask_iban(iban), blz)
     LOG.info("Nutzerkennung: %s", _mask_login(user))
@@ -278,8 +281,6 @@ def run(args: argparse.Namespace) -> int:  # noqa: C901
 
     # ── Phase 1: Verbindungsaufbau ─────────────────────────────────────────────
     LOG.info("[1/5] Verbindungsaufbau …")
-
-    server: Optional[str] = args.server.strip() if args.server else None
 
     if not server:
         # python-fints requires a server URL.  Abort early with a helpful message

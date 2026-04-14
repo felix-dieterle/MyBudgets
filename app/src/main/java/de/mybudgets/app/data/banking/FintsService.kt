@@ -394,8 +394,9 @@ class FintsService @Inject constructor(
      * Example: "myloginname" → "my****e"
      */
     private fun maskUserId(userId: String): String = when {
+        userId.isEmpty() -> "(leer)"
         userId.isBlank() -> "(leer)"
-        userId.length <= 3 -> "${userId.first()}***"
+        userId.length <= 3 -> "${userId[0]}***"
         else -> "${userId.take(2)}****${userId.last()}"
     }
 
