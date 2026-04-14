@@ -84,9 +84,32 @@ def _blz_from_iban(iban: str) -> str:
     raise ValueError(f"Ungültige deutsche IBAN: '{iban}' – erwartet DE + 22 Zeichen")
 
 
-def _iban_last4(iban: str) -> str:
+def _mask_iban(iban: str) -> str:
+    """Zeigt IBAN teilweise maskiert: erste 4 Zeichen (Land+Prüfziffer) + **** + letzte 4.
+    Beispiel: 'DE89370400440532013000' → 'DE89****3000'
+    """
     norm = iban.replace(" ", "").upper()
-    return f"***{norm[-4:]}" if len(norm) >= 4 else norm
+    if len(norm) <= 8:
+        return norm
+    return f"{norm[:4]}****{norm[-4:]}"
+
+
+def _mask_login(login: str) -> str:
+    """Zeigt Nutzerkennung teilweise maskiert: erste 2 Zeichen + **** + letztes Zeichen.
+    Beispiel: 'myloginname' → 'my****e'
+    """
+    if not login:
+        return "(leer)"
+    if len(login) <= 3:
+        return f"{login[0]}***"
+    return f"{login[:2]}****{login[-1]}"
+
+
+def _mask_pin(pin: str) -> str:
+    """Zeigt nur die PIN-Länge als Hinweis – nie den Inhalt.
+    Beispiel: '12345' → '[PIN: 5 Stellen]'
+    """
+    return f"[PIN: {len(pin)} Stellen]"
 
 
 def _sep(title: str = "") -> None:
@@ -242,12 +265,15 @@ def run(args: argparse.Namespace) -> int:  # noqa: C901
     start_date = date.today() - timedelta(days=args.days_back)
     end_date = date.today()
 
-    _sep("BBBank FinTS Sync Debug")
-    LOG.info("IBAN         : %s  (BLZ %s)", _iban_last4(iban), blz)
-    LOG.info("Nutzerkennung: %s", user)
+    _sep("BBBank FinTS Sync Debug – Verbindungsparameter")
+    LOG.info("IBAN         : %s  (BLZ %s)", _mask_iban(iban), blz)
+    LOG.info("Nutzerkennung: %s", _mask_login(user))
+    LOG.info("PIN          : %s", _mask_pin(pin))
     LOG.info("TAN-Methode  : %s", args.tan_method or "(auto)")
     LOG.info("Zeitraum     : %s → %s", start_date, end_date)
-    LOG.info("FinTS-Server : %s", args.server or "(aus BLZ-Liste / Bankdaten)")
+    LOG.info("FinTS-Server : %s", server or "(aus BLZ-Liste / Bankdaten)")
+    LOG.info("Produkt-ID   : MyBudgets")
+    LOG.info("HBCI-Version : FinTS 3.0 (HBCI 3.0)")
     print()
 
     # ── Phase 1: Verbindungsaufbau ─────────────────────────────────────────────
@@ -332,7 +358,7 @@ def run(args: argparse.Namespace) -> int:  # noqa: C901
                 acc_bic = acc.bic or "?"
                 is_target = acc_iban == iban
                 marker = " ← Zielkonto" if is_target else ""
-                LOG.info("       IBAN %s  BIC %s%s", _iban_last4(acc_iban), acc_bic, marker)
+                LOG.info("       IBAN %s  BIC %s%s", _mask_iban(acc_iban), acc_bic, marker)
                 if is_target:
                     target = acc
 
@@ -340,12 +366,12 @@ def run(args: argparse.Namespace) -> int:  # noqa: C901
                 LOG.error(
                     "[3/5] Zielkonto %s nicht in der Kontoliste gefunden! "
                     "Gefundene IBANs: %s",
-                    _iban_last4(iban),
-                    [_iban_last4((a.iban or "").replace(" ", "").upper()) for a in accounts],
+                    _mask_iban(iban),
+                    [_mask_iban((a.iban or "").replace(" ", "").upper()) for a in accounts],
                 )
                 return 1
 
-            LOG.info("[3/5] Zielkonto: IBAN %s  BIC %s", _iban_last4(iban), target.bic or "?")
+            LOG.info("[3/5] Zielkonto: IBAN %s  BIC %s", _mask_iban(iban), target.bic or "?")
 
             # ── Phase 4: Transaktionen abrufen (HKCAZ / CAMT.052 oder MT940) ─
             LOG.info("[4/5] Transaktionen abrufen (HKCAZ) …")
