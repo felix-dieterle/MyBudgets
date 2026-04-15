@@ -104,6 +104,10 @@ class AddEditAccountFragment : Fragment() {
             val pattern = if (isVirtual) binding.etVirtualPattern.text.toString().trim() else ""
             val targetAmount = if (isVirtual) binding.etVirtualTargetAmount.text.toString().trim().toDoubleOrNull() else null
             val targetDueDate = if (isVirtual) selectedTargetDueDate else null
+            if (pattern.isNotBlank() && runCatching { Regex(pattern) }.isFailure) {
+                binding.etVirtualPattern.error = getString(R.string.error_invalid_regex)
+                return@setOnClickListener
+            }
             if (isVirtual) {
                 val realAccounts = vm.realAccounts.value
                 if (realAccounts.isEmpty()) {

@@ -4,16 +4,15 @@ import de.mybudgets.app.data.model.Account
 
 object VirtualAccountMatcher {
     fun match(description: String, virtualAccounts: List<Account>): Account? {
-        val sorted = virtualAccounts
+        val compiled = virtualAccounts
             .filter { it.isVirtual && it.autoAssignPattern.isNotBlank() }
-            .sortedByDescending { it.autoAssignPattern.length }
-        for (account in sorted) {
-            try {
-                if (Regex(account.autoAssignPattern, RegexOption.IGNORE_CASE).containsMatchIn(description)) {
-                    return account
-                }
-            } catch (_: Exception) {
-                // invalid regex -> ignore
+            .mapNotNull { account ->
+                runCatching { account to Regex(account.autoAssignPattern, RegexOption.IGNORE_CASE) }.getOrNull()
+            }
+            .sortedByDescending { (account, _) -> account.autoAssignPattern.length }
+        for ((account, regex) in compiled) {
+            if (regex.containsMatchIn(description)) {
+                return account
             }
         }
         return null
