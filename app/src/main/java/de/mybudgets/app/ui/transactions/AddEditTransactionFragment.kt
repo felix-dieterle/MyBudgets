@@ -37,7 +37,9 @@ class AddEditTransactionFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 accountVm.accounts.collect { accounts ->
-                    val names = accounts.map { it.name }
+                    val names = accounts.map {
+                        if (it.isVirtual) "${it.name} (virtuell)" else it.name
+                    }
                     binding.spinnerAccount.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, names)
                 }
             }
@@ -49,9 +51,13 @@ class AddEditTransactionFragment : Fragment() {
             if (desc.isBlank()) { binding.etDescription.error = "Beschreibung fehlt"; return@setOnClickListener }
             val amount = amtStr.toDoubleOrNull() ?: 0.0
             val accounts = accountVm.accounts.value
-            val accountId = accounts.getOrNull(binding.spinnerAccount.selectedItemPosition)?.id ?: return@setOnClickListener
+            val selectedAccount = accounts.getOrNull(binding.spinnerAccount.selectedItemPosition) ?: return@setOnClickListener
+            val accountId = if (selectedAccount.isVirtual) {
+                selectedAccount.parentAccountId ?: selectedAccount.id
+            } else selectedAccount.id
             val tx = Transaction(
                 accountId   = accountId,
+                virtualAccountId = if (selectedAccount.isVirtual) selectedAccount.id else null,
                 description = desc,
                 amount      = amount,
                 type        = TransactionType.values()[binding.spinnerType.selectedItemPosition],
