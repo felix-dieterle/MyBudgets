@@ -32,8 +32,7 @@ object DashboardInsights {
         val currentExpense = transactions.filter { it.date in last30..now && it.type != TransactionType.INCOME }.sumOf { it.amount }
         val previousExpense = transactions.filter { it.date in prev30 until last30 && it.type != TransactionType.INCOME }.sumOf { it.amount }
         val delta = currentExpense - previousExpense
-        val sign = if (delta >= 0) "+" else "-"
-        return "30d Ausgaben: ${CurrencyFormatter.format(currentExpense)} ($sign${CurrencyFormatter.format(kotlin.math.abs(delta))} vs. vorherige 30d)"
+        return "30d Ausgaben: ${CurrencyFormatter.format(currentExpense)} (${CurrencyFormatter.format(delta)} vs. vorherige 30d)"
     }
 
     fun buildPredictionWarnings(

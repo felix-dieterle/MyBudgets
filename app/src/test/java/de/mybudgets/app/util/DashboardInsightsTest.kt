@@ -76,6 +76,6 @@ class DashboardInsightsTest {
         val summary = DashboardInsights.buildTrendSummary(now, tx)
 
         assertTrue(summary.contains("30d Ausgaben"))
-        assertTrue(summary.contains("+"))
+        assertTrue(summary.contains("vs. vorherige 30d"))
     }
 }
