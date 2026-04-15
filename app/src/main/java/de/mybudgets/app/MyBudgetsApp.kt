@@ -11,8 +11,10 @@ import de.mybudgets.app.util.DataSeeder
 import de.mybudgets.app.worker.BackendSyncWorker
 import de.mybudgets.app.worker.StandingOrderWorker
 import de.mybudgets.app.util.AppLogger
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -27,6 +29,12 @@ class MyBudgetsApp : Application(), Configuration.Provider {
     @Inject lateinit var labelRepository: LabelRepository
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
+    private val startupScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+            AppLogger.e(TAG, "Startup-Coroutine abgestürzt: ${throwable.message}", throwable)
+        }
+    )
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -37,30 +45,36 @@ class MyBudgetsApp : Application(), Configuration.Provider {
 
         installGlobalExceptionHandler()
 
-        CoroutineScope(Dispatchers.IO).launch {
-            if (!categoryRepository.hasDefaultCategories()) {
-                categoryRepository.insertAll(DataSeeder.defaultCategories())
+        startupScope.launch {
+            try {
+                if (!categoryRepository.hasDefaultCategories()) {
+                    categoryRepository.insertAll(DataSeeder.defaultCategories())
+                }
+                if (!gamificationRepository.hasBadges()) {
+                    gamificationRepository.seed(DataSeeder.defaultBadges())
+                }
+                // Remove any duplicate labels (same name, different ids) that may have
+                // accumulated from prior imports or UI interactions.
+                labelRepository.deduplicateByName()
+            } catch (e: Throwable) {
+                AppLogger.e(TAG, "Startup-Initialisierung fehlgeschlagen: ${e.message}", e)
             }
-            if (!gamificationRepository.hasBadges()) {
-                gamificationRepository.seed(DataSeeder.defaultBadges())
-            }
-            // Remove any duplicate labels (same name, different ids) that may have
-            // accumulated from prior imports or UI interactions.
-            labelRepository.deduplicateByName()
         }
 
-        scheduleBackgroundWorkers()
+        try {
+            scheduleBackgroundWorkers()
+        } catch (e: Throwable) {
+            AppLogger.e(TAG, "WorkManager-Planung fehlgeschlagen: ${e.message}", e)
+        }
     }
 
     /**
      * Installs a global uncaught-exception handler that logs the crash to [AppLogger]
-     * before delegating to the default handler (which terminates the process).
+     * and suppresses process termination so startup errors do not crash the app.
      */
     private fun installGlobalExceptionHandler() {
-        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             AppLogger.e(TAG, "UNCAUGHT EXCEPTION im Thread '${thread.name}': ${throwable.message}", throwable)
-            defaultHandler?.uncaughtException(thread, throwable)
         }
     }
 
@@ -89,4 +103,3 @@ class MyBudgetsApp : Application(), Configuration.Provider {
         )
     }
 }
-
