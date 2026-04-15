@@ -39,6 +39,9 @@ class SettingsFragment : Fragment() {
         binding.etBackendUrl.setText(vm.backendUrl)
         binding.etApiKey.setText(vm.apiKey)
         binding.etOpenrouterKey.setText(vm.openrouterApiKey)
+        binding.etAiProvider.setText(vm.aiProvider)
+        binding.etAiModel.setText(vm.aiModel)
+        binding.etGithubCopilotToken.setText(vm.githubCopilotToken)
         binding.switchOfflineMode.isChecked = vm.offlineMode
         binding.tvAppVersion.text = getString(R.string.app_version_info, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
 
@@ -48,6 +51,9 @@ class SettingsFragment : Fragment() {
             vm.backendUrl        = binding.etBackendUrl.text.toString().trim()
             vm.apiKey            = binding.etApiKey.text.toString().trim()
             vm.openrouterApiKey  = binding.etOpenrouterKey.text.toString().trim()
+            vm.aiProvider        = binding.etAiProvider.text.toString().trim()
+            vm.aiModel           = binding.etAiModel.text.toString().trim()
+            vm.githubCopilotToken = binding.etGithubCopilotToken.text.toString().trim()
             vm.offlineMode       = binding.switchOfflineMode.isChecked
             Snackbar.make(view, getString(R.string.settings_saved), Snackbar.LENGTH_SHORT).show()
         }
@@ -100,4 +106,3 @@ class SettingsFragment : Fragment() {
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
 }
-

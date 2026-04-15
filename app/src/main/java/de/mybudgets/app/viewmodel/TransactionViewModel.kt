@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.mybudgets.app.data.model.Transaction
+import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -16,6 +17,9 @@ class TransactionViewModel @Inject constructor(
 ) : ViewModel() {
 
     val transactions = repo.observeAll().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    suspend fun suggestCategoryId(description: String, amount: Double, type: TransactionType): Long? =
+        repo.suggestCategoryId(description, amount, type)
 
     fun save(tx: Transaction) = viewModelScope.launch { repo.save(tx) }
     fun delete(tx: Transaction) = viewModelScope.launch { repo.delete(tx) }

@@ -2,7 +2,8 @@ package de.mybudgets.app.data.repository
 
 import de.mybudgets.app.data.db.TransactionDao
 import de.mybudgets.app.data.model.Transaction
-import de.mybudgets.app.util.PatternMatcher
+import de.mybudgets.app.data.model.TransactionType
+import de.mybudgets.app.util.TransactionAiHelper
 import de.mybudgets.app.util.VirtualAccountMatcher
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -24,7 +25,26 @@ class TransactionRepository @Inject constructor(
 
     suspend fun getAllRemoteIds(): Set<String> = dao.getAllRemoteIds().toHashSet()
 
+    suspend fun suggestCategoryId(
+        description: String,
+        amount: Double,
+        type: TransactionType
+    ): Long? {
+        val recent = dao.getRecent(500)
+        val categoriesWithPatterns = categoryRepository.getWithPatterns()
+        return TransactionAiHelper.suggestCategoryId(
+            description = description,
+            amount = amount,
+            type = type,
+            recentTransactions = recent,
+            patternCategories = categoriesWithPatterns
+        )
+    }
+
     suspend fun save(transaction: Transaction): Long {
+        val recent = dao.getRecent(500)
+        val categoriesWithPatterns = categoryRepository.getWithPatterns()
+
         val withVirtualMapping = if (transaction.virtualAccountId == null && transaction.remoteId != null) {
             val virtual = VirtualAccountMatcher.match(
                 transaction.description,
@@ -39,17 +59,34 @@ class TransactionRepository @Inject constructor(
         } else transaction
 
         val categorized = if (withVirtualMapping.categoryId == null) {
-            val matched = PatternMatcher.match(
-                withVirtualMapping.description,
-                categoryRepository.getWithPatterns()
+            val matched = TransactionAiHelper.suggestCategoryId(
+                description = withVirtualMapping.description,
+                amount = withVirtualMapping.amount,
+                type = withVirtualMapping.type,
+                recentTransactions = recent,
+                patternCategories = categoriesWithPatterns
             )
             withVirtualMapping.copy(categoryId = matched)
         } else {
             withVirtualMapping
         }
-        val id = if (categorized.id == 0L) dao.insert(categorized) else {
-            dao.update(categorized)
-            categorized.id
+
+        val recurring = if (!categorized.isRecurring && categorized.recurringIntervalDays <= 0) {
+            val inferredInterval = TransactionAiHelper.inferRecurringIntervalDays(
+                description = categorized.description,
+                amount = categorized.amount,
+                type = categorized.type,
+                currentDate = categorized.date,
+                recentTransactions = recent
+            )
+            if (inferredInterval != null) {
+                categorized.copy(isRecurring = true, recurringIntervalDays = inferredInterval)
+            } else categorized
+        } else categorized
+
+        val id = if (recurring.id == 0L) dao.insert(recurring) else {
+            dao.update(recurring)
+            recurring.id
         }
         gamificationRepository.checkAndAward(dao.count())
         return id

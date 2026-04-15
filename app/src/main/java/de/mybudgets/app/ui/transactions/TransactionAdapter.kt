@@ -19,7 +19,12 @@ class TransactionAdapter(
 
     inner class VH(val binding: ItemTransactionBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(tx: Transaction) {
-            binding.tvDescription.text = tx.description.ifBlank { "Buchung" }
+            val description = tx.description.ifBlank { "Buchung" }
+            binding.tvDescription.text = if (tx.isRecurring && tx.recurringIntervalDays > 0) {
+                "↻ $description (${tx.recurringIntervalDays}d)"
+            } else {
+                description
+            }
             binding.tvDate.text        = DateFormatter.formatDate(tx.date)
             val sign = if (tx.type == TransactionType.INCOME) "+" else "-"
             binding.tvAmount.text = "$sign${CurrencyFormatter.format(tx.amount)}"
