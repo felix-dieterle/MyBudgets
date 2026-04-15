@@ -336,18 +336,19 @@ class FintsService @Inject constructor(
                 var status = handler.execute()
                 
                 // Check if we got a CAMT parsing error - fall back to MT940-based job
-                if (!status.isOK && job.jobResult?.javaClass?.name?.contains("Error") == true || 
+                if (!status.isOK && (
+                    job.jobResult?.javaClass?.name?.contains("Error") == true ||
                     status.toString().contains("SAXNotRecognizedException") ||
-                    status.toString().contains("Error parsing CAMT")) {
+                    status.toString().contains("Error parsing CAMT")
+                )) {
                     AppLogger.w(TAG, "[$syncPhase/4-exec] CAMT parsing failed, trying fallback to MT940-based job...")
                     syncPhaseUpdateHandler?.invoke("4-exec", "CAMT nicht unterstützt, versuche MT940...")
                     
                     try {
-                        val fallbackJob = handler.newJob("KUmsAll")
-                        fallbackJob.setParam("src", buildKonto(account, bic, passport))
+                        val fallbackJob = handler.newJob("KUmsZeitSEPA")
+                        fallbackJob.setParam("my", buildKonto(account, bic, passport))
                         if (fromDate != null) {
-                            val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.GERMANY)
-                            fallbackJob.setParam("start", dateFormat.format(fromDate))
+                            fallbackJob.setParam("startdate", sdf.format(fromDate))
                         }
                         handler.addJob(fallbackJob)
                         status = handler.execute()
