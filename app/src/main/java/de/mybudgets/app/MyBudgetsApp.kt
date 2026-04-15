@@ -31,7 +31,7 @@ class MyBudgetsApp : Application(), Configuration.Provider {
 
     private val startupScope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
-            AppLogger.e(TAG, "Startup-Coroutine abgestürzt: ${throwable.message}", throwable)
+            AppLogger.e(TAG, "Startup-Initialisierung fehlgeschlagen: ${throwable.message}", throwable)
         }
     )
 
@@ -46,35 +46,47 @@ class MyBudgetsApp : Application(), Configuration.Provider {
         installGlobalExceptionHandler()
 
         startupScope.launch {
-            try {
+            runCatching {
                 if (!categoryRepository.hasDefaultCategories()) {
                     categoryRepository.insertAll(DataSeeder.defaultCategories())
                 }
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Startup: Standard-Kategorien konnten nicht initialisiert werden: ${e.message}", e)
+            }
+
+            runCatching {
                 if (!gamificationRepository.hasBadges()) {
                     gamificationRepository.seed(DataSeeder.defaultBadges())
                 }
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Startup: Badges konnten nicht initialisiert werden: ${e.message}", e)
+            }
+
+            runCatching {
                 // Remove any duplicate labels (same name, different ids) that may have
                 // accumulated from prior imports or UI interactions.
                 labelRepository.deduplicateByName()
-            } catch (e: Throwable) {
-                AppLogger.e(TAG, "Startup-Initialisierung fehlgeschlagen: ${e.message}", e)
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Startup: Label-Deduplizierung fehlgeschlagen: ${e.message}", e)
             }
         }
 
         try {
             scheduleBackgroundWorkers()
-        } catch (e: Throwable) {
-            AppLogger.e(TAG, "WorkManager-Planung fehlgeschlagen: ${e.message}", e)
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "WorkManager-Planung für Hintergrundaufgaben fehlgeschlagen: ${e.message}", e)
         }
     }
 
     /**
      * Installs a global uncaught-exception handler that logs the crash to [AppLogger]
-     * and suppresses process termination so startup errors do not crash the app.
+     * before delegating to the default handler (which terminates the process).
      */
     private fun installGlobalExceptionHandler() {
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             AppLogger.e(TAG, "UNCAUGHT EXCEPTION im Thread '${thread.name}': ${throwable.message}", throwable)
+            defaultHandler?.uncaughtException(thread, throwable)
         }
     }
 
