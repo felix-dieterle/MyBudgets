@@ -24,7 +24,7 @@
     <string name="account_parent_hint">Bitte wähle das echte Konto aus, das diesem virtuellen Konto zugrunde liegt.</string>
     <string name="account_virtual_pattern">Auto-Zuordnung Muster (Regex, optional)</string>
     <string name="account_virtual_target_amount">Zielbetrag für virtuelles Konto (optional)</string>
-    <string name="account_virtual_target_due_date_millis">Ziel-Datum als Epoch-Millis (optional)</string>
+    <string name="account_virtual_target_due_date">Zieldatum (optional)</string>
     <string name="account_linked_to">Verknüpft mit:</string>
     <string name="account_badge_virtual">VIRTUELL</string>
     <string name="account_badge_real">REAL</string>

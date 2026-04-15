@@ -1,5 +1,6 @@
 package de.mybudgets.app.ui.accounts
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.*
 import android.widget.AdapterView
@@ -14,9 +15,11 @@ import de.mybudgets.app.R
 import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.AccountType
 import de.mybudgets.app.databinding.FragmentAddEditAccountBinding
+import de.mybudgets.app.util.DateFormatter
 import de.mybudgets.app.viewmodel.AccountViewModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 @AndroidEntryPoint
 class AddEditAccountFragment : Fragment() {
@@ -28,6 +31,7 @@ class AddEditAccountFragment : Fragment() {
     private var editAccountId: Long = 0L
     /** Holds the original account when editing, so we can preserve immutable fields like balance/createdAt. */
     private var originalAccount: Account? = null
+    private var selectedTargetDueDate: Long? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, s: Bundle?): View {
         _binding = FragmentAddEditAccountBinding.inflate(inflater, container, false)
@@ -82,6 +86,13 @@ class AddEditAccountFragment : Fragment() {
             }
         }
 
+        binding.etVirtualTargetDueDate.setOnClickListener { openDueDatePicker() }
+        binding.etVirtualTargetDueDate.setOnLongClickListener {
+            selectedTargetDueDate = null
+            binding.etVirtualTargetDueDate.setText("")
+            true
+        }
+
         binding.btnSave.setOnClickListener {
             val name = binding.etName.text.toString().trim()
             if (name.isBlank()) { binding.etName.error = getString(R.string.error_required); return@setOnClickListener }
@@ -92,7 +103,7 @@ class AddEditAccountFragment : Fragment() {
             var parentAccountId: Long? = null
             val pattern = if (isVirtual) binding.etVirtualPattern.text.toString().trim() else ""
             val targetAmount = if (isVirtual) binding.etVirtualTargetAmount.text.toString().trim().toDoubleOrNull() else null
-            val targetDueDate = if (isVirtual) binding.etVirtualTargetDueDate.text.toString().trim().toLongOrNull() else null
+            val targetDueDate = if (isVirtual) selectedTargetDueDate else null
             if (isVirtual) {
                 val realAccounts = vm.realAccounts.value
                 if (realAccounts.isEmpty()) {
@@ -156,10 +167,31 @@ class AddEditAccountFragment : Fragment() {
         }
         binding.etVirtualPattern.setText(acc.autoAssignPattern)
         binding.etVirtualTargetAmount.setText(acc.targetAmount?.toString().orEmpty())
-        binding.etVirtualTargetDueDate.setText(acc.targetDueDate?.toString().orEmpty())
+        selectedTargetDueDate = acc.targetDueDate
+        binding.etVirtualTargetDueDate.setText(acc.targetDueDate?.let(DateFormatter::formatDate).orEmpty())
 
         // Update toolbar label to "Konto bearbeiten"
         activity?.title = getString(R.string.edit_account)
+    }
+
+    private fun openDueDatePicker() {
+        val cal = Calendar.getInstance().apply {
+            timeInMillis = selectedTargetDueDate ?: System.currentTimeMillis()
+        }
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, day ->
+                val selected = Calendar.getInstance().apply {
+                    set(year, month, day, 0, 0, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                selectedTargetDueDate = selected.timeInMillis
+                binding.etVirtualTargetDueDate.setText(DateFormatter.formatDate(selected.timeInMillis))
+            },
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
