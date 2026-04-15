@@ -371,7 +371,7 @@ class FintsService @Inject constructor(
                                     )
                                 }
                                 AppLogger.i(TAG, "[$syncPhase/5-parse] SUCCESS: Extracted ${transactions.size} transactions from MT940")
-                                return@withContext transactions
+                                return@runCatching transactions
                             }
                         }
                     } catch (e: Exception) {
@@ -850,4 +850,3 @@ class FintsService @Inject constructor(
         @Volatile private var hbciInitialized = false
     }
 }
-

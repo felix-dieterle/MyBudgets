@@ -2,10 +2,12 @@ package de.mybudgets.app.data.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 
 @Entity(
     tableName = "transaction_labels",
     primaryKeys = ["transactionId", "labelId"],
+    indices = [Index(value = ["labelId"])],
     foreignKeys = [
         ForeignKey(
             entity = Transaction::class,
