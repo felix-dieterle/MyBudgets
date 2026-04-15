@@ -355,7 +355,7 @@ class FintsService @Inject constructor(
                         date        = entry.valuta?.time ?: entry.bdate?.time ?: System.currentTimeMillis(),
                         type        = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
                         note        = entry.other?.name ?: "",
-                        remoteId    = entry.id
+                        remoteId    = entry.id ?: ""
                     )
                 }
                 AppLogger.i(TAG, "[$syncPhase/5-parse] SUCCESS: Extracted ${transactions.size} transactions")

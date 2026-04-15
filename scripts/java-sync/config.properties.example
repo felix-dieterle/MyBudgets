@@ -1,0 +1,24 @@
+# BBBank FinTS Sync Konfiguration
+# Kopiere diese Datei nach config.properties und fülle die Werte aus
+
+# IBAN des Kontos
+iban=DE89370400440532013000
+
+# Nutzerkennung (Online-Banking Login)
+userId=DEINE_NUTZERKENNUNG
+
+# PIN (Vorsicht: Klartext!)
+PIN=DEINE_PIN
+
+# BLZ (optional, wird aus IBAN abgeleitet wenn leer)
+blz=66090800
+
+# TAN-Methode (optional, leer für Auto)
+# 900 = Secure Go / BestSign (Decoupled)
+tanMethod=900
+
+# Tage zurück (Default: 30)
+daysBack=30
+
+# Debug-Modus (true/false)
+debug=false
