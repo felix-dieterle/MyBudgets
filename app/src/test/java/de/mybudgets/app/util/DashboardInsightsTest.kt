@@ -28,6 +28,23 @@ class DashboardInsightsTest {
     }
 
     @Test
+    fun `treats due today unmet target as missed`() {
+        val now = 2_000_000_000_000L
+        val account = Account(
+            id = 10,
+            name = "Urlaub",
+            isVirtual = true,
+            targetAmount = 1000.0,
+            targetDueDate = now
+        )
+        val tx = listOf(Transaction(accountId = 1, virtualAccountId = 10, amount = 200.0, type = TransactionType.INCOME))
+
+        val warnings = DashboardInsights.buildPredictionWarnings(now, listOf(account), emptyList(), tx)
+
+        assertTrue(warnings.any { it.contains("🔴 Ziel verpasst") })
+    }
+
+    @Test
     fun `builds category and overall prediction lines`() {
         val now = 2_000_000_000_000L
         val category = Category(id = 5, name = "Lebensmittel")

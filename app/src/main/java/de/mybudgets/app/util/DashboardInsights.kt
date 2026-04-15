@@ -75,7 +75,7 @@ object DashboardInsights {
             val target = account.targetAmount ?: continue
             val due = account.targetDueDate ?: continue
             val daysLeft = ((due - now) / DAY_MS).toInt()
-            if (daysLeft < 0 && saved < target) {
+            if (daysLeft <= 0 && saved < target) {
                 warnings += "🔴 Ziel verpasst: ${account.name} (${CurrencyFormatter.format(saved)} von ${CurrencyFormatter.format(target)})"
                 continue
             }
