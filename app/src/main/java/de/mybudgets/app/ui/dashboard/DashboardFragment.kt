@@ -63,6 +63,29 @@ class DashboardFragment : Fragment() {
                             if (txList.isEmpty()) View.VISIBLE else View.GONE
                     }
                 }
+                launch {
+                    vm.virtualOverview.collect { overview ->
+                        binding.tvVirtualOverview.text = if (overview.isEmpty()) {
+                            getString(R.string.dashboard_no_virtual_accounts)
+                        } else {
+                            overview.joinToString("\n") {
+                                "${it.accountName}: ${CurrencyFormatter.format(it.balance)} " +
+                                    "(+${CurrencyFormatter.format(it.income)} / -${CurrencyFormatter.format(it.expenses)})"
+                            }
+                        }
+                    }
+                }
+                launch {
+                    vm.trendSummary.collect { summary ->
+                        binding.tvTrendSummary.text = summary
+                    }
+                }
+                launch {
+                    vm.predictionWarnings.collect { warnings ->
+                        binding.tvPredictionWarnings.text = warnings.joinToString("\n")
+                            .ifBlank { getString(R.string.dashboard_no_warnings) }
+                    }
+                }
             }
         }
     }

@@ -41,6 +41,75 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dashboard_virtual_accounts"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+                <TextView
+                    android:id="@+id/tv_virtual_overview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dashboard_trends"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+                <TextView
+                    android:id="@+id/tv_trend_summary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dashboard_predictions"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+                <TextView
+                    android:id="@+id/tv_prediction_warnings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Recent transactions section -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

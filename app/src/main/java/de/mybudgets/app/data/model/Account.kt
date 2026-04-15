@@ -27,6 +27,12 @@ data class Account(
      * Both apps use the decoupled TAN flow: the user confirms directly in the Secure Go app.
      */
     val tanMethod: String = "",
+    /** Regex used to auto-map synced transactions to this virtual account. */
+    val autoAssignPattern: String = "",
+    /** Optional savings target for this virtual account. */
+    val targetAmount: Double? = null,
+    /** Optional due date (epoch millis) for [targetAmount]. */
+    val targetDueDate: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

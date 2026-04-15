@@ -18,6 +18,9 @@ interface AccountDao {
     @Query("SELECT * FROM accounts WHERE parentAccountId = :parentId")
     fun observeVirtualAccounts(parentId: Long): Flow<List<Account>>
 
+    @Query("SELECT * FROM accounts WHERE isVirtual = 1 AND autoAssignPattern != ''")
+    suspend fun getVirtualAccountsWithPatterns(): List<Account>
+
     @Query("SELECT SUM(balance) FROM accounts WHERE isVirtual = 0")
     fun observeTotalBalance(): Flow<Double?>
 

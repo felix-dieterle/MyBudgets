@@ -90,6 +90,9 @@ class AddEditAccountFragment : Fragment() {
             val isVirtual = selectedType == AccountType.VIRTUAL
 
             var parentAccountId: Long? = null
+            val pattern = if (isVirtual) binding.etVirtualPattern.text.toString().trim() else ""
+            val targetAmount = if (isVirtual) binding.etVirtualTargetAmount.text.toString().trim().toDoubleOrNull() else null
+            val targetDueDate = if (isVirtual) binding.etVirtualTargetDueDate.text.toString().trim().toLongOrNull() else null
             if (isVirtual) {
                 val realAccounts = vm.realAccounts.value
                 if (realAccounts.isEmpty()) {
@@ -111,6 +114,9 @@ class AddEditAccountFragment : Fragment() {
                     tanMethod       = binding.etTanMethod.text.toString().trim(),
                     isVirtual       = isVirtual,
                     parentAccountId = parentAccountId,
+                    autoAssignPattern = pattern,
+                    targetAmount    = targetAmount,
+                    targetDueDate   = targetDueDate,
                     updatedAt       = System.currentTimeMillis()
                 )
             } else {
@@ -123,7 +129,10 @@ class AddEditAccountFragment : Fragment() {
                     userId          = binding.etUserId.text.toString().trim(),
                     tanMethod       = binding.etTanMethod.text.toString().trim(),
                     isVirtual       = isVirtual,
-                    parentAccountId = parentAccountId
+                    parentAccountId = parentAccountId,
+                    autoAssignPattern = pattern,
+                    targetAmount    = targetAmount,
+                    targetDueDate   = targetDueDate
                 )
             }
             vm.save(account)
@@ -145,6 +154,9 @@ class AddEditAccountFragment : Fragment() {
             val parentPos = realAccounts.indexOfFirst { it.id == acc.parentAccountId }
             if (parentPos >= 0) binding.spinnerParentAccount.setSelection(parentPos)
         }
+        binding.etVirtualPattern.setText(acc.autoAssignPattern)
+        binding.etVirtualTargetAmount.setText(acc.targetAmount?.toString().orEmpty())
+        binding.etVirtualTargetDueDate.setText(acc.targetDueDate?.toString().orEmpty())
 
         // Update toolbar label to "Konto bearbeiten"
         activity?.title = getString(R.string.edit_account)

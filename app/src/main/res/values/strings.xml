@@ -22,6 +22,9 @@
     <string name="account_tan_method">TAN-Verfahren-Code (leer = automatisch, z.B. 900 für BBBank Secure Go/BestSign)</string>
     <string name="account_parent_label">Verknüpftes echtes Konto</string>
     <string name="account_parent_hint">Bitte wähle das echte Konto aus, das diesem virtuellen Konto zugrunde liegt.</string>
+    <string name="account_virtual_pattern">Auto-Zuordnung Muster (Regex, optional)</string>
+    <string name="account_virtual_target_amount">Zielbetrag für virtuelles Konto (optional)</string>
+    <string name="account_virtual_target_due_date_millis">Ziel-Datum als Epoch-Millis (optional)</string>
     <string name="account_linked_to">Verknüpft mit:</string>
     <string name="account_badge_virtual">VIRTUELL</string>
     <string name="account_badge_real">REAL</string>
@@ -158,4 +161,9 @@
     <string name="see_all_transactions">Alle anzeigen</string>
     <string name="account_transactions">Buchungen</string>
     <string name="no_transactions">Keine Buchungen vorhanden</string>
+    <string name="dashboard_virtual_accounts">Virtuelle Konten</string>
+    <string name="dashboard_trends">Trends</string>
+    <string name="dashboard_predictions">Prognosen &amp; Warnungen</string>
+    <string name="dashboard_no_virtual_accounts">Keine virtuellen Konten</string>
+    <string name="dashboard_no_warnings">Keine Warnungen</string>
 </resources>
