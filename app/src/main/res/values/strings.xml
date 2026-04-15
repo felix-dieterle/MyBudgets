@@ -34,6 +34,14 @@
     <string name="tx_amount">Betrag (€)</string>
     <string name="tx_note">Notiz</string>
     <string name="tx_type">Buchungstyp</string>
+    <string name="tx_category">Kategorie</string>
+    <string name="tx_category_none">Keine Kategorie</string>
+    <string name="tx_category_suggested">Vorschlag: %1$s</string>
+    <string name="tx_category_suggestion_title">Kategorie-Vorschlag</string>
+    <string name="tx_category_suggestion_message">Für diese Buchung wurde „%1$s“ vorgeschlagen. Übernehmen?</string>
+    <string name="tx_category_apply">Übernehmen</string>
+    <string name="tx_category_skip">Ohne Kategorie</string>
+    <string name="tx_category_manual">Manuell auswählen</string>
 
     <string name="category_name">Kategoriename</string>
     <string name="pattern_hint">Muster (Regex)</string>
@@ -41,6 +49,9 @@
     <string name="settings_backend_url">Backend-URL</string>
     <string name="settings_api_key">API-Schlüssel</string>
     <string name="settings_openrouter_key">OpenRouter API-Key</string>
+    <string name="settings_ai_provider">AI-Provider (z. B. github_copilot)</string>
+    <string name="settings_ai_model">AI-Modell (z. B. gpt-4.1, claude-sonnet-4.5)</string>
+    <string name="settings_github_copilot_token">GitHub Copilot Token</string>
     <string name="settings_offline_mode">Offline-Modus</string>
     <string name="settings_legal">Rechtliche Hinweise &amp; Impressum</string>
     <string name="save">Speichern</string>

@@ -33,6 +33,25 @@
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="8dp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/tx_category"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        <Spinner android:id="@+id/spinner_category"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tv_category_suggestion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:alpha="0.7" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="8dp" android:hint="@string/tx_note">

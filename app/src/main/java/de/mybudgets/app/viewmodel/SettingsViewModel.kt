@@ -27,6 +27,18 @@ class SettingsViewModel @Inject constructor(
         get()      = prefs.getString("openrouter_key", "") ?: ""
         set(value) = prefs.edit().putString("openrouter_key", value).apply()
 
+    var githubCopilotToken: String
+        get()      = prefs.getString("github_copilot_token", "") ?: ""
+        set(value) = prefs.edit().putString("github_copilot_token", value).apply()
+
+    var aiProvider: String
+        get()      = prefs.getString("ai_provider", "github_copilot") ?: "github_copilot"
+        set(value) = prefs.edit().putString("ai_provider", value).apply()
+
+    var aiModel: String
+        get()      = prefs.getString("ai_model", "gpt-4.1") ?: "gpt-4.1"
+        set(value) = prefs.edit().putString("ai_model", value).apply()
+
     var offlineMode: Boolean
         get()      = prefs.getBoolean("offline_mode", true)
         set(value) = prefs.edit().putBoolean("offline_mode", value).apply()
@@ -42,4 +54,3 @@ class SettingsViewModel @Inject constructor(
         get()      = prefs.getString("fints_user_id", "") ?: ""
         set(value) = prefs.edit().putString("fints_user_id", value).apply()
 }
-
