@@ -101,6 +101,9 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL(
                     "CREATE UNIQUE INDEX IF NOT EXISTS index_labels_name ON labels(name)"
                 )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_transaction_labels_labelId ON transaction_labels(labelId)"
+                )
             }
         }
 
