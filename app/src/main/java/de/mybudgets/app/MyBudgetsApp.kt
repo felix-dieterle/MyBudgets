@@ -1,6 +1,9 @@
 package de.mybudgets.app
 
 import android.app.Application
+import android.os.Looper
+import android.os.SystemClock
+import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.*
 import dagger.hilt.android.HiltAndroidApp
@@ -20,6 +23,8 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private const val TAG = "MyBudgetsApp"
+internal const val STARTUP_GRACE_PERIOD_MILLIS = 30_000L
+@Volatile internal var startupProtectionUntilElapsedRealtime: Long = 0L
 
 @HiltAndroidApp
 class MyBudgetsApp : Application(), Configuration.Provider {
@@ -28,6 +33,7 @@ class MyBudgetsApp : Application(), Configuration.Provider {
     @Inject lateinit var gamificationRepository: GamificationRepository
     @Inject lateinit var labelRepository: LabelRepository
     @Inject lateinit var workerFactory: HiltWorkerFactory
+    @Volatile private var globalExceptionHandlerInstalled = false
 
     private val startupScope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
@@ -36,13 +42,23 @@ class MyBudgetsApp : Application(), Configuration.Provider {
     )
 
     override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
+        get() = runCatching {
+            Configuration.Builder().apply {
+                if (::workerFactory.isInitialized) {
+                    setWorkerFactory(workerFactory)
+                } else {
+                    AppLogger.w(TAG, "Die WorkManager-WorkerFactory ist beim Start noch nicht initialisiert. Fallback-Konfiguration wird verwendet.")
+                }
+            }.build()
+        }.getOrElse { e ->
+            AppLogger.e(TAG, "WorkManager-Konfiguration fehlgeschlagen. Verwende sichere Fallback-Konfiguration: ${e.message}", e)
+            Configuration.Builder().build()
+        }
 
     override fun onCreate() {
         super.onCreate()
 
+        startupProtectionUntilElapsedRealtime = SystemClock.elapsedRealtime() + STARTUP_GRACE_PERIOD_MILLIS
         installGlobalExceptionHandler()
 
         startupScope.launch {
@@ -78,15 +94,36 @@ class MyBudgetsApp : Application(), Configuration.Provider {
         }
     }
 
-    /**
-     * Installs a global uncaught-exception handler that logs the crash to [AppLogger]
-     * before delegating to the default handler (which terminates the process).
-     */
     private fun installGlobalExceptionHandler() {
-        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            AppLogger.e(TAG, "UNCAUGHT EXCEPTION im Thread '${thread.name}': ${throwable.message}", throwable)
-            defaultHandler?.uncaughtException(thread, throwable)
+        if (globalExceptionHandlerInstalled) return
+        synchronized(this) {
+            if (globalExceptionHandlerInstalled) return
+            val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+            if (defaultHandler is SafeLoggingUncaughtExceptionHandler) {
+                globalExceptionHandlerInstalled = true
+                return
+            }
+            Thread.setDefaultUncaughtExceptionHandler(SafeLoggingUncaughtExceptionHandler(defaultHandler))
+            globalExceptionHandlerInstalled = true
+        }
+    }
+
+    private class SafeLoggingUncaughtExceptionHandler(
+        private val defaultHandler: Thread.UncaughtExceptionHandler?
+    ) : Thread.UncaughtExceptionHandler {
+
+        override fun uncaughtException(thread: Thread, throwable: Throwable) {
+            runCatching {
+                AppLogger.e(TAG, "UNCAUGHT EXCEPTION im Thread '${thread.name}': ${throwable.message}", throwable)
+            }.onFailure { loggingError ->
+                Log.e(TAG, "Uncaught exception konnte nicht in AppLogger geschrieben werden", loggingError)
+            }
+
+            if (shouldDelegateToDefaultUncaughtHandler(thread)) {
+                defaultHandler?.uncaughtException(thread, throwable)
+            } else {
+                AppLogger.w(TAG, "Uncaught Exception im Main-Thread während der Startup-Phase wurde abgefangen, um einen direkten App-Absturz zu vermeiden.")
+            }
         }
     }
 
@@ -114,4 +151,9 @@ class MyBudgetsApp : Application(), Configuration.Provider {
                 .build()
         )
     }
+}
+
+internal fun shouldDelegateToDefaultUncaughtHandler(thread: Thread): Boolean {
+    val isMainThread = thread == Looper.getMainLooper().thread
+    return !isMainThread || SystemClock.elapsedRealtime() > startupProtectionUntilElapsedRealtime
 }

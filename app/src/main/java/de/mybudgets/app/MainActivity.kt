@@ -1,12 +1,16 @@
 package de.mybudgets.app
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.databinding.ActivityMainBinding
+import de.mybudgets.app.util.AppLogger
+
+private const val TAG = "MainActivity"
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -15,24 +19,42 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        runCatching {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHost.navController
-        binding.bottomNavigation.setupWithNavController(navController)
-
-        val prefs = getSharedPreferences("mybudgets_prefs", MODE_PRIVATE)
-        val legalAccepted = prefs.getBoolean("legal_accepted", false)
-
-        if (!legalAccepted) {
-            showLegalAcceptDialog(prefs)
-        } else {
-            val onboardingShown = prefs.getBoolean("onboarding_shown", false)
-            if (!onboardingShown) {
-                showOnboardingDialog(prefs)
+            val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+            if (navHost == null) {
+                AppLogger.e(TAG, "Navigation Host Fragment konnte beim Start nicht gefunden werden.")
+                showStartupErrorDialog()
+                return
             }
+            val navController = navHost.navController
+            binding.bottomNavigation.setupWithNavController(navController)
+
+            val prefs = getSharedPreferences("mybudgets_prefs", MODE_PRIVATE)
+            val legalAccepted = prefs.getBoolean("legal_accepted", false)
+
+            if (!legalAccepted) {
+                showLegalAcceptDialog(prefs)
+            } else {
+                val onboardingShown = prefs.getBoolean("onboarding_shown", false)
+                if (!onboardingShown) {
+                    showOnboardingDialog(prefs)
+                }
+            }
+        }.onFailure { e ->
+            AppLogger.e(TAG, "MainActivity konnte beim Start nicht vollständig initialisiert werden: ${e.message}", e)
+            showStartupErrorDialog()
         }
+    }
+
+    private fun showStartupErrorDialog() {
+        if (isFinishing || isDestroyed) return
+        Toast.makeText(this, R.string.error_startup_failed, Toast.LENGTH_LONG).show()
+        window?.decorView?.postDelayed({
+            if (!isFinishing) finish()
+        }, 1800L)
     }
 
     private fun showLegalAcceptDialog(prefs: android.content.SharedPreferences) {
