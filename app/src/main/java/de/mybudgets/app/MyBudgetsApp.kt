@@ -11,8 +11,10 @@ import de.mybudgets.app.util.DataSeeder
 import de.mybudgets.app.worker.BackendSyncWorker
 import de.mybudgets.app.worker.StandingOrderWorker
 import de.mybudgets.app.util.AppLogger
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -27,6 +29,12 @@ class MyBudgetsApp : Application(), Configuration.Provider {
     @Inject lateinit var labelRepository: LabelRepository
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
+    private val startupScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+            AppLogger.e(TAG, "Startup-Initialisierung fehlgeschlagen: ${throwable.message}", throwable)
+        }
+    )
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -37,19 +45,37 @@ class MyBudgetsApp : Application(), Configuration.Provider {
 
         installGlobalExceptionHandler()
 
-        CoroutineScope(Dispatchers.IO).launch {
-            if (!categoryRepository.hasDefaultCategories()) {
-                categoryRepository.insertAll(DataSeeder.defaultCategories())
+        startupScope.launch {
+            runCatching {
+                if (!categoryRepository.hasDefaultCategories()) {
+                    categoryRepository.insertAll(DataSeeder.defaultCategories())
+                }
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Startup: Standard-Kategorien konnten nicht initialisiert werden: ${e.message}", e)
             }
-            if (!gamificationRepository.hasBadges()) {
-                gamificationRepository.seed(DataSeeder.defaultBadges())
+
+            runCatching {
+                if (!gamificationRepository.hasBadges()) {
+                    gamificationRepository.seed(DataSeeder.defaultBadges())
+                }
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Startup: Badges konnten nicht initialisiert werden: ${e.message}", e)
             }
-            // Remove any duplicate labels (same name, different ids) that may have
-            // accumulated from prior imports or UI interactions.
-            labelRepository.deduplicateByName()
+
+            runCatching {
+                // Remove any duplicate labels (same name, different ids) that may have
+                // accumulated from prior imports or UI interactions.
+                labelRepository.deduplicateByName()
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Startup: Label-Deduplizierung fehlgeschlagen: ${e.message}", e)
+            }
         }
 
-        scheduleBackgroundWorkers()
+        try {
+            scheduleBackgroundWorkers()
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "WorkManager-Planung für Hintergrundaufgaben fehlgeschlagen: ${e.message}", e)
+        }
     }
 
     /**
@@ -89,4 +115,3 @@ class MyBudgetsApp : Application(), Configuration.Provider {
         )
     }
 }
-
