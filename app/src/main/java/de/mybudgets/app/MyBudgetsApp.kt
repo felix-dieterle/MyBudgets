@@ -2,6 +2,7 @@ package de.mybudgets.app
 
 import android.app.Application
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.*
@@ -22,6 +23,8 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private const val TAG = "MyBudgetsApp"
+internal const val STARTUP_GRACE_PERIOD_MILLIS = 30_000L
+@Volatile internal var startupProtectionUntilElapsedRealtime: Long = 0L
 
 @HiltAndroidApp
 class MyBudgetsApp : Application(), Configuration.Provider {
@@ -44,7 +47,7 @@ class MyBudgetsApp : Application(), Configuration.Provider {
                 if (::workerFactory.isInitialized) {
                     setWorkerFactory(workerFactory)
                 } else {
-                    AppLogger.w(TAG, "WorkManager-WorkerFactory ist beim Startup noch nicht initialisiert. Fallback-Konfiguration wird verwendet.")
+                    AppLogger.w(TAG, "Die WorkManager-WorkerFactory ist beim Start noch nicht initialisiert. Fallback-Konfiguration wird verwendet.")
                 }
             }.build()
         }.getOrElse { e ->
@@ -55,6 +58,7 @@ class MyBudgetsApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
+        startupProtectionUntilElapsedRealtime = SystemClock.elapsedRealtime() + STARTUP_GRACE_PERIOD_MILLIS
         installGlobalExceptionHandler()
 
         startupScope.launch {
@@ -118,7 +122,7 @@ class MyBudgetsApp : Application(), Configuration.Provider {
             if (shouldDelegateToDefaultUncaughtHandler(thread)) {
                 defaultHandler?.uncaughtException(thread, throwable)
             } else {
-                AppLogger.w(TAG, "Uncaught Exception im Main-Thread wurde abgefangen, um einen direkten App-Absturz zu vermeiden.")
+                AppLogger.w(TAG, "Uncaught Exception im Main-Thread während der Startup-Phase wurde abgefangen, um einen direkten App-Absturz zu vermeiden.")
             }
         }
     }
@@ -150,5 +154,6 @@ class MyBudgetsApp : Application(), Configuration.Provider {
 }
 
 internal fun shouldDelegateToDefaultUncaughtHandler(thread: Thread): Boolean {
-    return thread != Looper.getMainLooper().thread
+    val isMainThread = thread == Looper.getMainLooper().thread
+    return !isMainThread || SystemClock.elapsedRealtime() > startupProtectionUntilElapsedRealtime
 }

@@ -97,6 +97,7 @@
     <string name="error_invalid_iban">Ungültige IBAN</string>
     <string name="error_invalid_amount">Ungültiger Betrag</string>
     <string name="error_invalid_regex">Ungültiger Regex-Ausdruck</string>
+    <string name="error_startup_failed">Beim Start ist ein Fehler aufgetreten. Bitte App neu starten.</string>
     <string name="error_required">Pflichtfeld</string>
     <string name="error_select_account">Bitte wähle ein Konto</string>
     <string name="error_account_missing_bank_data">Das Konto hat keine IBAN. Bitte zuerst unter Konto bearbeiten eintragen.</string>

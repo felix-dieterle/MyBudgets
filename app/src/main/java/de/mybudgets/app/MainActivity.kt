@@ -1,6 +1,7 @@
 package de.mybudgets.app
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
             val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
             if (navHost == null) {
                 AppLogger.e(TAG, "Navigation Host Fragment konnte beim Start nicht gefunden werden.")
+                showStartupErrorDialog()
                 return
             }
             val navController = navHost.navController
@@ -43,7 +45,16 @@ class MainActivity : AppCompatActivity() {
             }
         }.onFailure { e ->
             AppLogger.e(TAG, "MainActivity konnte beim Start nicht vollständig initialisiert werden: ${e.message}", e)
+            showStartupErrorDialog()
         }
+    }
+
+    private fun showStartupErrorDialog() {
+        if (isFinishing || isDestroyed) return
+        Toast.makeText(this, R.string.error_startup_failed, Toast.LENGTH_LONG).show()
+        window?.decorView?.postDelayed({
+            if (!isFinishing) finish()
+        }, 1800L)
     }
 
     private fun showLegalAcceptDialog(prefs: android.content.SharedPreferences) {
