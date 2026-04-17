@@ -345,35 +345,47 @@ class FintsService @Inject constructor(
                     syncPhaseUpdateHandler?.invoke("4-exec", "CAMT nicht unterstützt, versuche MT940...")
                     
                     try {
-                        val fallbackJob = handler.newJob("KUmsZeitSEPA")
-                        fallbackJob.setParam("my", buildKonto(account, bic, passport))
-                        if (fromDate != null) {
-                            fallbackJob.setParam("startdate", sdf.format(fromDate))
-                        }
-                        handler.addJob(fallbackJob)
-                        status = handler.execute()
-                        
-                        if (status.isOK) {
-                            AppLogger.i(TAG, "[$syncPhase/4-exec] MT940 fallback successful")
-                            // Use fallback job result instead
-                            val fallbackResult = fallbackJob.jobResult as? GVRKUms
-                            if (fallbackResult != null) {
-                                AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from MT940 response...")
-                                val transactions = fallbackResult.flatData.map { entry ->
-                                    val isIncome = entry.value.longValue >= 0
-                                    Transaction(
-                                        accountId   = account.id,
-                                        amount      = abs(entry.value.doubleValue),
-                                        description = entry.usage.joinToString(" ").trim().ifBlank { entry.other?.name ?: "" },
-                                        date        = entry.valuta?.time ?: entry.bdate?.time ?: System.currentTimeMillis(),
-                                        type        = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
-                                        note        = entry.other?.name ?: "",
-                                        remoteId    = entry.id ?: ""
-                                    )
-                                }
-                                AppLogger.i(TAG, "[$syncPhase/5-parse] SUCCESS: Extracted ${transactions.size} transactions from MT940")
-                                return@runCatching transactions
+                        // Re-open a fresh dialog for fallback jobs. After a failed CAMT parse,
+                        // adding further jobs to the same handler can fail on some banks.
+                        val (fallbackHandler, fallbackPassport) = openSession(account)
+                        try {
+                            val fallbackBic = bicFromPassport(fallbackPassport, account.iban)
+                            val fallbackJob = fallbackHandler.newJob("KUmsZeitSEPA")
+                            fallbackJob.setParam("my", buildKonto(account, fallbackBic, fallbackPassport))
+                            if (fromDate != null) {
+                                fallbackJob.setParam("startdate", sdf.format(fromDate))
+                            } else {
+                                // Keep behaviour consistent with the normal no-date fallback
+                                // sequence (epoch startdate for KUmsZeitSEPA).
+                                fallbackJob.setParam("startdate", sdf.format(Date(0)))
                             }
+                            fallbackHandler.addJob(fallbackJob)
+                            status = fallbackHandler.execute()
+
+                            if (status.isOK) {
+                                AppLogger.i(TAG, "[$syncPhase/4-exec] MT940 fallback successful")
+                                // Use fallback job result instead
+                                val fallbackResult = fallbackJob.jobResult as? GVRKUms
+                                if (fallbackResult != null) {
+                                    AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from MT940 response...")
+                                    val transactions = fallbackResult.flatData.map { entry ->
+                                        val isIncome = entry.value.longValue >= 0
+                                        Transaction(
+                                            accountId   = account.id,
+                                            amount      = abs(entry.value.doubleValue),
+                                            description = entry.usage.joinToString(" ").trim().ifBlank { entry.other?.name ?: "" },
+                                            date        = entry.valuta?.time ?: entry.bdate?.time ?: System.currentTimeMillis(),
+                                            type        = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
+                                            note        = entry.other?.name ?: "",
+                                            remoteId    = entry.id ?: ""
+                                        )
+                                    }
+                                    AppLogger.i(TAG, "[$syncPhase/5-parse] SUCCESS: Extracted ${transactions.size} transactions from MT940")
+                                    return@runCatching transactions
+                                }
+                            }
+                        } finally {
+                            safeClose(fallbackHandler)
                         }
                     } catch (e: Exception) {
                         AppLogger.w(TAG, "[$syncPhase/4-exec] MT940 fallback also failed: ${e.message}")
