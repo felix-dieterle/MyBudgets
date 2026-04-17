@@ -26,16 +26,12 @@ class MyBudgetsAppTest {
 
     @After
     fun restoreXmlFactoryOverrides() {
-        if (originalSaxFactory == null) {
-            System.clearProperty("javax.xml.parsers.SAXParserFactory")
-        } else {
-            System.setProperty("javax.xml.parsers.SAXParserFactory", originalSaxFactory!!)
-        }
-        if (originalDocumentFactory == null) {
-            System.clearProperty("javax.xml.parsers.DocumentBuilderFactory")
-        } else {
-            System.setProperty("javax.xml.parsers.DocumentBuilderFactory", originalDocumentFactory!!)
-        }
+        originalSaxFactory?.let {
+            System.setProperty("javax.xml.parsers.SAXParserFactory", it)
+        } ?: System.clearProperty("javax.xml.parsers.SAXParserFactory")
+        originalDocumentFactory?.let {
+            System.setProperty("javax.xml.parsers.DocumentBuilderFactory", it)
+        } ?: System.clearProperty("javax.xml.parsers.DocumentBuilderFactory")
     }
 
     @Test
