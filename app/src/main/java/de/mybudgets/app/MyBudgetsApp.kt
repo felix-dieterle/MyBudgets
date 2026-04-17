@@ -8,6 +8,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.*
 import dagger.hilt.android.HiltAndroidApp
 import de.mybudgets.app.data.banking.FeatureIgnoringSAXParserFactory
+import de.mybudgets.app.data.banking.NonValidatingDocumentBuilderFactory
 import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.data.repository.GamificationRepository
 import de.mybudgets.app.data.repository.LabelRepository
@@ -27,8 +28,26 @@ private const val TAG = "MyBudgetsApp"
 internal const val STARTUP_GRACE_PERIOD_MILLIS = 30_000L
 @Volatile internal var startupProtectionUntilElapsedRealtime: Long = 0L
 
+internal fun installXmlParserFactoryOverrides() {
+    System.setProperty(
+        "javax.xml.parsers.SAXParserFactory",
+        FeatureIgnoringSAXParserFactory::class.java.name
+    )
+    System.setProperty(
+        "javax.xml.parsers.DocumentBuilderFactory",
+        NonValidatingDocumentBuilderFactory::class.java.name
+    )
+}
+
 @HiltAndroidApp
 class MyBudgetsApp : Application(), Configuration.Provider {
+    companion object {
+        init {
+            // Install as early as class-load time to avoid JAXP factory caching with
+            // Android defaults before Application.onCreate() runs.
+            installXmlParserFactoryOverrides()
+        }
+    }
 
     @Inject lateinit var categoryRepository: CategoryRepository
     @Inject lateinit var gamificationRepository: GamificationRepository
@@ -58,12 +77,7 @@ class MyBudgetsApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        // Register our SAX factory as early as possible in app startup so JAXB/hbci4java
-        // does not hit Android's default SAX parser limitation for secure-processing.
-        System.setProperty(
-            "javax.xml.parsers.SAXParserFactory",
-            FeatureIgnoringSAXParserFactory::class.java.name
-        )
+        installXmlParserFactoryOverrides()
 
         startupProtectionUntilElapsedRealtime = SystemClock.elapsedRealtime() + STARTUP_GRACE_PERIOD_MILLIS
         installGlobalExceptionHandler()
