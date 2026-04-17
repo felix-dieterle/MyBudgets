@@ -556,10 +556,6 @@ class FintsService @Inject constructor(
             "javax.xml.parsers.SAXParserFactory",
             FeatureIgnoringSAXParserFactory::class.java.name
         )
-        // JAXB RI (used by hbci4java for CAMT parsing) can be instructed to skip forcing
-        // the secure-processing SAX feature, which Android's SAXParserFactoryImpl does not
-        // support on all API levels.
-        System.setProperty("com.sun.xml.bind.disableXmlSecurity", "true")
         // hbci4java uses JAXB (jaxb-runtime) to parse CAMT XML.  JAXB's Messages Enum classes
         // (e.g. com.sun.xml.bind.v2.runtime.Messages) load their localised strings via
         //   ResourceBundle.getBundle(Messages.class.getName())

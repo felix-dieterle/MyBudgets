@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.*
 import dagger.hilt.android.HiltAndroidApp
+import de.mybudgets.app.data.banking.FeatureIgnoringSAXParserFactory
 import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.data.repository.GamificationRepository
 import de.mybudgets.app.data.repository.LabelRepository
@@ -57,6 +58,12 @@ class MyBudgetsApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        // Register our SAX factory as early as possible in app startup so JAXB/hbci4java
+        // does not hit Android's default SAX parser limitation for secure-processing.
+        System.setProperty(
+            "javax.xml.parsers.SAXParserFactory",
+            FeatureIgnoringSAXParserFactory::class.java.name
+        )
 
         startupProtectionUntilElapsedRealtime = SystemClock.elapsedRealtime() + STARTUP_GRACE_PERIOD_MILLIS
         installGlobalExceptionHandler()
