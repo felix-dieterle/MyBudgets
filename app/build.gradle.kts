@@ -26,7 +26,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = buildVersionCode
-        versionName = "1.0.0"
+        versionName = "1.0.2-sax-parser-shadow"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
