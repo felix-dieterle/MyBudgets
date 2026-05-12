@@ -549,10 +549,6 @@ class FintsService @Inject constructor(
 
     @Synchronized
     private fun initHbciOnce() {
-        // Apply JAXB SAXParser patch for CAMT XML parsing on Android
-        // MUST be called before the hbciInitialized check, so it runs on the very first call
-        JaxbSaxParserPatcher.applyPatch()
-        
         if (hbciInitialized) return
         
         // Android's default DocumentBuilderFactory does not support DTD validation, but
