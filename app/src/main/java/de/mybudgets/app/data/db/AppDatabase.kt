@@ -19,7 +19,7 @@ import de.mybudgets.app.data.model.*
         StandingOrder::class,
         TransferTemplate::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -145,6 +145,24 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add performance indices for categories and transactions
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_transactions_categoryId ON transactions(categoryId)"
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_categories_parentCategoryId ON categories(parentCategoryId)"
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_transactions_date ON transactions(date)"
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_transactions_accountId ON transactions(accountId)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -158,7 +176,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_4_5,
                     MIGRATION_5_6,
                     MIGRATION_6_7,
-                    MIGRATION_7_8
+                    MIGRATION_7_8,
+                    MIGRATION_8_9
                 ).build().also { INSTANCE = it }
             }
     }
