@@ -38,6 +38,23 @@ Thumbs.db
 
 # Logs
 *.log
+logs-*.txt
+example-log-*.txt
+
+# Eclipse IDE
+.project
+.classpath
+.settings/
+
+# Python venv
+.venv/
+venv/
+
+# Java-Sync
+scripts/java-sync/config.properties
+scripts/java-sync/passports/
+scripts/java-sync/build/
+scripts/java-sync/.gradle/
 
 # Debug keystore IS committed intentionally for reproducible CI builds
 # keystore/debug.keystore  <-- do NOT add this line

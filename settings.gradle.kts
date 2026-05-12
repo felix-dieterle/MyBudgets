@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "MyBudgets"
 include(":app")
+include(":scripts:java-sync")
