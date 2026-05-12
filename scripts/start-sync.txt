@@ -1,0 +1,418 @@
+Starte Sync (Logs: F:\CascadeProjects\MyBudgets\scripts\logs\bbbank-sync-20260414-221349.log) ...
+  IBAN: DE91660908000007690118  (Nutzer: 7690118a)
+Using Python: F:\CascadeProjects\MyBudgets\.venv\Scripts\python.exe
+
+── BBBank FinTS Sync Debug ─────────────────────────────────
+22:13:50.943 [INFO ] bbbank: IBAN         : ***0118  (BLZ 66090800)
+22:13:50.943 [INFO ] bbbank: Nutzerkennung: 7690118a
+22:13:50.944 [INFO ] bbbank: TAN-Methode  : 900
+22:13:50.944 [INFO ] bbbank: Zeitraum     : 2026-04-07 → 2026-04-14
+22:13:50.944 [INFO ] bbbank: FinTS-Server : https://fints2.atruvia.de/cgi-bin/hbciservlet
+
+22:13:50.944 [INFO ] bbbank: [1/5] Verbindungsaufbau …
+22:13:50.945 [INFO ] bbbank: [1/5] Keine gespeicherten Daten – setze system_id='0' (umgehe HKSYN3)
+22:13:50.945 [INFO ] bbbank: [1/5] Client initialisiert – öffne Dialog mit lazy_init=True …
+22:13:50.951 [DEBUG] fints.connection: Sending >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	fints.message.FinTSCustomerMessage([
+	    fints.segments.message.HNHBK3( # Nachrichtenkopf
+	        header = fints.formals.SegmentHeader('HNHBK', 1, 3), # Segmentkopf
+	        message_size = 358, # Größe der Nachricht (nach Verschlüsselung und Komprimierung)
+	        hbci_version = 300, # HBCI-Version
+	        dialog_id = '0', # Dialog-ID
+	        message_number = 1, # Nachrichtennummer
+	    ),
+	    fints.segments.message.HNVSK3( # Verschlüsselungskopf, version 3
+	        header = fints.formals.SegmentHeader('HNVSK', 998, 3), # Segmentkopf
+	        security_profile = fints.formals.SecurityProfile( # Sicherheitsprofil
+	                security_method = fints.formals.SecurityMethod.PIN, # Sicherheitsverfahren
+	                security_method_version = 1, # Version des Sicherheitsverfahrens
+	            ),
+	        security_function = '998', # Sicherheitsfunktion, kodiert
+	        security_role = fints.formals.SecurityRole.ISS, # Rolle des Sicherheitslieferanten, kodiert
+	        security_identification_details = fints.formals.SecurityIdentificationDetails( # Sicherheitsidentifikation, Details
+	                identified_role = fints.formals.IdentifiedRole.MS,
+	                cid = None,
+	                identifier = '0',
+	            ),
+	        security_datetime = fints.formals.SecurityDateTime( # Sicherheitsdatum und -uhrzeit
+	                date_time_type = fints.formals.DateTimeType.STS,
+	                date = datetime.date(2026, 4, 14),
+	                time = datetime.time(22, 13, 50, 946425),
+	            ),
+	        encryption_algorithm = fints.formals.EncryptionAlgorithm( # Verschlüsselungsalgorithmus
+	                usage_encryption = fints.formals.UsageEncryption.OSY,
+	                operation_mode = fints.formals.OperationMode.CBC,
+	                encryption_algorithm = fints.formals.EncryptionAlgorithmCoded.TWOKEY3DES,
+	                algorithm_parameter_value = b'\x00\x00\x00\x00\x00\x00\x00\x00',
+	                algorithm_parameter_name = fints.formals.AlgorithmParameterName.KYE,
+	                algorithm_parameter_iv_name = fints.formals.AlgorithmParameterIVName.IVC,
+	            ),
+	        key_name = fints.formals.KeyName( # Schlüsselname
+	                bank_identifier = fints.formals.BankIdentifier(
+	                        country_identifier = '280',
+	                        bank_code = '66090800',
+	                    ),
+	                user_id = '7690118a',
+	                key_type = fints.formals.KeyType.V, # Schlüsselart
+	                key_number = 0,
+	                key_version = 0,
+	            ),
+	        compression_function = fints.formals.CompressionFunction.NULL, # Komprimierungsfunktion
+	    ),
+	    fints.segments.message.HNVSD1( # Verschlüsselte Daten, version 1
+	        header = fints.formals.SegmentHeader('HNVSD', 999, 1), # Segmentkopf
+	        data = fints.types.SegmentSequence([ # Daten, verschlüsselt
+	                fints.segments.message.HNSHK4( # Signaturkopf, version 4
+	                    header = fints.formals.SegmentHeader('HNSHK', 2, 4), # Segmentkopf
+	                    security_profile = fints.formals.SecurityProfile( # Sicherheitsprofil
+	                            security_method = fints.formals.SecurityMethod.PIN, # Sicherheitsverfahren
+	                            security_method_version = 1, # Version des Sicherheitsverfahrens
+	                        ),
+	                    security_function = '999', # Sicherheitsfunktion, kodiert
+	                    security_reference = '6489407', # Sicherheitskontrollreferenz
+	                    security_application_area = fints.formals.SecurityApplicationArea.SHM, # Bereich der Sicherheitsapplikation, kodiert
+	                    security_role = fints.formals.SecurityRole.ISS, # Rolle des Sicherheitslieferanten, kodiert
+	                    security_identification_details = fints.formals.SecurityIdentificationDetails( # Sicherheitsidentifikation, Details
+	                            identified_role = fints.formals.IdentifiedRole.MS,
+	                            cid = None,
+	                            identifier = '0',
+	                        ),
+	                    security_reference_number = 1, # Sicherheitsreferenznummer
+	                    security_datetime = fints.formals.SecurityDateTime( # Sicherheitsdatum und -uhrzeit
+	                            date_time_type = fints.formals.DateTimeType.STS,
+	                            date = datetime.date(2026, 4, 14),
+	                            time = datetime.time(22, 13, 50, 946425),
+	                        ),
+	                    hash_algorithm = fints.formals.HashAlgorithm( # Hashalgorithmus
+	                            usage_hash = '1',
+	                            hash_algorithm = '999',
+	                            algorithm_parameter_name = '1',
+	                        ),
+	                    signature_algorithm = fints.formals.SignatureAlgorithm( # Signaturalgorithmus
+	                            usage_signature = '6',
+	                            signature_algorithm = '10',
+	                            operation_mode = '16',
+	                        ),
+	                    key_name = fints.formals.KeyName( # Schlüsselname
+	                            bank_identifier = fints.formals.BankIdentifier(
+	                                    country_identifier = '280',
+	                                    bank_code = '66090800',
+	                                ),
+	                            user_id = '7690118a',
+	                            key_type = fints.formals.KeyType.S, # Schlüsselart
+	                            key_number = 0,
+	                            key_version = 0,
+	                        ),
+	                ),
+	                fints.segments.auth.HKIDN2( # Identifikation, version 2
+	                    header = fints.formals.SegmentHeader('HKIDN', 3, 2), # Segmentkopf
+	                    bank_identifier = fints.formals.BankIdentifier( # Kreditinstitutskennung
+	                            country_identifier = '280',
+	                            bank_code = '66090800',
+	                        ),
+	                    customer_id = '7690118a', # Kunden-ID
+	                    system_id = '0', # Kundensystem-ID
+	                    system_id_status = fints.formals.SystemIDStatus.ID_NECESSARY, # Kundensystem-Status
+	                ),
+	                fints.segments.auth.HKVVB3( # Verarbeitungsvorbereitung, version 3
+	                    header = fints.formals.SegmentHeader('HKVVB', 4, 3), # Segmentkopf
+	                    bpd_version = 0, # BPD-Version
+	                    upd_version = 0, # UPD-Version
+	                    language = fints.formals.Language2.DE, # Dialogsprache
+	                    product_name = 'MyBudgets', # Produktbezeichnung
+	                    product_version = '5.0.0', # Produktversion
+	                ),
+	                fints.segments.message.HNSHA2( # Signaturabschluss, version 2
+	                    header = fints.formals.SegmentHeader('HNSHA', 5, 2), # Segmentkopf
+	                    security_reference = '6489407', # Sicherheitskontrollreferenz
+	                    user_defined_signature = fints.formals.UserDefinedSignature( # Benutzerdefinierte Signatur
+	                            pin = '***',
+	                        ),
+	                ),
+	            ]),
+	    ),
+	    fints.segments.message.HNHBS1( # Nachrichtenabschluss
+	        header = fints.formals.SegmentHeader('HNHBS', 6, 1), # Segmentkopf
+	        message_number = 1, # Nachrichtennummer
+	    ),
+	])
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+22:13:50.957 [DEBUG] urllib3.connectionpool: Starting new HTTPS connection (1): fints2.atruvia.de:443
+22:13:51.442 [DEBUG] urllib3.connectionpool: https://fints2.atruvia.de:443 "POST /cgi-bin/hbciservlet HTTP/1.1" 200 590
+22:13:51.446 [DEBUG] fints.connection: Received <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        	fints.message.FinTSInstituteMessage([
+	    fints.segments.message.HNHBK3( # Nachrichtenkopf
+	        header = fints.formals.SegmentHeader('HNHBK', 1, 3), # Segmentkopf
+	        message_size = 431, # Größe der Nachricht (nach Verschlüsselung und Komprimierung)
+	        hbci_version = 300, # HBCI-Version
+	        dialog_id = 'DM6041422132584', # Dialog-ID
+	        message_number = 1, # Nachrichtennummer
+	        reference_message = fints.formals.ReferenceMessage( # Bezugsnachricht
+	                dialog_id = 'DM6041422132584',
+	                message_number = 1,
+	            ),
+	    ),
+	    fints.segments.message.HNVSK3( # Verschlüsselungskopf, version 3
+	        header = fints.formals.SegmentHeader('HNVSK', 998, 3), # Segmentkopf
+	        security_profile = fints.formals.SecurityProfile( # Sicherheitsprofil
+	                security_method = fints.formals.SecurityMethod.PIN, # Sicherheitsverfahren
+	                security_method_version = 1, # Version des Sicherheitsverfahrens
+	            ),
+	        security_function = '998', # Sicherheitsfunktion, kodiert
+	        security_role = fints.formals.SecurityRole.ISS, # Rolle des Sicherheitslieferanten, kodiert
+	        security_identification_details = fints.formals.SecurityIdentificationDetails( # Sicherheitsidentifikation, Details
+	                identified_role = fints.formals.IdentifiedRole.MR,
+	                cid = None,
+	                identifier = '0',
+	            ),
+	        security_datetime = fints.formals.SecurityDateTime( # Sicherheitsdatum und -uhrzeit
+	                date_time_type = fints.formals.DateTimeType.STS,
+	            ),
+	        encryption_algorithm = fints.formals.EncryptionAlgorithm( # Verschlüsselungsalgorithmus
+	                usage_encryption = fints.formals.UsageEncryption.OSY,
+	                operation_mode = fints.formals.OperationMode.CBC,
+	                encryption_algorithm = fints.formals.EncryptionAlgorithmCoded.TWOKEY3DES,
+	                algorithm_parameter_value = b'\x00\x00\x00\x00\x00\x00\x00\x00',
+	                algorithm_parameter_name = fints.formals.AlgorithmParameterName.KYE,
+	                algorithm_parameter_iv_name = fints.formals.AlgorithmParameterIVName.IVC,
+	            ),
+	        key_name = fints.formals.KeyName( # Schlüsselname
+	                bank_identifier = fints.formals.BankIdentifier(
+	                        country_identifier = '280',
+	                        bank_code = '66090800',
+	                    ),
+	                user_id = '7690118a',
+	                key_type = fints.formals.KeyType.V, # Schlüsselart
+	                key_number = 0,
+	                key_version = 0,
+	            ),
+	        compression_function = fints.formals.CompressionFunction.NULL, # Komprimierungsfunktion
+	    ),
+	    fints.segments.message.HNVSD1( # Verschlüsselte Daten, version 1
+	        header = fints.formals.SegmentHeader('HNVSD', 999, 1), # Segmentkopf
+	        data = fints.types.SegmentSequence([ # Daten, verschlüsselt
+	                fints.segments.message.HNSHK4( # Signaturkopf, version 4
+	                    header = fints.formals.SegmentHeader('HNSHK', 2, 4), # Segmentkopf
+	                    security_profile = fints.formals.SecurityProfile( # Sicherheitsprofil
+	                            security_method = fints.formals.SecurityMethod.PIN, # Sicherheitsverfahren
+	                            security_method_version = 1, # Version des Sicherheitsverfahrens
+	                        ),
+	                    security_function = '999', # Sicherheitsfunktion, kodiert
+	                    security_reference = '6489407', # Sicherheitskontrollreferenz
+	                    security_application_area = fints.formals.SecurityApplicationArea.SHM, # Bereich der Sicherheitsapplikation, kodiert
+	                    security_role = fints.formals.SecurityRole.ISS, # Rolle des Sicherheitslieferanten, kodiert
+	                    security_identification_details = fints.formals.SecurityIdentificationDetails( # Sicherheitsidentifikation, Details
+	                            identified_role = fints.formals.IdentifiedRole.MR,
+	                            cid = None,
+	                            identifier = '0',
+	                        ),
+	                    security_reference_number = 1, # Sicherheitsreferenznummer
+	                    security_datetime = fints.formals.SecurityDateTime( # Sicherheitsdatum und -uhrzeit
+	                            date_time_type = fints.formals.DateTimeType.STS,
+	                        ),
+	                    hash_algorithm = fints.formals.HashAlgorithm( # Hashalgorithmus
+	                            usage_hash = '1',
+	                            hash_algorithm = '999',
+	                            algorithm_parameter_name = '1',
+	                        ),
+	                    signature_algorithm = fints.formals.SignatureAlgorithm( # Signaturalgorithmus
+	                            usage_signature = '6',
+	                            signature_algorithm = '10',
+	                            operation_mode = '16',
+	                        ),
+	                    key_name = fints.formals.KeyName( # Schlüsselname
+	                            bank_identifier = fints.formals.BankIdentifier(
+	                                    country_identifier = '280',
+	                                    bank_code = '66090800',
+	                                ),
+	                            user_id = '7690118a',
+	                            key_type = fints.formals.KeyType.S, # Schlüsselart
+	                            key_number = 0,
+	                            key_version = 0,
+	                        ),
+	                ),
+	                fints.segments.dialog.HIRMG2( # Rückmeldungen zur Gesamtnachricht
+	                    header = fints.formals.SegmentHeader('HIRMG', 3, 2), # Segmentkopf
+	                    responses = [ # Rückmeldung
+	                                fints.formals.Response( # Rückmeldung
+	                                    code = '9050',
+	                                    reference_element = None,
+	                                    text = 'Die Nachricht enthält Fehler.',
+	                                ),
+	                                fints.formals.Response( # Rückmeldung
+	                                    code = '9800',
+	                                    reference_element = None,
+	                                    text = 'Dialog abgebrochen',
+	                                ),
+	                                fints.formals.Response( # Rückmeldung
+	                                    code = '9078',
+	                                    reference_element = None,
+	                                    text = 'Software nicht als FinTS-Produkt registriert. Bitte an Hersteller wenden.',
+	                                ),
+	                        ],
+	                ),
+	                fints.segments.message.HNSHA2( # Signaturabschluss, version 2
+	                    header = fints.formals.SegmentHeader('HNSHA', 4, 2), # Segmentkopf
+	                    security_reference = '6489407', # Sicherheitskontrollreferenz
+	                ),
+	            ]),
+	    ),
+	    fints.segments.message.HNHBS1( # Nachrichtenabschluss
+	        header = fints.formals.SegmentHeader('HNHBS', 5, 1), # Segmentkopf
+	        message_number = 1, # Nachrichtennummer
+	    ),
+	])
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+22:13:51.447 [INFO ] bbbank: [1/5] Dialog erfolgreich initialisiert
+22:13:51.447 [INFO ] bbbank: [2/5] Verfügbare TAN-Methoden abfragen …
+22:13:51.449 [DEBUG] fints.connection: Sending >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	fints.message.FinTSCustomerMessage([
+	    fints.segments.message.HNHBK3( # Nachrichtenkopf
+	        header = fints.formals.SegmentHeader('HNHBK', 1, 3), # Segmentkopf
+	        message_size = 330, # Größe der Nachricht (nach Verschlüsselung und Komprimierung)
+	        hbci_version = 300, # HBCI-Version
+	        dialog_id = 'DM6041422132584', # Dialog-ID
+	        message_number = 2, # Nachrichtennummer
+	    ),
+	    fints.segments.message.HNVSK3( # Verschlüsselungskopf, version 3
+	        header = fints.formals.SegmentHeader('HNVSK', 998, 3), # Segmentkopf
+	        security_profile = fints.formals.SecurityProfile( # Sicherheitsprofil
+	                security_method = fints.formals.SecurityMethod.PIN, # Sicherheitsverfahren
+	                security_method_version = 1, # Version des Sicherheitsverfahrens
+	            ),
+	        security_function = '998', # Sicherheitsfunktion, kodiert
+	        security_role = fints.formals.SecurityRole.ISS, # Rolle des Sicherheitslieferanten, kodiert
+	        security_identification_details = fints.formals.SecurityIdentificationDetails( # Sicherheitsidentifikation, Details
+	                identified_role = fints.formals.IdentifiedRole.MS,
+	                cid = None,
+	                identifier = '0',
+	            ),
+	        security_datetime = fints.formals.SecurityDateTime( # Sicherheitsdatum und -uhrzeit
+	                date_time_type = fints.formals.DateTimeType.STS,
+	                date = datetime.date(2026, 4, 14),
+	                time = datetime.time(22, 13, 51, 447186),
+	            ),
+	        encryption_algorithm = fints.formals.EncryptionAlgorithm( # Verschlüsselungsalgorithmus
+	                usage_encryption = fints.formals.UsageEncryption.OSY,
+	                operation_mode = fints.formals.OperationMode.CBC,
+	                encryption_algorithm = fints.formals.EncryptionAlgorithmCoded.TWOKEY3DES,
+	                algorithm_parameter_value = b'\x00\x00\x00\x00\x00\x00\x00\x00',
+	                algorithm_parameter_name = fints.formals.AlgorithmParameterName.KYE,
+	                algorithm_parameter_iv_name = fints.formals.AlgorithmParameterIVName.IVC,
+	            ),
+	        key_name = fints.formals.KeyName( # Schlüsselname
+	                bank_identifier = fints.formals.BankIdentifier(
+	                        country_identifier = '280',
+	                        bank_code = '66090800',
+	                    ),
+	                user_id = '7690118a',
+	                key_type = fints.formals.KeyType.V, # Schlüsselart
+	                key_number = 0,
+	                key_version = 0,
+	            ),
+	        compression_function = fints.formals.CompressionFunction.NULL, # Komprimierungsfunktion
+	    ),
+	    fints.segments.message.HNVSD1( # Verschlüsselte Daten, version 1
+	        header = fints.formals.SegmentHeader('HNVSD', 999, 1), # Segmentkopf
+	        data = fints.types.SegmentSequence([ # Daten, verschlüsselt
+	                fints.segments.message.HNSHK4( # Signaturkopf, version 4
+	                    header = fints.formals.SegmentHeader('HNSHK', 2, 4), # Segmentkopf
+	                    security_profile = fints.formals.SecurityProfile( # Sicherheitsprofil
+	                            security_method = fints.formals.SecurityMethod.PIN, # Sicherheitsverfahren
+	                            security_method_version = 1, # Version des Sicherheitsverfahrens
+	                        ),
+	                    security_function = '999', # Sicherheitsfunktion, kodiert
+	                    security_reference = '7869281', # Sicherheitskontrollreferenz
+	                    security_application_area = fints.formals.SecurityApplicationArea.SHM, # Bereich der Sicherheitsapplikation, kodiert
+	                    security_role = fints.formals.SecurityRole.ISS, # Rolle des Sicherheitslieferanten, kodiert
+	                    security_identification_details = fints.formals.SecurityIdentificationDetails( # Sicherheitsidentifikation, Details
+	                            identified_role = fints.formals.IdentifiedRole.MS,
+	                            cid = None,
+	                            identifier = '0',
+	                        ),
+	                    security_reference_number = 1, # Sicherheitsreferenznummer
+	                    security_datetime = fints.formals.SecurityDateTime( # Sicherheitsdatum und -uhrzeit
+	                            date_time_type = fints.formals.DateTimeType.STS,
+	                            date = datetime.date(2026, 4, 14),
+	                            time = datetime.time(22, 13, 51, 447186),
+	                        ),
+	                    hash_algorithm = fints.formals.HashAlgorithm( # Hashalgorithmus
+	                            usage_hash = '1',
+	                            hash_algorithm = '999',
+	                            algorithm_parameter_name = '1',
+	                        ),
+	                    signature_algorithm = fints.formals.SignatureAlgorithm( # Signaturalgorithmus
+	                            usage_signature = '6',
+	                            signature_algorithm = '10',
+	                            operation_mode = '16',
+	                        ),
+	                    key_name = fints.formals.KeyName( # Schlüsselname
+	                            bank_identifier = fints.formals.BankIdentifier(
+	                                    country_identifier = '280',
+	                                    bank_code = '66090800',
+	                                ),
+	                            user_id = '7690118a',
+	                            key_type = fints.formals.KeyType.S, # Schlüsselart
+	                            key_number = 0,
+	                            key_version = 0,
+	                        ),
+	                ),
+	                fints.segments.dialog.HKEND1( # Dialogende, version 1
+	                    header = fints.formals.SegmentHeader('HKEND', 3, 1), # Segmentkopf
+	                    dialog_id = 'DM6041422132584', # Dialog-ID
+	                ),
+	                fints.segments.message.HNSHA2( # Signaturabschluss, version 2
+	                    header = fints.formals.SegmentHeader('HNSHA', 4, 2), # Segmentkopf
+	                    security_reference = '7869281', # Sicherheitskontrollreferenz
+	                    user_defined_signature = fints.formals.UserDefinedSignature( # Benutzerdefinierte Signatur
+	                            pin = '***',
+	                        ),
+	                ),
+	            ]),
+	    ),
+	    fints.segments.message.HNHBS1( # Nachrichtenabschluss
+	        header = fints.formals.SegmentHeader('HNHBS', 5, 1), # Segmentkopf
+	        message_number = 2, # Nachrichtennummer
+	    ),
+	])
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+22:13:51.470 [DEBUG] urllib3.connectionpool: https://fints2.atruvia.de:443 "POST /cgi-bin/hbciservlet HTTP/1.1" 200 208
+22:13:51.472 [DEBUG] fints.connection: Received <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     	fints.message.FinTSInstituteMessage([
+	    fints.segments.message.HNHBK3( # Nachrichtenkopf
+	        header = fints.formals.SegmentHeader('HNHBK', 1, 3), # Segmentkopf
+	        message_size = 154, # Größe der Nachricht (nach Verschlüsselung und Komprimierung)
+	        hbci_version = 300, # HBCI-Version
+	        dialog_id = 'DM6041422132584', # Dialog-ID
+	        message_number = 2, # Nachrichtennummer
+	        reference_message = fints.formals.ReferenceMessage( # Bezugsnachricht
+	                dialog_id = 'DM6041422132584',
+	                message_number = 2,
+	            ),
+	    ),
+	    fints.segments.dialog.HIRMG2( # Rückmeldungen zur Gesamtnachricht
+	        header = fints.formals.SegmentHeader('HIRMG', 2, 2), # Segmentkopf
+	        responses = [ # Rückmeldung
+	                    fints.formals.Response( # Rückmeldung
+	                        code = '9800',
+	                        reference_element = None,
+	                        text = 'FGW Fehlender Dialogkontext zu DM6041422132584 in Nachricht 2.',
+	                    ),
+	            ],
+	    ),
+	    fints.segments.message.HNHBS1( # Nachrichtenabschluss
+	        header = fints.formals.SegmentHeader('HNHBS', 3, 1), # Segmentkopf
+	        message_number = 1, # Nachrichtennummer
+	    ),
+	])
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+Fertig. Exit-Code: 0. Log: F:\CascadeProjects\MyBudgets\scripts\logs\bbbank-sync-20260414-221349.log
+Dr�cken Sie eine beliebige Taste . . . 

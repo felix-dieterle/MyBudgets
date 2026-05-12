@@ -6,6 +6,9 @@ import de.mybudgets.app.data.model.StandingOrder
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.util.AppLogger
+import de.mybudgets.app.data.banking.camt.CustomCamtParser
+import de.mybudgets.app.data.banking.camt.HbciCamtPatcher
+import de.mybudgets.app.data.banking.camt.CamtExtractionHelper
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -227,6 +230,7 @@ class FintsService @Inject constructor(
         fromDate: Date? = null
     ): Result<List<Transaction>> = withContext(Dispatchers.IO) {
         val syncPhase = "fetchAccountStatement"
+        AppLogger.i(TAG, "[$syncPhase/0-version] MyBudgets Version: ${de.mybudgets.app.BuildConfig.VERSION_NAME} (versionCode=${de.mybudgets.app.BuildConfig.VERSION_CODE})")
         AppLogger.i(TAG, "[$syncPhase/1-setup] START: iban=${maskIban(account.iban)} userId=${maskUserId(account.userId)} blz=${account.bankCode.ifBlank { blzFromIban(account.iban) ?: "?" }} ab $fromDate")
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
@@ -264,11 +268,11 @@ class FintsService @Inject constructor(
                 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY)
 
                 // Build the ordered list of job names + optional startdate to try.
-                // fromDate != null  → KUmsAllCamt (with date), KUmsZeitSEPA (with date),
-                //                     KUmsAll, KUmsNew
-                // fromDate == null  → KUmsAllCamt (no explicit date, uses BPD timerange),
-                //                     KUmsAll, KUmsZeitSEPA (epoch startdate to cover banks
-                //                     that only support HKCAZ SEPA), KUmsNew
+                // Job-Sequence: CAMT ist bevorzugt (BBBank unterstützt primär CAMT)
+                // Fallback auf MT940-basierte Jobs falls CAMT fehlschlägt
+                //
+                // fromDate != null  → KUmsAllCamt (with date), KUmsZeitSEPA, KUmsAll, KUmsNew
+                // fromDate == null  → KUmsAllCamt (all), KUmsZeitSEPA, KUmsAll, KUmsNew
                 data class JobAttempt(val name: String, val startDate: Date? = null)
                 val jobAttempts = if (fromDate != null) listOf(
                     JobAttempt("KUmsAllCamt", fromDate),
@@ -277,8 +281,8 @@ class FintsService @Inject constructor(
                     JobAttempt("KUmsNew"),
                 ) else listOf(
                     JobAttempt("KUmsAllCamt"),
-                    JobAttempt("KUmsAll"),
                     JobAttempt("KUmsZeitSEPA", Date(0)),
+                    JobAttempt("KUmsAll"),
                     JobAttempt("KUmsNew"),
                 )
 
@@ -333,58 +337,23 @@ class FintsService @Inject constructor(
                 // PHASE 4: Execute
                 AppLogger.i(TAG, "[$syncPhase/4-exec] Sending request to bank...")
                 syncPhaseUpdateHandler?.invoke("4-exec", "Anfrage wird an Bankserver gesendet...")
-                var status = handler.execute()
+                val status = handler.execute()
                 
-                // Check if we got a CAMT parsing error - fall back to MT940-based job
-                if (!status.isOK && (
-                    job.jobResult?.javaClass?.name?.contains("Error") == true ||
-                    status.toString().contains("SAXNotRecognizedException") ||
-                    status.toString().contains("Error parsing CAMT")
-                )) {
-                    AppLogger.w(TAG, "[$syncPhase/4-exec] CAMT parsing failed, trying fallback to MT940-based job...")
-                    syncPhaseUpdateHandler?.invoke("4-exec", "CAMT nicht unterstützt, versuche MT940...")
-                    
-                    try {
-                        val fallbackJob = handler.newJob("KUmsZeitSEPA")
-                        fallbackJob.setParam("my", buildKonto(account, bic, passport))
-                        if (fromDate != null) {
-                            fallbackJob.setParam("startdate", sdf.format(fromDate))
-                        }
-                        handler.addJob(fallbackJob)
-                        status = handler.execute()
-                        
-                        if (status.isOK) {
-                            AppLogger.i(TAG, "[$syncPhase/4-exec] MT940 fallback successful")
-                            // Use fallback job result instead
-                            val fallbackResult = fallbackJob.jobResult as? GVRKUms
-                            if (fallbackResult != null) {
-                                AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from MT940 response...")
-                                val transactions = fallbackResult.flatData.map { entry ->
-                                    val isIncome = entry.value.longValue >= 0
-                                    Transaction(
-                                        accountId   = account.id,
-                                        amount      = abs(entry.value.doubleValue),
-                                        description = entry.usage.joinToString(" ").trim().ifBlank { entry.other?.name ?: "" },
-                                        date        = entry.valuta?.time ?: entry.bdate?.time ?: System.currentTimeMillis(),
-                                        type        = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
-                                        note        = entry.other?.name ?: "",
-                                        remoteId    = entry.id ?: ""
-                                    )
-                                }
-                                AppLogger.i(TAG, "[$syncPhase/5-parse] SUCCESS: Extracted ${transactions.size} transactions from MT940")
-                                return@runCatching transactions
-                            }
-                        }
-                    } catch (e: Exception) {
-                        AppLogger.w(TAG, "[$syncPhase/4-exec] MT940 fallback also failed: ${e.message}")
-                    }
-                }
+                // Check if status is non-OK due to CAMT parsing error
+                val statusStr = status.toString()
+                val hasCamtParsingError = statusStr.contains("SAXNotRecognizedException") ||
+                                         statusStr.contains("secure-processing")
                 
-                if (!status.isOK) {
+                if (!status.isOK && !hasCamtParsingError) {
                     AppLogger.e(TAG, "[$syncPhase/4-exec] Bank returned non-OK status: $status")
                     error("Kontoauszug fehlgeschlagen: $status")
                 }
-                AppLogger.i(TAG, "[$syncPhase/4-exec] Bank response OK")
+                
+                if (hasCamtParsingError) {
+                    AppLogger.w(TAG, "[$syncPhase/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...")
+                } else {
+                    AppLogger.i(TAG, "[$syncPhase/4-exec] Bank response OK")
+                }
 
                 // PHASE 5: Parse Result
                 AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from response...")
@@ -392,7 +361,30 @@ class FintsService @Inject constructor(
                 val result = job.jobResult as? GVRKUms
                     ?: error("Unerwartetes Ergebnis vom Kontoauszug-Job")
 
-                val transactions = result.flatData.map { entry ->
+                // Extract flatData with CAMT fallback if JAXB parsing fails
+                val flatData = try {
+                    val data = result.flatData
+                    
+                    // If we had a CAMT parsing error AND flatData is empty, trigger fallback
+                    if (hasCamtParsingError && (data == null || data.isEmpty())) {
+                        AppLogger.w(TAG, "[$syncPhase/5-parse] CAMT JAXB parsing failed (flatData empty), using custom parser fallback")
+                        val konto = buildKonto(account, bic, passport)
+                        tryCamtFallbackExtraction(job, result, konto)
+                    } else {
+                        data
+                    }
+                } catch (e: Exception) {
+                    // Check if this is a CAMT parsing error (JAXB/SAX issue)
+                    if (e.isCamtParsingError()) {
+                        AppLogger.w(TAG, "[$syncPhase/5-parse] CAMT JAXB parsing exception caught, using custom parser fallback")
+                        val konto = buildKonto(account, bic, passport)
+                        tryCamtFallbackExtraction(job, result, konto)
+                    } else {
+                        throw e // Re-throw non-CAMT errors
+                    }
+                }
+
+                val transactions = flatData.map { entry ->
                     val isIncome = entry.value.longValue >= 0
                     Transaction(
                         accountId   = account.id,
@@ -489,35 +481,55 @@ class FintsService @Inject constructor(
             passport.userId = account.userId
             passport.customerId = account.userId
         }
-        return try {
-            val handler = HBCIHandler("300", passport)
-            AppLogger.i(TAG, "openSession: HBCI-Handler bereit – Server=${passport.host}:${passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=300 Produkt=MyBudgets")
-            Pair(handler, passport)
-        } catch (e: Exception) {
-            // If the TAN method stored in the passport is no longer supported by the bank
-            // (e.g. the bank updated their TAN method list), delete the stale passport file
-            // and retry once with a fresh passport so hbci4j can re-negotiate.
-            if (e.hasCause<InvalidUserDataException> { it.message?.contains("selected pintan method not supported") == true }
-                && passportFile.exists()
-            ) {
-                AppLogger.w(TAG, "openSession: gespeicherte TAN-Methode ungültig – lösche Passport-Datei und versuche erneut")
-                passportFile.delete()
-                HBCIUtils.setParam("client.passport.PinTan.filename", passportFile.absolutePath)
-                HBCIUtils.setParam("client.passport.PinTan.init", "1")
-                val freshPassport = AbstractHBCIPassport.getInstance("PinTan") as AbstractHBCIPassport
-                freshPassport.country = "DE"
-                freshPassport.blz = blz
-                if (account.userId.isNotBlank()) {
-                    freshPassport.userId = account.userId
-                    freshPassport.customerId = account.userId
+        // BBBank requires HBCI 2.2 for MT940-based jobs (KUmsZeitSEPA, KUmsAll, KUmsNew)
+        // Try 220 first, fallback to 300 if that fails
+        var handler: HBCIHandler? = null
+        var hbciVersion = "220"
+        try {
+            handler = HBCIHandler("220", passport)
+            AppLogger.i(TAG, "openSession: HBCI-Handler bereit – Server=${passport.host}:${passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=220 Produkt=MyBudgets")
+        } catch (e220: Exception) {
+            AppLogger.w(TAG, "openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: ${e220.message}")
+            hbciVersion = "300"
+            try {
+                handler = HBCIHandler("300", passport)
+                AppLogger.i(TAG, "openSession: HBCI-Handler bereit – Server=${passport.host}:${passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=300 Produkt=MyBudgets")
+            } catch (e300: Exception) {
+                // If the TAN method stored in the passport is no longer supported by the bank
+                // (e.g. the bank updated their TAN method list), delete the stale passport file
+                // and retry once with a fresh passport so hbci4j can re-negotiate.
+                if (e300.hasCause<InvalidUserDataException> { it.message?.contains("selected pintan method not supported") == true }
+                    && passportFile.exists()
+                ) {
+                    AppLogger.w(TAG, "openSession: gespeicherte TAN-Methode ungültig – lösche Passport-Datei und versuche erneut")
+                    passportFile.delete()
+                    HBCIUtils.setParam("client.passport.PinTan.filename", passportFile.absolutePath)
+                    HBCIUtils.setParam("client.passport.PinTan.init", "1")
+                    val freshPassport = AbstractHBCIPassport.getInstance("PinTan") as AbstractHBCIPassport
+                    freshPassport.country = "DE"
+                    freshPassport.blz = blz
+                    if (account.userId.isNotBlank()) {
+                        freshPassport.userId = account.userId
+                        freshPassport.customerId = account.userId
+                    }
+                    // Try 220 first with fresh passport
+                    try {
+                        handler = HBCIHandler("220", freshPassport)
+                        AppLogger.i(TAG, "openSession: HBCI-Handler bereit (nach Passport-Reset) – Server=${freshPassport.host}:${freshPassport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=220 Produkt=MyBudgets")
+                        return Pair(handler!!, freshPassport)
+                    } catch (eFresh220: Exception) {
+                        AppLogger.w(TAG, "openSession: HBCI 2.2 mit frischem Passport fehlgeschlagen, versuche 3.0: ${eFresh220.message}")
+                        handler = HBCIHandler("300", freshPassport)
+                        AppLogger.i(TAG, "openSession: HBCI-Handler bereit (nach Passport-Reset) – Server=${freshPassport.host}:${freshPassport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=300 Produkt=MyBudgets")
+                        return Pair(handler!!, freshPassport)
+                    }
+                } else {
+                    throw e300
                 }
-                val freshHandler = HBCIHandler("300", freshPassport)
-                AppLogger.i(TAG, "openSession: HBCI-Handler bereit (nach Passport-Reset) – Server=${freshPassport.host}:${freshPassport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=300 Produkt=MyBudgets")
-                Pair(freshHandler, freshPassport)
-            } else {
-                throw e
             }
         }
+        
+        return Pair(handler!!, passport)
     }
 
     /**
@@ -537,7 +549,12 @@ class FintsService @Inject constructor(
 
     @Synchronized
     private fun initHbciOnce() {
+        // Apply JAXB SAXParser patch for CAMT XML parsing on Android
+        // MUST be called before the hbciInitialized check, so it runs on the very first call
+        JaxbSaxParserPatcher.applyPatch()
+        
         if (hbciInitialized) return
+        
         // Android's default DocumentBuilderFactory does not support DTD validation, but
         // hbci4java's MsgGen unconditionally calls setValidating(true). Replace the factory
         // with our wrapper that silently ignores the validation flag.
@@ -845,6 +862,179 @@ class FintsService @Inject constructor(
             Result.failure(wrongPinException(operationResult.exceptionOrNull()))
         else
             operationResult
+    }
+
+    /**
+     * Checks if an exception is caused by CAMT parsing errors (JAXB/SAX issues).
+     */
+    private fun Exception.isCamtParsingError(): Boolean {
+        val msg = this.message ?: ""
+        return msg.contains("SAXNotRecognizedException") ||
+               msg.contains("secure-processing") ||
+               msg.contains("Error parsing CAMT") ||
+               msg.contains("IllegalStateException") ||
+               this.cause?.let { it is org.xml.sax.SAXNotRecognizedException } == true ||
+               this is IllegalStateException
+    }
+
+    /**
+     * Fallback extraction when hbci4java's JAXB-based CAMT parsing fails.
+     * Uses our custom XmlPullParser-based CAMT parser instead.
+     */
+    private fun tryCamtFallbackExtraction(
+        job: HBCIJob,
+        result: GVRKUms,
+        targetAccount: Konto
+    ): List<GVRKUms.UmsLine> {
+        AppLogger.i(TAG, "tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...")
+        AppLogger.i(TAG, "tryCamtFallbackExtraction: Target account IBAN=${targetAccount.iban}")
+        
+        // 1. Get job properties via reflection
+        AppLogger.i(TAG, "tryCamtFallbackExtraction: Step 1 - Extracting job properties...")
+        val jobProps = extractJobProperties(job)
+        
+        AppLogger.i(TAG, "tryCamtFallbackExtraction: Found ${jobProps.size} job properties")
+        if (jobProps.isNotEmpty()) {
+            AppLogger.d(TAG, "tryCamtFallbackExtraction: Job properties keys: ${jobProps.keys.joinToString()}")
+        }
+        
+        if (jobProps.isEmpty()) {
+            AppLogger.e(TAG, "tryCamtFallbackExtraction: FAILED - No job properties found")
+            throw IllegalStateException("CAMT-Fallback fehlgeschlagen: Keine Job-Properties gefunden")
+        }
+        
+        // 2. Extract transactions with helper
+        AppLogger.i(TAG, "tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...")
+        val transactions = CamtExtractionHelper.extractFromJobResult(jobProps, targetAccount)
+        
+        AppLogger.i(TAG, "tryCamtFallbackExtraction: CamtExtractionHelper returned ${transactions.size} transactions")
+        
+        if (transactions.isEmpty()) {
+            AppLogger.e(TAG, "tryCamtFallbackExtraction: FAILED - No transactions extracted from CAMT")
+            throw IllegalStateException("CAMT-Fallback fehlgeschlagen: Keine Transaktionen gefunden")
+        }
+        
+        // 3. Inject into result
+        AppLogger.i(TAG, "tryCamtFallbackExtraction: Step 3 - Injecting ${transactions.size} transactions into result...")
+        CamtExtractionHelper.injectTransactions(result, transactions)
+        
+        AppLogger.i(TAG, "tryCamtFallbackExtraction: ✅ SUCCESS - Extracted ${transactions.size} transactions")
+        return transactions
+    }
+
+    /**
+     * Extracts job result properties via reflection from an HBCIJob.
+     * 
+     * Tries multiple strategies to find the raw CAMT XML data:
+     * 1. jobResult.jobResultData (Properties)
+     * 2. jobResult.rawData (Map<String, String>)
+     * 3. jobResult's all declared fields (search for Properties or Map)
+     * 4. job's declared fields (search for Properties or Map)
+     */
+    private fun extractJobProperties(job: HBCIJob): Map<String, String> {
+        AppLogger.d(TAG, "extractJobProperties: Extracting from job class ${job.javaClass.simpleName}")
+        
+        val jobResult = job.jobResult
+        if (jobResult == null) {
+            AppLogger.w(TAG, "extractJobProperties: jobResult is null")
+            return emptyMap()
+        }
+        
+        AppLogger.d(TAG, "extractJobProperties: JobResult class: ${jobResult.javaClass.simpleName}")
+        
+        // Strategy 1: Try common field names
+        val commonFieldNames = listOf("jobResultData", "rawData", "resultData", "data", "properties")
+        for (fieldName in commonFieldNames) {
+            try {
+                val field = jobResult.javaClass.getDeclaredField(fieldName)
+                field.isAccessible = true
+                val value = field.get(jobResult)
+                
+                when (value) {
+                    is java.util.Properties -> {
+                        val map = value.entries.associate { it.key.toString() to it.value.toString() }
+                        if (map.isNotEmpty()) {
+                            AppLogger.i(TAG, "extractJobProperties: Found ${map.size} properties via field '$fieldName'")
+                            return map
+                        }
+                    }
+                    is Map<*, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val map = value as? Map<String, String> ?: emptyMap()
+                        if (map.isNotEmpty()) {
+                            AppLogger.i(TAG, "extractJobProperties: Found ${map.size} properties via field '$fieldName'")
+                            return map
+                        }
+                    }
+                }
+            } catch (e: NoSuchFieldException) {
+                // Field doesn't exist, try next
+            } catch (e: Exception) {
+                AppLogger.d(TAG, "extractJobProperties: Error accessing field '$fieldName': ${e.message}")
+            }
+        }
+        
+        // Strategy 2: Search all fields in jobResult
+        AppLogger.d(TAG, "extractJobProperties: Searching all fields in jobResult...")
+        try {
+            val allFields = jobResult.javaClass.declaredFields
+            AppLogger.d(TAG, "extractJobProperties: JobResult has ${allFields.size} fields")
+            
+            for (field in allFields) {
+                field.isAccessible = true
+                val value = field.get(jobResult)
+                
+                when (value) {
+                    is java.util.Properties -> {
+                        val map = value.entries.associate { it.key.toString() to it.value.toString() }
+                        if (map.isNotEmpty()) {
+                            AppLogger.i(TAG, "extractJobProperties: Found ${map.size} properties via field '${field.name}' (type: ${field.type.simpleName})")
+                            return map
+                        }
+                    }
+                    is Map<*, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val map = value as? Map<String, String> ?: emptyMap()
+                        if (map.isNotEmpty()) {
+                            AppLogger.i(TAG, "extractJobProperties: Found ${map.size} properties via field '${field.name}' (type: ${field.type.simpleName})")
+                            return map
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            AppLogger.w(TAG, "extractJobProperties: Error searching jobResult fields", e)
+        }
+        
+        // Strategy 3: Try to call getResultData() method if it exists
+        try {
+            val method = jobResult.javaClass.getMethod("getResultData")
+            val result = method.invoke(jobResult)
+            when (result) {
+                is java.util.Properties -> {
+                    val map = result.entries.associate { it.key.toString() to it.value.toString() }
+                    if (map.isNotEmpty()) {
+                        AppLogger.i(TAG, "extractJobProperties: Found ${map.size} properties via getResultData()")
+                        return map
+                    }
+                }
+                is Map<*, *> -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val map = result as? Map<String, String> ?: emptyMap()
+                    if (map.isNotEmpty()) {
+                        AppLogger.i(TAG, "extractJobProperties: Found ${map.size} properties via getResultData()")
+                        return map
+                    }
+                }
+            }
+        } catch (e: NoSuchMethodException) {
+            // Method doesn't exist
+        } catch (e: Exception) {
+            AppLogger.d(TAG, "extractJobProperties: Error calling getResultData(): ${e.message}")
+        }
+        
+        AppLogger.w(TAG, "extractJobProperties: No properties found after trying all strategies")
+        return emptyMap()
     }
 
     companion object {

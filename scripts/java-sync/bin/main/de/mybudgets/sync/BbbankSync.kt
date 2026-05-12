@@ -148,14 +148,8 @@ fun main() {
             HBCIUtils.setParam("client.passport.PinTan.tanmethod", tanMethod)
         }
 
-        // Create handler - BBBank needs HBCI 2.2 for MT940 jobs, fallback to 3.0
-        val handler = try {
-            println("Trying HBCI 2.2...")
-            HBCIHandler("220", passport)
-        } catch (e: Exception) {
-            println("HBCI 2.2 failed, trying 3.0: ${e.message}")
-            HBCIHandler("300", passport)
-        }
+        // Create handler
+        val handler = HBCIHandler("300", passport)
 
         // BIC Lookup - extract BIC from passport UPD (like the app does)
         println("[1/4] BIC aus Passport UPD abfragen...")
@@ -173,8 +167,8 @@ fun main() {
         val startDate = Date(System.currentTimeMillis() - (daysBack * 24L * 60 * 60 * 1000))
         val endDate = Date()
 
-        // Try different job types - TEMPORARILY DISABLE CAMT to test MT940
-        val jobTypes = listOf("KUmsZeitSEPA", "KUmsAll", "KUmsNew")
+        // Try different job types
+        val jobTypes = listOf("KUmsAllCamt", "KUmsZeitSEPA", "KUmsAll", "KUmsNew")
         var job: HBCIJob? = null
         var result: Any? = null
 

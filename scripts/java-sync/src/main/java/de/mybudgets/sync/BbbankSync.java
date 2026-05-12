@@ -136,6 +136,7 @@ public class BbbankSync {
             Date endDate = new Date();
 
             // Try different job types (fallback strategy)
+            // BBBank unterstützt primär CAMT (KUmsAllCamt)
             HBCIJob job = null;
             String[] jobTypes = {"KUmsAllCamt", "KUmsZeitSEPA", "KUmsAll", "KUmsNew"};
             Exception lastError = null;

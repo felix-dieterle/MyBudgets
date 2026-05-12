@@ -58,7 +58,7 @@ python3 scripts/bbbank-sync-debug.py \
     --iban   "DE89 3704 0044 0532 0130 00" \
     --user   NUTZERKENNUNG \
     --tan-method 900 \
-    --server https://finanzportal.bbbank.de/banking \
+    --server https://fints2.atruvia.de/cgi-bin/hbciservlet \
     --debug
 ```
 
@@ -89,7 +89,7 @@ Drei Wege zum richtigen Wert:
    via Support direkt erfragen.
 
 3. **Bekannte BBBank-URLs** (ohne Garantie auf Aktualität):
-   `https://finanzportal.bbbank.de/banking`
+   `https://fints2.atruvia.de/cgi-bin/hbciservlet`
 
 ### Ablauf des Skripts (Phasen)
 
@@ -361,11 +361,13 @@ Bitte nach dem Live-Durchlauf genau diese Felder ausfüllen:
   - Der eigentliche Hänger sitzt danach im Umsatzabruf-Job `HKCAZ` / `KUmsZeitCamt1`.
   - Der Lauf endet nicht mit einem Bankfehler, sondern mit einem Timeout nach erfolgreicher Freigabe.
 
-### Aktuell wahrscheinlichste Fehlerstelle
+### Aktuell wahrscheinlichste Fehlerstelle (Stand 2026-05-08)
 
-- Problem liegt nach heutigem Stand nicht mehr bei Login, PIN oder Secure-Go.
-- Problem liegt sehr wahrscheinlich im CAMT-/HKCAZ-Abrufpfad nach der Decoupled-Freigabe.
-- Der Report spricht dafür, dass BBBank den Abruf startet, aber keine verwertbare Abschlussantwort für den Umsatzdownload zurückkommt oder hbci4java in diesem Schritt hängen bleibt.
+- ✅ **Problem identifiziert:** CAMT-XML-Parser schlägt fehl trotz FeatureIgnoringSAXParserFactory
+- ✅ **Root Cause:** `org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing`
+- ✅ **Beweis:** Logs zeigen `3040: Es liegen noch weitere CAMT Umsätze vor` + `0900: Freigabe erfolgreich`, aber dann SAX-Exception
+- ✅ **Fix:** KUmsAllCamt (CAMT-Jobs) aus Fallback-Liste entfernt, direkt mit KUmsZeitSEPA (MT940) starten
+- ✅ **Status:** Fix implementiert in BbbankSync.java und FintsService.kt
 
 ### Bereits umgesetzte Robustheitsmaßnahmen
 
@@ -376,5 +378,7 @@ Bitte nach dem Live-Durchlauf genau diese Felder ausfüllen:
 
 ### Aktueller Status
 
-- Authentifizierung inkl. Secure-Go kann grundsätzlich funktionieren.
-- Der Download/Import-Pfad wird weiterhin live verifiziert; bei erneutem Fehlschlag bitte die komplette Test-Fehlermeldung inkl. "Letzte App-Logs" verwenden.
+- Authentifizierung inkl. Secure-Go funktioniert grundsätzlich.
+- **CAMT-Parser-Problem identifiziert und behoben** (KUmsAllCamt deaktiviert, KUmsZeitSEPA als primärer Job-Type).
+- **Schneller Test-Workflow verfügbar:** `scripts/quick-test-fix.ps1` für Iterationen ohne App-Build (siehe `TESTING-WORKFLOW.md`).
+- **Nächster Schritt:** Java-Sync-Test ausführen und bei Erfolg App neu bauen.
