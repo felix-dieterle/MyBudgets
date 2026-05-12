@@ -6,8 +6,9 @@
 ## AI Communication Style
 
 **CRITICAL - Token Optimization:**
-- **Diff only** - Bei Code-Änderungen nur diff zeigen, nicht ganze Datei
-- **Concise** - Kurze Antworten, keine ausführlichen Erklärungen
+- **Answer in patches** - Nie die ganze Datei, nur die Änderungen
+- **Never repeat unchanged code** - Kein Kontext außer nötig für Verständnis
+- **Keep responses under 80 lines** - Knapp halten, bei großen Tasks aufteilen
 - **No explanations** - Code spricht für sich, keine Kommentare warum/wieso
 - Nur bei Problemen/Fragen ausführlich werden
 
