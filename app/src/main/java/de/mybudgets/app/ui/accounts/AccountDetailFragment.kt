@@ -45,8 +45,8 @@ class AccountDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         accountId = arguments?.getLong("accountId") ?: 0L
 
-        txAdapter = TransactionAdapter { tx ->
-            val bundle = Bundle().apply { putLong("transactionId", tx.id) }
+        txAdapter = TransactionAdapter { item ->
+            val bundle = Bundle().apply { putLong("transactionId", item.transaction.id) }
             findNavController().navigate(R.id.action_accountDetailFragment_to_transactionDetailFragment, bundle)
         }
         binding.rvAccountTransactions.adapter = txAdapter
@@ -61,7 +61,9 @@ class AccountDetailFragment : Fragment() {
                 }
                 launch {
                     vm.accountTransactions.collect { txList ->
-                        txAdapter.submitList(txList)
+                        txAdapter.submitList(txList.map { tx -> 
+                            de.mybudgets.app.data.model.TransactionWithCategory(tx, null) 
+                        })
                         binding.tvNoAccountTransactions.visibility =
                             if (txList.isEmpty()) View.VISIBLE else View.GONE
                     }

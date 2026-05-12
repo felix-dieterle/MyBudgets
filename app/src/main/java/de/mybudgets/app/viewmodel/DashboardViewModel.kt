@@ -23,7 +23,7 @@ class DashboardViewModel @Inject constructor(
     val totalBalance = accountRepo.observeTotalBalance().stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
     val accounts     = accountRepo.observeAll().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val transactions = txRepo.observeAll().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    val recentTransactions = txRepo.observeAll()
+    val recentTransactions = txRepo.observeAllWithCategory()
         .map { it.take(5) }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 

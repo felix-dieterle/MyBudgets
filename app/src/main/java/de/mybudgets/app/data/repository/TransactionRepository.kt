@@ -3,6 +3,7 @@ package de.mybudgets.app.data.repository
 import de.mybudgets.app.data.db.TransactionDao
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.model.TransactionType
+import de.mybudgets.app.data.model.TransactionWithCategory
 import de.mybudgets.app.util.TransactionAiHelper
 import de.mybudgets.app.util.VirtualAccountMatcher
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +18,7 @@ class TransactionRepository @Inject constructor(
     private val gamificationRepository: GamificationRepository
 ) {
     fun observeAll(): Flow<List<Transaction>> = dao.observeAll()
+    fun observeAllWithCategory(): Flow<List<TransactionWithCategory>> = dao.observeAllWithCategory()
     fun observeByAccount(accountId: Long): Flow<List<Transaction>> = dao.observeByAccount(accountId)
     fun observeByCategory(categoryId: Long): Flow<List<Transaction>> = dao.observeByCategory(categoryId)
     fun observeByDateRange(from: Long, to: Long): Flow<List<Transaction>> = dao.observeByDateRange(from, to)

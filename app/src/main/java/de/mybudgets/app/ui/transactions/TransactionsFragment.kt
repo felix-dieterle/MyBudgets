@@ -27,8 +27,8 @@ class TransactionsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = TransactionAdapter { tx ->
-            val bundle = Bundle().apply { putLong("transactionId", tx.id) }
+        adapter = TransactionAdapter { item ->
+            val bundle = Bundle().apply { putLong("transactionId", item.transaction.id) }
             findNavController().navigate(R.id.action_transactionsFragment_to_transactionDetailFragment, bundle)
         }
         binding.rvTransactions.adapter = adapter
@@ -40,7 +40,7 @@ class TransactionsFragment : Fragment() {
         }
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.transactions.collect { list ->
+                vm.transactionsWithCategory.collect { list ->
                     adapter.submitList(list)
                     binding.layoutEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
                 }

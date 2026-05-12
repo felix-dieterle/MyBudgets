@@ -2,12 +2,17 @@ package de.mybudgets.app.data.db
 
 import androidx.room.*
 import de.mybudgets.app.data.model.Transaction
+import de.mybudgets.app.data.model.TransactionWithCategory
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TransactionDao {
     @Query("SELECT * FROM transactions ORDER BY date DESC")
     fun observeAll(): Flow<List<Transaction>>
+
+    @androidx.room.Transaction
+    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    fun observeAllWithCategory(): Flow<List<TransactionWithCategory>>
 
     @Query("SELECT * FROM transactions WHERE accountId = :accountId ORDER BY date DESC")
     fun observeByAccount(accountId: Long): Flow<List<Transaction>>

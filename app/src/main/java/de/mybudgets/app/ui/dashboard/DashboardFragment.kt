@@ -34,8 +34,8 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        recentAdapter = TransactionAdapter { tx ->
-            val bundle = Bundle().apply { putLong("transactionId", tx.id) }
+        recentAdapter = TransactionAdapter { item ->
+            val bundle = Bundle().apply { putLong("transactionId", item.transaction.id) }
             findNavController().navigate(R.id.action_dashboardFragment_to_transactionDetailFragment, bundle)
         }
         binding.rvRecentTransactions.adapter = recentAdapter
