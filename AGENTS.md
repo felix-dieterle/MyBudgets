@@ -3,6 +3,14 @@
 **Projekt:** MyBudgets - Android Budget-Tracking App mit FinTS/HBCI Banking-Integration  
 **Repo:** https://github.com/felix-dieterle/MyBudgets
 
+## AI Communication Style
+
+**CRITICAL - Token Optimization:**
+- **Diff only** - Bei Code-Änderungen nur diff zeigen, nicht ganze Datei
+- **Concise** - Kurze Antworten, keine ausführlichen Erklärungen
+- **No explanations** - Code spricht für sich, keine Kommentare warum/wieso
+- Nur bei Problemen/Fragen ausführlich werden
+
 ## Tech Stack
 
 - **Platform:** Android (Kotlin)
