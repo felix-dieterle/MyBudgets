@@ -41,6 +41,9 @@ MyBudgets/
 
 ## Wichtige Dokumentation
 
+### UI/UX Structure
+- **[UI-UX-STRUCTURE.md](./UI-UX-STRUCTURE.md)** - Navigation flow, user journeys, design principles
+
 ### Banking & FinTS
 
 **⚠️ KRITISCH - Bei BBBank-Sync-Problemen zuerst lesen:**
