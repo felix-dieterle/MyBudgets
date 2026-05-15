@@ -58,17 +58,24 @@ MyBudgets/
 ### BBBank-Spezifische Regeln
 
 **HBCI-Version:**
-- BBBank benötigt **HBCI 2.2 ("220")** für MT940-Jobs
-- Fallback auf FinTS 3.0 ("300") für andere Banken
-- **NIEMALS** nur Version 300 verwenden - Java-Sync ist Referenz!
+- BBBank: **FinTS 3.0 ("300")** als Primary (siehe FintsService.kt:531)
+- Fallback auf HBCI 2.2 ("220") für andere Banken
+- **Java-Sync ist Referenz** - App muss Code 1:1 synchron halten
 
 **Job-Typen:**
-- ✅ **Funktioniert:** `KUmsZeitSEPA`, `KUmsAll`, `KUmsNew` (mit HBCI 2.2)
-- ❌ **Deaktiviert:** `KUmsAllCamt` (CAMT) - SAX-Parser schlägt fehl trotz Workaround
+- ✅ **KUmsAllCamt (CAMT):** Funktionierte 2026-05-12 mit CustomCamtParser (150 TXs)
+- ✅ **Fallback-Jobs:** `KUmsZeitSEPA`, `KUmsAll`, `KUmsNew`
+- ⚠️ **Stand 2026-05-15:** Alle Jobs schlagen fehl (Passport expired + mögliches Netzwerk-Problem)
+
+**Custom Parser:**
+- `CustomCamtParser.kt` extrahiert CAMT trotz SAX-Exception erfolgreich
+- `HbciCamtPatcher.kt` repariert ungültiges XML von BBBank
+- Bewährte Implementation seit 2026-05-12
 
 **Referenz-Implementation:**
-- `scripts/java-sync/BbbankSync.java` ist die funktionierende Referenz
+- `scripts/java-sync/src/BbbankSync.java` (hbci4java 3.1.88)
 - **Regel:** App muss Code 1:1 mit Java-Sync synchron halten (HBCI-Version, Jobs, Parameter)
+- **Dokumentation:** Siehe `TEST-SCRIPTS-INVENTORY.md` für Test-Ablauf
 
 ## Build & Deployment
 
@@ -92,10 +99,10 @@ scripts\500-verify-sync.cmd
 
 **Automatisch beim Build:**
 - **Lokal (mama-razzi):** `F:\CascadeProjects\mama-razzi\public\apps\mybudgets\`
-- **NAS (secure-storage):** `\\secure-storage\home\Downloads\MyBudgets-latest.apk`
+- **NAS (secure-storage):** `\\secure-storage\home\Downloads\MyBudgets\`
 
 **Download-URLs:**
-- **NAS (direkt):** `\\secure-storage\home\Downloads\MyBudgets-latest.apk` (vom Handy via File-Manager)
+- **NAS (direkt):** `\\secure-storage\home\Downloads\MyBudgets\MyBudgets-latest.apk` (vom Handy via File-Manager)
 - **Online (nach FTP-Sync):** http://diekunstgalerie.org/apps/mybudgets/MyBudgets-latest.apk
 
 **FTP-Upload (optional):**

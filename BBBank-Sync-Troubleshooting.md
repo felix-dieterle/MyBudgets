@@ -75,30 +75,19 @@
 - **Ergebnis:** ❌ Fehlgeschlagen - BPD waren nicht das Problem
 - **Grund:** HBCI-Version war falsch
 
-#### ✅ Lösung: HBCI 2.2 statt FinTS 3.0 verwenden
-- **Was:** HBCI Version "220" als erste Wahl, Fallback auf "300"
-- **Erkenntnis:** Java-Sync nutzt **HBCI 2.2 ("220") zuerst** - und funktioniert!
-- **Code-Vergleich:**
-  ```java
-  // Java-Sync (BbbankSync.java Zeile 126-130) - FUNKTIONIERT
-  handler = new HBCIHandler("220", passport);  // HBCI 2.2 zuerst!
-  ```
+#### ✅ HBCI 2.2 vs. FinTS 3.0 - BBBank unterstützt BEIDES
+- **Was:** HBCI Version "220" oder "300" - abhängig von Job-Typ
+- **Erkenntnis:** 
+  - **HBCI 2.2 ("220")** funktioniert für MT940-Jobs (`KUmsZeitSEPA`, `KUmsAll`, `KUmsNew`)
+  - **FinTS 3.0 ("300")** funktioniert für CAMT-Jobs (`KUmsAllCamt`) - siehe logs-app16.txt 2026-05-12
+- **Aktuelle Implementation (FintsService.kt:531):**
   ```kotlin
-  // App alt (FintsService.kt) - FUNKTIONIERTE NICHT
-  val handler = HBCIHandler("300", passport)  // Nur FinTS 3.0
+  val hbciVersion = if (blz == "66090800") "300" else "220"  // BBBank = FinTS 3.0
   ```
-- **Fix:**
-  ```kotlin
-  // App neu (FintsService.kt Zeile 450-465)
-  var handler: HBCIHandler? = null
-  try {
-      handler = HBCIHandler("220", passport)  // HBCI 2.2 zuerst!
-  } catch (e220: Exception) {
-      handler = HBCIHandler("300", passport)  // Fallback
-  }
-  ```
+- **CustomCamtParser:** Extrahiert CAMT trotz SAX-Exception erfolgreich (bewährt seit 2026-05-12)
 - **Commit:** `app/src/main/java/de/mybudgets/app/data/banking/FintsService.kt` (2026-05-08)
-- **Ergebnis:** ✅ MT940-Jobs werden unterstützt, Secure Go erscheint wieder
+- **Ergebnis:** ✅ 150 Transaktionen erfolgreich abgerufen (2026-05-12)
+- **Aktueller Status (2026-05-15):** ❌ Alle Jobs schlagen fehl (Passport expired + Netzwerk?)
 
 ---
 
