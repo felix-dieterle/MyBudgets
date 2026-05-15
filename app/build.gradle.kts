@@ -25,8 +25,8 @@ android {
         applicationId = "de.mybudgets.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = buildVersionCode
-        versionName = "1.0.0"
+        versionCode = 100  // Force higher than v1.0.43 to allow install
+        versionName = "1.0.44"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
