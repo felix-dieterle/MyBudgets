@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Wiederkehrende Transaktion"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:layout_marginBottom="16dp" />
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Intervall"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:alpha="0.7" />
+    
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggle_interval_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        app:singleSelection="true"
+        app:checkedButton="@id/btn_interval_monthly">
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_interval_weekly"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Wöchentlich" />
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_interval_monthly"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Monatlich" />
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_interval_yearly"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Jährlich" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Benutzerdefiniertes Intervall (Tage)"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:alpha="0.7" />
+    
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Tage">
+        
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_custom_interval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </com.google.android.material.textfield.TextInputLayout>
+</LinearLayout>
