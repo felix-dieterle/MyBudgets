@@ -22,7 +22,13 @@ class RecurringPatternDialog : DialogFragment() {
     private val binding get() = _binding!!
     private var patterns: List<RecurringPatternDetector.RecurringPattern> = emptyList()
     private var onApply: ((List<Long>) -> Unit)? = null
+    private var onDismiss: (() -> Unit)? = null
     private val checkedState = mutableMapOf<Int, Boolean>()
+
+    fun setOnDismissListener(listener: () -> Unit): RecurringPatternDialog {
+        onDismiss = listener
+        return this
+    }
 
     fun setPatterns(patterns: List<RecurringPatternDetector.RecurringPattern>): RecurringPatternDialog {
         this.patterns = patterns
@@ -37,6 +43,11 @@ class RecurringPatternDialog : DialogFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogRecurringPatternsBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.setOnDismissListener { onDismiss?.invoke() }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -68,12 +79,41 @@ class RecurringPatternDialog : DialogFragment() {
                 DateFormatter.formatDate(p.transactions.last().date))
             card.tvTransactionCount.text = getString(R.string.recurring_pattern_tx_count, p.transactions.size)
 
+            // Editable keyword with word suggestions
+            card.etPatternKeyword.setText(p.suggestedDescription)
+            addSuggestionChips(card.chipGroupSuggestions, p.transactions, card.etPatternKeyword)
+
             addTransactionRows(card.layoutDetail, p.transactions)
             card.tvPatternReason.text = p.reasoning
 
             card.ivExpand.setOnClickListener { toggleDetail(card.layoutDetail, card.ivExpand) }
             card.root.setOnClickListener { toggleDetail(card.layoutDetail, card.ivExpand) }
         }
+    }
+
+    private fun addSuggestionChips(
+        chipGroup: com.google.android.material.chip.ChipGroup,
+        transactions: List<Transaction>,
+        keywordInput: com.google.android.material.textfield.TextInputEditText
+    ) {
+        val words = transactions.flatMap { tx ->
+            (tx.description + " " + tx.note)
+                .split(Regex("[/\\s,;:]+"))
+                .map { it.trim() }
+                .filter { it.length >= 3 && it.all { c -> c.isLetterOrDigit() || c == '-' } }
+        }.distinct().sorted()
+
+        for (word in words) {
+            val chip = com.google.android.material.chip.Chip(requireContext())
+            chip.text = word
+            chip.isCheckable = true
+            chip.isChecked = word.equals(keywordInput.text?.toString(), ignoreCase = true)
+            chip.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) keywordInput.setText(word)
+            }
+            chipGroup.addView(chip)
+        }
+        chipGroup.visibility = if (words.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun addTransactionRows(container: LinearLayout, transactions: List<Transaction>) {

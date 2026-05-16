@@ -100,6 +100,29 @@
             android:visibility="gone"
             android:layout_marginTop="12dp">
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:hint="Suchbegriff zum Erkennen">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_pattern_keyword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_suggestions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                app:singleLine="false"
+                app:singleSelection="true"
+                app:selectionRequired="false" />
+
             <TextView
                 android:id="@+id/tv_pattern_reason"
                 android:layout_width="match_parent"

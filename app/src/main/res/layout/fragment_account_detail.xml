@@ -80,6 +80,24 @@
             android:text="@string/bank_historical_sync_button"
             android:visibility="gone" />
 
+        <!-- Sync Loading Indicator -->
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress_sync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_sync_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:alpha="0.7"
+            android:visibility="gone" />
+
         <!-- Transactions for this account -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

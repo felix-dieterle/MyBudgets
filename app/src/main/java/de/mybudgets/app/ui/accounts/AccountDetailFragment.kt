@@ -73,26 +73,32 @@ class AccountDetailFragment : Fragment() {
                 launch {
                     vm.bankSyncState.collect { state ->
                         when (state) {
-                            is BankSyncState.Idle -> Unit
-                            is BankSyncState.Loading -> Unit
+                            is BankSyncState.Idle -> {
+                                binding.progressSync.visibility = View.GONE
+                                binding.tvSyncStatus.visibility = View.GONE
+                            }
+                            is BankSyncState.Loading -> {
+                                binding.progressSync.visibility = View.VISIBLE
+                                binding.tvSyncStatus.visibility = View.VISIBLE
+                                val phaseLabel = state.phase.displayName
+                                binding.tvSyncStatus.text = if (state.detailMessage.isNotBlank())
+                                    "$phaseLabel: ${state.detailMessage}" else phaseLabel
+                            }
                             is BankSyncState.Success -> {
-                                val balanceStr = if (state.balance != null) {
-                                    " · ${CurrencyFormatter.format(state.balance)}"
-                                } else ""
-                                val msg = getString(R.string.bank_sync_result, state.importedCount) + balanceStr
-                                if (state.importedCount > 0 && vm.canContinueSync) {
-                                    Snackbar.make(requireView(), msg, Snackbar.LENGTH_INDEFINITE)
-                                        .setAction(R.string.bank_sync_load_more) { vm.continueSyncOlder(accountId) }
-                                        .show()
-                                } else {
-                                    Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT).show()
-                                }
+                                binding.progressSync.visibility = View.GONE
+                                binding.tvSyncStatus.visibility = View.GONE
                                 vm.resetBankSyncState()
                                 if (state.importedCount > 0) {
-                                    checkForRecurringPatterns()
+                                    checkForRecurringPatterns {
+                                        showSyncResultSnackbar(state)
+                                    }
+                                } else {
+                                    showSyncResultSnackbar(state)
                                 }
                             }
                             is BankSyncState.Error -> {
+                                binding.progressSync.visibility = View.GONE
+                                binding.tvSyncStatus.visibility = View.GONE
                                 Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show()
                                 vm.resetBankSyncState()
                             }
@@ -203,20 +209,37 @@ class AccountDetailFragment : Fragment() {
         }
     }
 
-    private fun checkForRecurringPatterns() {
+    private fun checkForRecurringPatterns(onDone: () -> Unit) {
         val transactions = vm.accountTransactions.value
-        if (transactions.isEmpty()) return
+        if (transactions.isEmpty()) { onDone(); return }
         val patterns = RecurringPatternDetector.detectPatterns(transactions)
         if (patterns.isNotEmpty()) {
-            RecurringPatternDialog.newInstance(patterns)
-                .setOnApplyListener { ids ->
-                    val intervalDays = patterns.firstOrNull()?.detectedIntervalDays ?: 30
-                    vm.markTransactionsAsRecurring(ids, intervalDays)
-                    Snackbar.make(requireView(),
-                        getString(R.string.recurring_patterns_apply, ids.size),
-                        Snackbar.LENGTH_SHORT).show()
-                }
-                .show(childFragmentManager, RecurringPatternDialog.TAG)
+            val dialog = RecurringPatternDialog.newInstance(patterns)
+            dialog.setOnApplyListener { ids ->
+                val intervalDays = patterns.firstOrNull()?.detectedIntervalDays ?: 30
+                vm.markTransactionsAsRecurring(ids, intervalDays)
+                Snackbar.make(requireView(),
+                    getString(R.string.recurring_patterns_apply, ids.size),
+                    Snackbar.LENGTH_SHORT).show()
+            }
+            dialog.setOnDismissListener { onDone() }
+            dialog.show(childFragmentManager, RecurringPatternDialog.TAG)
+        } else {
+            onDone()
+        }
+    }
+
+    private fun showSyncResultSnackbar(state: BankSyncState.Success) {
+        val balanceStr = if (state.balance != null) {
+            " · ${CurrencyFormatter.format(state.balance)}"
+        } else ""
+        val msg = getString(R.string.bank_sync_result, state.importedCount) + balanceStr
+        if (state.importedCount > 0 && vm.canContinueSync) {
+            Snackbar.make(requireView(), msg, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.bank_sync_load_more) { vm.continueSyncOlder(accountId) }
+                .show()
+        } else {
+            Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT).show()
         }
     }
 
