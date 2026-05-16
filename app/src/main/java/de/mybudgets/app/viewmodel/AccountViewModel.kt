@@ -76,6 +76,10 @@ class AccountViewModel @Inject constructor(
         syncBankTransactions(accountId, from - 7_776_000_000L) // 90 Tage weiter zurück
     }
 
+    fun markTransactionsAsRecurring(ids: List<Long>, intervalDays: Int) = viewModelScope.launch {
+        txRepo.markTransactionsAsRecurring(ids, intervalDays)
+    }
+
     fun save(account: Account) = viewModelScope.launch { repo.save(account) }
     fun delete(account: Account) = viewModelScope.launch { repo.delete(account) }
 

@@ -31,6 +31,10 @@ class TransactionRepository @Inject constructor(
 
     suspend fun getLatestDateForAccount(accountId: Long): Long? = dao.getLatestDateForAccount(accountId)
 
+    suspend fun markTransactionsAsRecurring(ids: List<Long>, intervalDays: Int) {
+        dao.markAsRecurring(ids, intervalDays)
+    }
+
     suspend fun suggestCategoryId(
         description: String,
         amount: Double,

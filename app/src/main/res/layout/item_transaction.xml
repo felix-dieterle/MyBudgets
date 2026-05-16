@@ -5,6 +5,16 @@
     android:orientation="horizontal"
     android:padding="12dp">
 
+    <ImageView
+        android:id="@+id/iv_recurring"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_recurring"
+        android:tint="@color/recurring_purple"
+        android:visibility="gone" />
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"

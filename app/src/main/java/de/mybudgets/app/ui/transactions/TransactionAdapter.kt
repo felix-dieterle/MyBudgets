@@ -22,19 +22,29 @@ class TransactionAdapter(
         fun bind(item: TransactionWithCategory) {
             val tx = item.transaction
             val description = tx.description.ifBlank { "Buchung" }
-            binding.tvDescription.text = if (tx.isRecurring && tx.recurringIntervalDays > 0) {
-                "↻ $description (${tx.recurringIntervalDays}d)"
+            binding.tvDescription.text = description
+
+            if (tx.isRecurring) {
+                binding.ivRecurring.visibility = View.VISIBLE
+                binding.ivRecurring.setOnClickListener {
+                    val detail = if (tx.recurringIntervalDays > 0) {
+                        "↻ alle ${tx.recurringIntervalDays} Tage"
+                    } else {
+                        "↻ wiederkehrend"
+                    }
+                    binding.root.performClick()
+                }
             } else {
-                description
+                binding.ivRecurring.visibility = View.GONE
             }
-            
+
             if (item.category != null) {
                 binding.tvCategory.text = "${item.category.icon} ${item.category.name}"
                 binding.tvCategory.visibility = View.VISIBLE
             } else {
                 binding.tvCategory.visibility = View.GONE
             }
-            
+
             binding.tvDate.text = DateFormatter.formatDate(tx.date)
             val sign = if (tx.type == TransactionType.INCOME) "+" else "-"
             binding.tvAmount.text = "$sign${CurrencyFormatter.format(tx.amount)}"
@@ -55,9 +65,9 @@ class TransactionAdapter(
 
     companion object {
         val DIFF = object : DiffUtil.ItemCallback<TransactionWithCategory>() {
-            override fun areItemsTheSame(a: TransactionWithCategory, b: TransactionWithCategory) = 
+            override fun areItemsTheSame(a: TransactionWithCategory, b: TransactionWithCategory) =
                 a.transaction.id == b.transaction.id
-            override fun areContentsTheSame(a: TransactionWithCategory, b: TransactionWithCategory) = 
+            override fun areContentsTheSame(a: TransactionWithCategory, b: TransactionWithCategory) =
                 a.transaction == b.transaction && a.category == b.category
         }
     }

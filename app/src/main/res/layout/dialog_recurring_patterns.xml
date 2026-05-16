@@ -7,8 +7,9 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="400dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:maxHeight="360dp">
 
         <LinearLayout
             android:id="@+id/container_patterns"
@@ -25,11 +26,27 @@
         android:textAppearance="?attr/textAppearanceBodyLarge"
         android:visibility="gone" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_close"
-        style="?attr/materialButtonOutlinedStyle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="@android:string/ok" />
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_discard"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Verwerfen" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_apply"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Übernehmen" />
+    </LinearLayout>
 </LinearLayout>

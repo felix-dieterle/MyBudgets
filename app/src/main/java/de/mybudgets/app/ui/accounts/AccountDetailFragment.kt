@@ -206,6 +206,13 @@ class AccountDetailFragment : Fragment() {
         val patterns = RecurringPatternDetector.detectPatterns(transactions)
         if (patterns.isNotEmpty()) {
             RecurringPatternDialog.newInstance(patterns)
+                .setOnApplyListener { ids ->
+                    val intervalDays = patterns.firstOrNull()?.detectedIntervalDays ?: 30
+                    vm.markTransactionsAsRecurring(ids, intervalDays)
+                    Snackbar.make(requireView(),
+                        getString(R.string.recurring_patterns_apply, ids.size),
+                        Snackbar.LENGTH_SHORT).show()
+                }
                 .show(childFragmentManager, RecurringPatternDialog.TAG)
         }
     }

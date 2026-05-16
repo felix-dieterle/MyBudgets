@@ -41,6 +41,9 @@ interface TransactionDao {
     @Update
     suspend fun update(transaction: Transaction)
 
+    @Query("UPDATE transactions SET isRecurring = 1, recurringIntervalDays = :intervalDays WHERE id IN (:ids)")
+    suspend fun markAsRecurring(ids: List<Long>, intervalDays: Int)
+
     @Delete
     suspend fun delete(transaction: Transaction)
 }
