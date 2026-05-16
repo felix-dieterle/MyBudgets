@@ -17,9 +17,10 @@ import de.mybudgets.app.data.model.*
         TransactionLabel::class,
         GamificationBadge::class,
         StandingOrder::class,
-        TransferTemplate::class
+        TransferTemplate::class,
+        CategoryPattern::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun gamificationDao(): GamificationDao
     abstract fun standingOrderDao(): StandingOrderDao
     abstract fun transferTemplateDao(): TransferTemplateDao
+    abstract fun categoryPatternDao(): CategoryPatternDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -163,6 +165,30 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """CREATE TABLE IF NOT EXISTS category_patterns (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        categoryId INTEGER NOT NULL,
+                        patternType TEXT NOT NULL,
+                        patternValue TEXT NOT NULL,
+                        confidence REAL NOT NULL DEFAULT 0.7,
+                        usageCount INTEGER NOT NULL DEFAULT 0,
+                        lastUsed INTEGER,
+                        createdAt INTEGER NOT NULL,
+                        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
+                    )"""
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_category_patterns_categoryId ON category_patterns(categoryId)"
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_category_patterns_type_value ON category_patterns(patternType, patternValue)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -177,7 +203,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_5_6,
                     MIGRATION_6_7,
                     MIGRATION_7_8,
-                    MIGRATION_8_9
+                    MIGRATION_8_9,
+                    MIGRATION_9_10
                 ).build().also { INSTANCE = it }
             }
     }

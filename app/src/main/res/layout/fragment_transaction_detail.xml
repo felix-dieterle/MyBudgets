@@ -22,5 +22,16 @@
         <TextView android:id="@+id/tv_tx_note"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodySmall" />
+        <TextView android:id="@+id/tv_tx_category"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save_pattern"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Muster merken"
+            style="?attr/materialButtonOutlinedStyle" />
     </LinearLayout>
 </ScrollView>

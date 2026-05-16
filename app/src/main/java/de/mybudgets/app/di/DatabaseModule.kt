@@ -25,7 +25,9 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_4_5,
                 AppDatabase.MIGRATION_5_6,
                 AppDatabase.MIGRATION_6_7,
-                AppDatabase.MIGRATION_7_8
+                AppDatabase.MIGRATION_7_8,
+                AppDatabase.MIGRATION_8_9,
+                AppDatabase.MIGRATION_9_10
             )
             .build()
 
@@ -36,4 +38,5 @@ object DatabaseModule {
     @Provides fun provideGamificationDao(db: AppDatabase): GamificationDao = db.gamificationDao()
     @Provides fun provideStandingOrderDao(db: AppDatabase): StandingOrderDao = db.standingOrderDao()
     @Provides fun provideTransferTemplateDao(db: AppDatabase): TransferTemplateDao = db.transferTemplateDao()
+    @Provides fun provideCategoryPatternDao(db: AppDatabase): CategoryPatternDao = db.categoryPatternDao()
 }
