@@ -64,26 +64,20 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ===== PIE CHART: Ausgaben pro Kategorie ===== -->
+        <!-- ===== CHART SECTION mit Swipe ===== -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="8dp">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ausgaben nach Kategorie"
-                    android:textAppearance="?attr/textAppearanceTitleMedium" />
                 <com.google.android.material.chip.ChipGroup
                     android:id="@+id/chip_group_time_range"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     app:singleSelection="true"
                     app:selectionRequired="true"
                     app:checkedChip="@id/chip_month">
@@ -106,71 +100,22 @@
                         android:layout_height="wrap_content"
                         android:text="Alle" />
                 </com.google.android.material.chip.ChipGroup>
-                <com.github.mikephil.charting.charts.PieChart
-                    android:id="@+id/pie_chart"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginTop="8dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ===== LINE CHART: Einnahmen/Ausgaben über Zeit ===== -->
-        <com.google.android.material.card.MaterialCardView
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/viewpager_charts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Monatlicher Verlauf"
-                    android:textAppearance="?attr/textAppearanceTitleMedium" />
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/bar_chart_trend"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginTop="8dp" />
-                <TextView
-                    android:id="@+id/tv_trend_summary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            android:layout_marginBottom="8dp" />
 
-        <!-- ===== FORECAST: Prognose ===== -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:id="@+id/layout_page_indicator"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Prognose (1-3 Monate)"
-                    android:textAppearance="?attr/textAppearanceTitleMedium" />
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/bar_chart_forecast"
-                    android:layout_width="match_parent"
-                    android:layout_height="160dp"
-                    android:layout_marginTop="8dp" />
-                <TextView
-                    android:id="@+id/tv_prediction_warnings"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal" />
 
         <!-- Recent transactions section -->
         <com.google.android.material.card.MaterialCardView
