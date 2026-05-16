@@ -21,8 +21,10 @@ object RecurringPatternDetector {
     data class RecurringPattern(
         val transactions: List<Transaction>,
         val detectedIntervalDays: Int,
-        val confidence: Double, // 0.0 to 1.0
-        val suggestedDescription: String
+        val confidence: Double,
+        val suggestedDescription: String,
+        val intervalLabel: String = "",
+        val reasoning: String = ""
     )
     
     /**
@@ -63,19 +65,23 @@ object RecurringPatternDetector {
             val maxDeviation = intervals.maxOfOrNull { abs(it - avgInterval) } ?: Double.MAX_VALUE
             
             if (maxDeviation <= INTERVAL_TOLERANCE_DAYS) {
-                // Regular pattern detected!
                 val confidence = calculateConfidence(
                     occurrences = sorted.size,
                     intervalStability = 1.0 - (maxDeviation / avgInterval),
                     descriptionSimilarity = calculateDescriptionSimilarity(sorted)
                 )
-                
+                val intervalDays = avgInterval.toInt()
+                val label = intervalLabel(intervalDays)
+                val reason = buildReasoning(sorted, intervalDays, label, confidence)
+
                 patterns.add(
                     RecurringPattern(
                         transactions = sorted,
-                        detectedIntervalDays = avgInterval.toInt(),
+                        detectedIntervalDays = intervalDays,
                         confidence = confidence,
-                        suggestedDescription = extractCommonDescription(sorted)
+                        suggestedDescription = extractCommonDescription(sorted),
+                        intervalLabel = label,
+                        reasoning = reason
                     )
                 )
             }
@@ -229,5 +235,34 @@ object RecurringPatternDetector {
         }
         
         return dp[m][n]
+    }
+
+    private fun intervalLabel(days: Int): String = when {
+        days % 365 == 0 -> "${days / 365}-jährlich"
+        days % 30 == 0 && days / 30 in 2..3 -> "vierteljährlich"
+        days % 30 == 0 -> "${days / 30}-monatlich"
+        days % 7 == 0 -> "${days / 7}-wöchentlich"
+        days == 1 -> "täglich"
+        else -> "alle $days Tage"
+    }
+
+    private fun buildReasoning(
+        txs: List<Transaction>,
+        intervalDays: Int,
+        label: String,
+        confidence: Double
+    ): String {
+        val count = txs.size
+        val firstDate = DateFormatter.formatDate(txs.first().date)
+        val lastDate = DateFormatter.formatDate(txs.last().date)
+        val range = "$firstDate – $lastDate"
+        val intervalNote = if (intervalDays % 30 == 0) {
+            val months = intervalDays / 30
+            "im Abstand von $months Monat(en) ($label)"
+        } else "alle $intervalDays Tage ($label)"
+        val amtStr = CurrencyFormatter.format(txs.first().amount, "EUR")
+        return "$count Buchungen von $firstDate bis $lastDate\n" +
+            "Betrag: $amtStr · $intervalNote\n" +
+            "Konfidenz: ${(confidence * 100).toInt()}%"
     }
 }

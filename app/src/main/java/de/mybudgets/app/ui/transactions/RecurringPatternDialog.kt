@@ -1,57 +1,72 @@
 package de.mybudgets.app.ui.transactions
 
-import android.app.Dialog
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.fragment.app.DialogFragment
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.snackbar.Snackbar
 import de.mybudgets.app.R
-import de.mybudgets.app.data.model.Transaction
+import de.mybudgets.app.databinding.DialogRecurringPatternsBinding
+import de.mybudgets.app.databinding.ItemRecurringPatternBinding
 import de.mybudgets.app.util.CurrencyFormatter
+import de.mybudgets.app.util.DateFormatter
 import de.mybudgets.app.util.RecurringPatternDetector
 
 class RecurringPatternDialog : DialogFragment() {
 
+    private var _binding: DialogRecurringPatternsBinding? = null
+    private val binding get() = _binding!!
     private var patterns: List<RecurringPatternDetector.RecurringPattern> = emptyList()
-    private var onSavePattern: ((RecurringPatternDetector.RecurringPattern) -> Unit)? = null
 
     fun setPatterns(patterns: List<RecurringPatternDetector.RecurringPattern>): RecurringPatternDialog {
         this.patterns = patterns
         return this
     }
 
-    fun setOnSavePatternListener(listener: (RecurringPatternDetector.RecurringPattern) -> Unit): RecurringPatternDialog {
-        onSavePattern = listener
-        return this
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = DialogRecurringPatternsBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val items = patterns.map { p ->
-            val intervalStr = when {
-                p.detectedIntervalDays % 365 == 0 -> "${p.detectedIntervalDays / 365} Jahr(e)"
-                p.detectedIntervalDays % 30 == 0 -> "${p.detectedIntervalDays / 30} Monat(e)"
-                else -> "${p.detectedIntervalDays} Tage"
-            }
-            val amount = p.transactions.firstOrNull()?.amount ?: 0.0
-            val amountStr = CurrencyFormatter.format(amount, "EUR")
-            val confidenceStr = "${(p.confidence * 100).toInt()}%"
-            "${p.suggestedDescription}\n$amountStr · $intervalStr · Konfidenz: $confidenceStr"
-        }.toTypedArray()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        dialog?.setTitle(getString(R.string.recurring_patterns_detected, patterns.size))
+        binding.btnClose.setOnClickListener { dismiss() }
+        buildPatternCards()
+    }
 
-        return AlertDialog.Builder(requireActivity())
-            .setTitle(getString(R.string.recurring_patterns_detected, patterns.size))
-            .setItems(items) { _, which ->
-                onSavePattern?.invoke(patterns[which])
+    private fun buildPatternCards() {
+        for (p in patterns) {
+            val card = ItemRecurringPatternBinding.inflate(layoutInflater, binding.containerPatterns, true)
+            val tx = p.transactions.first()
+            card.tvPatternDescription.text = p.suggestedDescription
+            card.tvPatternAmount.text = CurrencyFormatter.format(tx.amount, "EUR")
+            card.tvPatternInterval.text = p.intervalLabel
+            card.tvPatternConfidence.text = "${(p.confidence * 100).toInt()}%"
+            card.tvPatternReason.text = p.reasoning
+            card.tvTransactionCount.text = getString(R.string.recurring_pattern_tx_count, p.transactions.size)
+            val range = "${DateFormatter.formatDate(p.transactions.first().date)} – ${DateFormatter.formatDate(p.transactions.last().date)}"
+            card.tvPatternDateRange.text = range
+
+            card.root.setOnClickListener {
+                Snackbar.make(requireView(), p.suggestedDescription, Snackbar.LENGTH_SHORT).show()
             }
-            .setPositiveButton(getString(android.R.string.ok), null)
-            .create()
+        }
+        binding.tvEmpty.visibility = if (patterns.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {
         const val TAG = "RecurringPatternDialog"
 
-        fun newInstance(
-            patterns: List<RecurringPatternDetector.RecurringPattern>
-        ): RecurringPatternDialog {
+        fun newInstance(patterns: List<RecurringPatternDetector.RecurringPattern>): RecurringPatternDialog {
             return RecurringPatternDialog().setPatterns(patterns)
         }
     }

@@ -184,4 +184,5 @@
     <string name="recurring_patterns_detected">%d wiederkehrende Buchungen erkannt</string>
     <string name="recurring_patterns_none">Keine wiederkehrenden Muster erkannt</string>
     <string name="recurring_patterns_saved">Dauerauftrag aus Muster erstellt</string>
+    <string name="recurring_pattern_tx_count">%d Transaktionen</string>
 </resources>
