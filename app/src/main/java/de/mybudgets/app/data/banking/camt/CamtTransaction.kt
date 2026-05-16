@@ -123,18 +123,23 @@ data class CamtParseResult(
     val accountIban: String?,
     
     /**
-     * Account currency from the report.
-     */
+    * Account currency from the report.
+    */
     val accountCurrency: String?,
     
     /**
-     * Report ID from the bank.
-     */
+    * Report ID from the bank.
+    */
     val reportId: String?,
     
     /**
-     * Warnings encountered during parsing (non-fatal).
-     */
+    * Closing booked balance (CLBD) extracted from CAMT XML, if available.
+    */
+    val balance: Double? = null,
+    
+    /**
+    * Warnings encountered during parsing (non-fatal).
+    */
     val warnings: List<String> = emptyList()
 ) {
     companion object {

@@ -84,6 +84,8 @@ class FintsService @Inject constructor(
      */
     @Volatile var syncPhaseUpdateHandler: ((phaseTag: String, detail: String) -> Unit)? = null
 
+    @Volatile var lastCamtBalance: Double? = null
+
     /** BLZ of the account currently being connected. Set in openSession, read by HbciCallback. */
     private val currentBlz = ThreadLocal<String>()
 
@@ -913,6 +915,20 @@ class FintsService @Inject constructor(
         // 3. Inject into result
         AppLogger.i(TAG, "tryCamtFallbackExtraction: Step 3 - Injecting ${transactions.size} transactions into result...")
         CamtExtractionHelper.injectTransactions(result, transactions)
+        
+        // 4. Extract balance from CAMT XML if available
+        for ((_, value) in jobProps) {
+            if (value.contains("<Bal>")) {
+                try {
+                    val parseResult = de.mybudgets.app.data.banking.camt.CustomCamtParser.parse(value)
+                    if (parseResult.balance != null) {
+                        lastCamtBalance = parseResult.balance
+                        AppLogger.i(TAG, "tryCamtFallbackExtraction: Extracted balance=${parseResult.balance} from CAMT")
+                        break
+                    }
+                } catch (_: Exception) {}
+            }
+        }
         
         AppLogger.i(TAG, "tryCamtFallbackExtraction: ✅ SUCCESS - Extracted ${transactions.size} transactions")
         return transactions

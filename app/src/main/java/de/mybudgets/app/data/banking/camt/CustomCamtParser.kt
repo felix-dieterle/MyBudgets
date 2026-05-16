@@ -142,6 +142,7 @@ object CustomCamtParser {
         var accountIban: String? = null
         var accountCurrency: String? = null
         var reportId: String? = null
+        var balance: Double? = null
         
         val depth = parser.depth
         var eventType = parser.eventType
@@ -161,13 +162,15 @@ object CustomCamtParser {
                         }
                     }
                     "Acct" -> {
-                        // Account identification block
                         val acctData = parseAccount(parser)
                         accountIban = acctData.first
                         accountCurrency = acctData.second
                     }
+                    "Bal" -> {
+                        val bal = parseBalance(parser)
+                        if (bal != null) balance = bal
+                    }
                     "Ntry" -> {
-                        // Transaction entry
                         val tx = parseEntry(parser)
                         if (tx != null) {
                             transactions.add(tx)
@@ -185,8 +188,44 @@ object CustomCamtParser {
             accountIban = accountIban,
             accountCurrency = accountCurrency,
             reportId = reportId,
+            balance = balance,
             warnings = warnings
         )
+    }
+    
+    /**
+     * Parses a <Bal> element and returns the closing booked balance (CLBD) if found.
+     * CAMT.052 balance types: OPBD (opening), CLBD (closing booked), ITBD (interim).
+     */
+    private fun parseBalance(parser: XmlPullParser): Double? {
+        var balanceType: String? = null
+        var amount: Double? = null
+        var sign: String? = null
+        
+        val depth = parser.depth
+        var eventType = parser.eventType
+        
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.END_TAG && parser.depth == depth) {
+                break
+            }
+            if (eventType == XmlPullParser.START_TAG) {
+                val tagName = parser.name.removeNamespacePrefix()
+                when (tagName) {
+                    "Cd" -> if (balanceType == null) balanceType = parser.nextTextSafe()
+                    "Amt" -> {
+                        val amtText = parser.nextTextSafe()
+                        amount = amtText?.toDoubleOrNull()
+                    }
+                    "CdtDbtInd" -> sign = parser.nextTextSafe()
+                }
+            }
+            eventType = parser.next()
+        }
+        
+        return if (balanceType == "CLBD" && amount != null) {
+            if (sign == "DBIT") -amount else amount
+        } else null
     }
     
     /**

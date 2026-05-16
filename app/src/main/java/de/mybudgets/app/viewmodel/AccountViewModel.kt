@@ -144,6 +144,11 @@ class AccountViewModel @Inject constructor(
                 newTx.forEach { tx -> txRepo.save(tx.copy(accountId = account.id)) }
                 val earliest = newTx.minOfOrNull { it.date }
                 lastSyncEarliestNewMillis = earliest
+                val camtBalance = fintsService.lastCamtBalance
+                if (camtBalance != null) {
+                    repo.save(account.copy(balance = camtBalance))
+                    AppLogger.i(TAG, "syncBankTransactions: Saldo ${account.id} aktualisiert: $camtBalance")
+                }
                 val updatedAccount = repo.getById(accountId)
                 _bankSyncState.value = BankSyncState.Success(newTx.size, updatedAccount?.balance)
                 AppLogger.i(TAG, "syncBankTransactions: ${newTx.size} neue Buchungen für Konto ${account.id}, Saldo=${updatedAccount?.balance}")
