@@ -2,16 +2,40 @@ package de.mybudgets.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.mikephil.charting.data.PieEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.mybudgets.app.data.model.Transaction
+import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.data.repository.AccountRepository
 import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.util.DashboardInsights
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.util.Calendar
 import javax.inject.Inject
+
+enum class TimeRange { LAST_MONTH, LAST_3_MONTHS, ALL }
+
+data class CategoryChartData(
+    val pieEntries: List<PieEntry>,
+    val categoryLabels: Map<Long, String>
+)
+
+data class MonthlyTrendPoint(
+    val label: String, // e.g. "Jan", "Feb"
+    val income: Float,
+    val expense: Float
+)
+
+data class ForecastPoint(
+    val label: String, // e.g. "Jun", "Jul", "Aug"
+    val predicted: Float
+)
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
@@ -42,4 +66,106 @@ class DashboardViewModel @Inject constructor(
     ) { accs, txs, categories ->
         DashboardInsights.buildPredictionWarnings(System.currentTimeMillis(), accs, categories, txs)
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    // ── Chart State ──
+
+    val selectedTimeRange = MutableStateFlow(TimeRange.LAST_MONTH)
+
+    val categoryChartData: StateFlow<CategoryChartData> = combine(
+        transactions,
+        categoryRepo.observeAll(),
+        selectedTimeRange
+    ) { txs, cats, range ->
+        val cutoff = when (range) {
+            TimeRange.LAST_MONTH -> cutoffMillis(1)
+            TimeRange.LAST_3_MONTHS -> cutoffMillis(3)
+            TimeRange.ALL -> 0L
+        }
+        val filtered = if (cutoff > 0L) txs.filter { it.date >= cutoff } else txs
+        val expenses = filtered.filter { it.type == TransactionType.EXPENSE }
+        val byCategory = expenses.groupBy { it.categoryId }
+        val labels = cats.associate { it.id to it.name }
+        val total = expenses.sumOf { it.amount }.toFloat().coerceAtLeast(1f)
+
+        val entries = byCategory.entries
+            .sortedByDescending { it.value.sumOf { t -> t.amount } }
+            .map { (catId, txList) ->
+                val sum = txList.sumOf { it.amount }.toFloat()
+                val label = labels[catId] ?: "Sonstige"
+                PieEntry(sum / total * 100f, label, catId?.toInt() ?: 0)
+            }
+        CategoryChartData(entries, labels)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, CategoryChartData(emptyList(), emptyMap()))
+
+    val monthlyTrend: StateFlow<List<MonthlyTrendPoint>> = transactions
+        .map { txs ->
+            groupByMonth(txs).map { (label, monthTxs) ->
+                MonthlyTrendPoint(
+                    label = label,
+                    income = monthTxs.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }.toFloat(),
+                    expense = monthTxs.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }.toFloat()
+                )
+            }.sortedBy { parseMonthLabel(it.label) }
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val forecast: StateFlow<List<ForecastPoint>> = combine(
+        transactions,
+        selectedTimeRange
+    ) { txs, _ ->
+        val monthly = groupByMonth(txs)
+        val sorted = monthly.entries.sortedBy { parseMonthLabel(it.key) }
+        if (sorted.size < 3) return@combine emptyList()
+
+        val recentExpenses = sorted.takeLast(3).map { (_, txs) ->
+            txs.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        }
+        val avgExpense = recentExpenses.average().toFloat()
+        val trend = if (recentExpenses.size >= 2) {
+            (recentExpenses.last() - recentExpenses.first()) / (recentExpenses.size - 1)
+        } else 0.0
+        val lastLabel = sorted.last().key
+
+        (1..3).map { offset ->
+            val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
+            val label = monthLabel(nextCal)
+            val predicted = (avgExpense + trend * offset).toFloat().coerceAtLeast(0f)
+            ForecastPoint(label, predicted)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun selectTimeRange(range: TimeRange) { selectedTimeRange.value = range }
+
+    // ── Helpers ──
+
+    private fun cutoffMillis(monthsAgo: Int): Long {
+        val cal = Calendar.getInstance().apply { add(Calendar.MONTH, -monthsAgo) }
+        return cal.timeInMillis
+    }
+
+    private fun groupByMonth(txs: List<Transaction>): Map<String, List<Transaction>> =
+        txs.groupBy { monthLabel(Calendar.getInstance().apply { timeInMillis = it.date }) }
+
+    private fun monthLabel(cal: Calendar): String {
+        val month = cal.get(Calendar.MONTH)
+        val year = cal.get(Calendar.YEAR) % 100
+        val names = arrayOf("Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez")
+        return "${names[month]}'$year"
+    }
+
+    private fun parseMonthLabel(label: String): Int {
+        val names = arrayOf("Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez")
+        val parts = label.split("'")
+        if (parts.size != 2) return 0
+        val monthIdx = names.indexOf(parts[0])
+        val year = parts[1].toIntOrNull() ?: 0
+        return year * 12 + monthIdx
+    }
+
+    private fun parseMonthToCalendar(label: String): Calendar {
+        val names = arrayOf("Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez")
+        val parts = label.split("'")
+        val monthIdx = names.indexOf(parts[0]).coerceAtLeast(0)
+        val year = (parts.getOrNull(1)?.toIntOrNull() ?: 0) + 2000
+        return Calendar.getInstance().apply { set(year, monthIdx, 1, 0, 0, 0) }
+    }
 }

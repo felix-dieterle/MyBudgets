@@ -3,6 +3,87 @@
 **Projekt:** MyBudgets - Android Budget-Tracking App mit FinTS/HBCI Banking-Integration  
 **Repo:** https://github.com/felix-dieterle/MyBudgets
 
+## Coding Standards
+
+**Layer-Regel:** Daten fließen nur abwärts. UI kennt ViewModel, ViewModel kennt Repository, Repository kennt DAO. Keine Layer überspringen.
+
+```
+data/model/*.kt         → @Entity, keine Logik
+data/db/*Dao.kt         → interface (abstract class nur bei @Transaction)
+data/repository/*Repo.kt → @Singleton, Business-Logik hier
+viewmodel/*ViewModel.kt → @HiltViewModel, stateIn(Lazily), keine UI-Imports
+ui/<feature>/*Fragment.kt → @AndroidEntryPoint, ViewBinding
+util/*.kt               → object, stateless helpers
+worker/*Worker.kt       → @HiltWorker, CoroutineWorker
+```
+
+**ViewModel-Pattern:**
+```kotlin
+private val _state = MutableStateFlow<XxxState>(XxxState.Idle)
+val state: StateFlow<XxxState> = _state
+```
+`SharingStarted.Lazily` für `stateIn`. States: `Idle | Loading(msg) | Success(data) | Error(msg)`. Keine MutableStates nach außen.
+
+**Repository-save-Pattern:**
+```kotlin
+fun save(e: Xxx): Long = if (e.id == 0L) dao.insert(e) else { dao.update(e); e.id }
+```
+
+**Fragment-Lifecycle (100%):**
+```kotlin
+private var _binding: FragmentXxxBinding? = null
+private val binding get() = _binding!!
+override fun onDestroyView() { _binding = null }
+// collect:
+viewLifecycleOwner.lifecycleScope.launch {
+    repeatOnLifecycle(Lifecycle.State.STARTED) {
+        launch { vm.state.collect { ... } }
+    }
+}
+```
+
+**Adapter (ListAdapter + DiffUtil):**
+```kotlin
+class XxxAdapter(private val onClick: (Xxx) -> Unit) :
+    ListAdapter<Xxx, XxxAdapter.VH>(object : DiffUtil.ItemCallback<Xxx>() {
+        override fun areItemsTheSame(a: Xxx, b: Xxx) = a.id == b.id
+        override fun areContentsTheSame(a: Xxx, b: Xxx) = a == b
+    }) {
+    inner class VH(val b: ItemXxxBinding) : RecyclerView.ViewHolder(b.root)
+    // onCreateViewHolder: VH(ItemXxxBinding.inflate(...))
+    // onBindViewHolder: holder.bind(getItem(pos))
+}
+```
+
+**Error-Handling:**
+- ViewModel → sealed State + Fehler im Error-State → Fragment zeigt `Snackbar`
+- `CancellationException` immer re-throwen
+- Banking: `runCatching { ... }.onFailure { ... }`
+- DB: Room wirft eigene Exceptions, kein try/catch nötig
+
+**Null-Handling:**
+- `categoryId: Long?` → immer `if (id != null)` prüfen, nie `!!`
+- immer `?:` für Defaults statt null-checks
+
+**Ressourcen-Naming:**
+- strings: `feature_semantic_name` (dashboard_total_balance)
+- layouts: `fragment_<feature>.xml`, `item_<entity>.xml`, `dialog_<purpose>.xml`
+- colors: `feature_semantic` (income_green, expense_red)
+- nav-actions: `action_source_to_target`
+
+**CRUD-Fragmente:** Prefix `AddEdit` (AddEditTransactionFragment).
+Bundle-Argumente: `putLong("id", entity.id)` (nie SafeArgs).
+
+### Banking/Sync-Protokoll (NO TOUCH ZONE)
+
+- **FintsService.kt** + `camt/`-Package + Banking-States (`BankSyncState`, `TransferState`) nie ändern.
+- **CUstomCamtParser** (XmlPullParser) + **HbciCamtPatcher** (XML-Repair) + **CamtExtractionHelper** (JAXB-Intercept) sind bewährt – nur bei neuem Fehlermuster anfassen.
+- **Java-Sync = Referenz** (`scripts/java-sync/BbbankSync.java`). App-Code (FintsService) muss 1:1 synchron sein (HBCI-Version, Jobs, Parameter).
+- Sync-Test erst via `scripts/100-quick-test.cmd` (10-15s), dann App-Build.
+- Verifikation: `scripts/500-verify-sync.cmd`.
+- Bei BBBank: FinTS 3.0 ("300") Primary, Fallback 2.2 ("220").
+- Job-Reihenfolge: `KUmsAllCamt` → `KUmsZeitSEPA` → `KUmsAll` → `KUmsNew`.
+
 ## AI Communication Style
 
 **CRITICAL - Token Optimization:**
@@ -197,4 +278,4 @@ FAILURE: SDK location not found
 
 ---
 
-**Zuletzt aktualisiert:** 2026-05-08
+**Zuletzt aktualisiert:** 2026-05-16
