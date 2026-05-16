@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.R
 import de.mybudgets.app.data.model.CategoryPattern
@@ -47,6 +48,11 @@ class TransactionDetailFragment : Fragment() {
             }
         }
         binding.btnSavePattern.setOnClickListener { showPatternDialog() }
+
+        binding.cbRecurring.setOnCheckedChangeListener { _, isChecked ->
+            binding.layoutRecurringInterval.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+        binding.btnSaveRecurring.setOnClickListener { saveRecurring() }
     }
 
     private fun show(tx: Transaction) {
@@ -57,6 +63,21 @@ class TransactionDetailFragment : Fragment() {
         binding.tvTxType.text        = tx.type.name
         binding.tvTxNote.text        = tx.note.ifBlank { "—" }
         binding.tvTxCategory.text    = if (tx.categoryId != null) "Kategorie: #${tx.categoryId}" else ""
+        binding.cbRecurring.isChecked = tx.isRecurring
+        binding.etRecurringInterval.setText(tx.recurringIntervalDays.takeIf { it > 0 }?.toString() ?: "30")
+    }
+
+    private fun saveRecurring() {
+        val tx = currentTx ?: return
+        val isRecurring = binding.cbRecurring.isChecked
+        val interval = binding.etRecurringInterval.text.toString().toIntOrNull() ?: 30
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.save(tx.copy(isRecurring = isRecurring, recurringIntervalDays = if (isRecurring) interval else 0))
+            Snackbar.make(requireView(),
+                if (isRecurring) getString(R.string.recurring_saved, interval)
+                else getString(R.string.recurring_removed),
+                Snackbar.LENGTH_SHORT).show()
+        }
     }
 
     private fun showPatternDialog() {

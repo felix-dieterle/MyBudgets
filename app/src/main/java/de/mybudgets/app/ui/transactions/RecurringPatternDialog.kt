@@ -79,9 +79,8 @@ class RecurringPatternDialog : DialogFragment() {
                 DateFormatter.formatDate(p.transactions.last().date))
             card.tvTransactionCount.text = getString(R.string.recurring_pattern_tx_count, p.transactions.size)
 
-            // Editable keyword with word suggestions
             card.etPatternKeyword.setText(p.suggestedDescription)
-            addSuggestionChips(card.chipGroupSuggestions, p.transactions, card.etPatternKeyword)
+            addSuggestionChips(card.chipGroupSuggestions, p.transactions, card.etPatternKeyword, card.layoutDetail, p.transactions)
 
             addTransactionRows(card.layoutDetail, p.transactions)
             card.tvPatternReason.text = p.reasoning
@@ -94,14 +93,20 @@ class RecurringPatternDialog : DialogFragment() {
     private fun addSuggestionChips(
         chipGroup: com.google.android.material.chip.ChipGroup,
         transactions: List<Transaction>,
-        keywordInput: com.google.android.material.textfield.TextInputEditText
+        keywordInput: com.google.android.material.textfield.TextInputEditText,
+        txContainer: LinearLayout,
+        allTx: List<Transaction>
     ) {
-        val words = transactions.flatMap { tx ->
-            (tx.description + " " + tx.note)
-                .split(Regex("[/\\s,;:]+"))
-                .map { it.trim() }
-                .filter { it.length >= 3 && it.all { c -> c.isLetterOrDigit() || c == '-' } }
-        }.distinct().sorted()
+        val wordCounts = mutableMapOf<String, Int>()
+        for (tx in transactions) {
+            for (word in (tx.description + " " + tx.note).split(Regex("[/\\s,;:]+"))) {
+                val w = word.trim()
+                if (w.length >= 3 && w.all { c -> c.isLetterOrDigit() || c == '-' }) {
+                    wordCounts[w] = (wordCounts[w] ?: 0) + 1
+                }
+            }
+        }
+        val words = wordCounts.filter { it.value >= 2 }.keys.sorted()
 
         for (word in words) {
             val chip = com.google.android.material.chip.Chip(requireContext())
@@ -109,11 +114,29 @@ class RecurringPatternDialog : DialogFragment() {
             chip.isCheckable = true
             chip.isChecked = word.equals(keywordInput.text?.toString(), ignoreCase = true)
             chip.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) keywordInput.setText(word)
+                if (isChecked) {
+                    keywordInput.setText(word)
+                    filterTransactions(txContainer, allTx, word)
+                } else {
+                    keywordInput.setText("")
+                    rebuildTransactionRows(txContainer, allTx)
+                }
             }
             chipGroup.addView(chip)
         }
         chipGroup.visibility = if (words.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    private fun filterTransactions(container: LinearLayout, allTx: List<Transaction>, keyword: String) {
+        val filtered = allTx.filter { tx ->
+            (tx.description + " " + tx.note).contains(keyword, ignoreCase = true)
+        }
+        rebuildTransactionRows(container, filtered)
+    }
+
+    private fun rebuildTransactionRows(container: LinearLayout, txList: List<Transaction>) {
+        container.removeAllViews()
+        addTransactionRows(container, txList)
     }
 
     private fun addTransactionRows(container: LinearLayout, transactions: List<Transaction>) {

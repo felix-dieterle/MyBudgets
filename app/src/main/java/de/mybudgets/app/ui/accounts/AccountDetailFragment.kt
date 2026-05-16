@@ -88,12 +88,9 @@ class AccountDetailFragment : Fragment() {
                                 binding.progressSync.visibility = View.GONE
                                 binding.tvSyncStatus.visibility = View.GONE
                                 vm.resetBankSyncState()
+                                showSyncResultSnackbar(state)
                                 if (state.importedCount > 0) {
-                                    checkForRecurringPatterns {
-                                        showSyncResultSnackbar(state)
-                                    }
-                                } else {
-                                    showSyncResultSnackbar(state)
+                                    checkForRecurringPatterns {}
                                 }
                             }
                             is BankSyncState.Error -> {
@@ -209,23 +206,23 @@ class AccountDetailFragment : Fragment() {
         }
     }
 
-    private fun checkForRecurringPatterns(onDone: () -> Unit) {
+    private fun checkForRecurringPatterns(onDismiss: () -> Unit) {
         val transactions = vm.accountTransactions.value
-        if (transactions.isEmpty()) { onDone(); return }
+        if (transactions.isEmpty()) { onDismiss(); return }
         val patterns = RecurringPatternDetector.detectPatterns(transactions)
         if (patterns.isNotEmpty()) {
-            val dialog = RecurringPatternDialog.newInstance(patterns)
-            dialog.setOnApplyListener { ids ->
-                val intervalDays = patterns.firstOrNull()?.detectedIntervalDays ?: 30
-                vm.markTransactionsAsRecurring(ids, intervalDays)
-                Snackbar.make(requireView(),
-                    getString(R.string.recurring_patterns_apply, ids.size),
-                    Snackbar.LENGTH_SHORT).show()
-            }
-            dialog.setOnDismissListener { onDone() }
-            dialog.show(childFragmentManager, RecurringPatternDialog.TAG)
+            RecurringPatternDialog.newInstance(patterns)
+                .setOnApplyListener { ids ->
+                    val intervalDays = patterns.firstOrNull()?.detectedIntervalDays ?: 30
+                    vm.markTransactionsAsRecurring(ids, intervalDays)
+                    Snackbar.make(requireView(),
+                        getString(R.string.recurring_patterns_apply, ids.size),
+                        Snackbar.LENGTH_SHORT).show()
+                }
+                .setOnDismissListener(onDismiss)
+                .show(childFragmentManager, RecurringPatternDialog.TAG)
         } else {
-            onDone()
+            onDismiss()
         }
     }
 
