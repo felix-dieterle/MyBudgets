@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.mybudgets.app.data.banking.FintsService
 import de.mybudgets.app.data.model.Account
+import de.mybudgets.app.data.model.RecurringRule
 import de.mybudgets.app.data.repository.AccountRepository
+import de.mybudgets.app.data.repository.RecurringRuleRepository
 import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.util.AppLogger
 import kotlinx.coroutines.CancellationException
@@ -45,6 +47,7 @@ enum class SyncPhase(val displayName: String) {
 class AccountViewModel @Inject constructor(
     private val repo: AccountRepository,
     private val txRepo: TransactionRepository,
+    private val ruleRepo: RecurringRuleRepository,
     private val fintsService: FintsService
 ) : ViewModel() {
 
@@ -72,8 +75,27 @@ class AccountViewModel @Inject constructor(
         syncBankTransactions(accountId, from - 7_776_000_000L) // 90 Tage weiter zurück
     }
 
-    fun markTransactionsAsRecurring(ids: List<Long>, intervalDays: Int) = viewModelScope.launch {
-        txRepo.markTransactionsAsRecurring(ids, intervalDays)
+    private suspend fun matchTransactionsAgainstRules(transactions: List<de.mybudgets.app.data.model.Transaction>, accountId: Long) {
+        val rules = ruleRepo.getActive()
+        val matchingRules = if (accountId != 0L) rules.filter { it.accountId == null || it.accountId == accountId } else rules
+        for (tx in transactions) {
+            val matchingRule = matchingRules.firstOrNull { rule ->
+                val descNote = "${tx.description} ${tx.note}"
+                descNote.contains(rule.matchKeyword, ignoreCase = true) &&
+                    (rule.matchAmount == null || kotlin.math.abs(kotlin.math.abs(tx.amount) - rule.matchAmount) <= 1.0)
+            }
+            if (matchingRule != null) {
+                txRepo.save(tx.copy(
+                    isRecurring = true,
+                    recurringIntervalDays = matchingRule.intervalDays,
+                    categoryId = matchingRule.categoryId ?: tx.categoryId
+                ))
+            }
+        }
+    }
+
+    fun saveRecurringRule(rule: RecurringRule) = viewModelScope.launch {
+        ruleRepo.save(rule)
     }
 
     fun save(account: Account) = viewModelScope.launch { repo.save(account) }
@@ -142,6 +164,7 @@ class AccountViewModel @Inject constructor(
                 val existingRemoteIds = txRepo.getAllRemoteIds()
                 val newTx = transactions.filter { it.remoteId == null || it.remoteId !in existingRemoteIds }
                 newTx.forEach { tx -> txRepo.save(tx.copy(accountId = account.id)) }
+                matchTransactionsAgainstRules(newTx, account.id)
                 val earliest = newTx.minOfOrNull { it.date }
                 lastSyncEarliestNewMillis = earliest
                 val camtBalance = fintsService.lastCamtBalance

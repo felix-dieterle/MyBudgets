@@ -212,11 +212,10 @@ class AccountDetailFragment : Fragment() {
         val patterns = RecurringPatternDetector.detectPatterns(transactions)
         if (patterns.isNotEmpty()) {
             RecurringPatternDialog.newInstance(patterns)
-                .setOnApplyListener { ids ->
-                    val intervalDays = patterns.firstOrNull()?.detectedIntervalDays ?: 30
-                    vm.markTransactionsAsRecurring(ids, intervalDays)
+                .setOnApplyListener { rules ->
+                    rules.forEach { vm.saveRecurringRule(it) }
                     android.widget.Toast.makeText(requireContext(),
-                        getString(R.string.recurring_patterns_apply, ids.size),
+                        getString(R.string.recurring_patterns_apply, rules.size),
                         android.widget.Toast.LENGTH_SHORT).show()
                 }
                 .setOnDismissListener(onDismiss)

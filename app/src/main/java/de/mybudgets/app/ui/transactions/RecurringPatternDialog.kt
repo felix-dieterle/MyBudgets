@@ -7,8 +7,9 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
-import com.google.android.material.snackbar.Snackbar
+import kotlin.math.abs
 import de.mybudgets.app.R
+import de.mybudgets.app.data.model.RecurringRule
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.databinding.DialogRecurringPatternsBinding
 import de.mybudgets.app.databinding.ItemRecurringPatternBinding
@@ -21,9 +22,10 @@ class RecurringPatternDialog : DialogFragment() {
     private var _binding: DialogRecurringPatternsBinding? = null
     private val binding get() = _binding!!
     private var patterns: List<RecurringPatternDetector.RecurringPattern> = emptyList()
-    private var onApply: ((List<Long>) -> Unit)? = null
+    private var onApply: ((List<RecurringRule>) -> Unit)? = null
     private var onDismiss: (() -> Unit)? = null
     private val checkedState = mutableMapOf<Int, Boolean>()
+    private val keywordOverrides = mutableMapOf<Int, String>()
 
     fun setOnDismissListener(listener: () -> Unit): RecurringPatternDialog {
         onDismiss = listener
@@ -35,7 +37,7 @@ class RecurringPatternDialog : DialogFragment() {
         return this
     }
 
-    fun setOnApplyListener(listener: (transactionIds: List<Long>) -> Unit): RecurringPatternDialog {
+    fun setOnApplyListener(listener: (rules: List<RecurringRule>) -> Unit): RecurringPatternDialog {
         onApply = listener
         return this
     }
@@ -157,14 +159,27 @@ class RecurringPatternDialog : DialogFragment() {
     }
 
     private fun applySelected() {
-        val selectedIds = mutableListOf<Long>()
+        val rules = mutableListOf<RecurringRule>()
         for ((idx, p) in patterns.withIndex()) {
             if (checkedState[idx] == true) {
-                selectedIds.addAll(p.transactions.map { it.id })
+                val child = binding.containerPatterns.getChildAt(idx)
+                val card = ItemRecurringPatternBinding.bind(child)
+                val kw = card.etPatternKeyword.text?.toString()?.trim() ?: ""
+                if (kw.isEmpty()) continue
+                val tx = p.transactions.first()
+                val commonCategory = p.transactions.map { it.categoryId }.distinct().singleOrNull()
+                rules.add(RecurringRule(
+                    name = kw,
+                    matchKeyword = kw,
+                    matchAmount = abs(tx.amount),
+                    intervalDays = p.detectedIntervalDays,
+                    categoryId = commonCategory,
+                    accountId = tx.accountId
+                ))
             }
         }
-        if (selectedIds.isNotEmpty()) {
-            onApply?.invoke(selectedIds)
+        if (rules.isNotEmpty()) {
+            onApply?.invoke(rules)
         }
         dismiss()
     }

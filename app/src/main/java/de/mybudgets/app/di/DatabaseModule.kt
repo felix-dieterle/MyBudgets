@@ -27,7 +27,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_6_7,
                 AppDatabase.MIGRATION_7_8,
                 AppDatabase.MIGRATION_8_9,
-                AppDatabase.MIGRATION_9_10
+                AppDatabase.MIGRATION_9_10,
+                AppDatabase.MIGRATION_10_11
             )
             .build()
 
@@ -39,4 +40,5 @@ object DatabaseModule {
     @Provides fun provideStandingOrderDao(db: AppDatabase): StandingOrderDao = db.standingOrderDao()
     @Provides fun provideTransferTemplateDao(db: AppDatabase): TransferTemplateDao = db.transferTemplateDao()
     @Provides fun provideCategoryPatternDao(db: AppDatabase): CategoryPatternDao = db.categoryPatternDao()
+    @Provides fun provideRecurringRuleDao(db: AppDatabase): RecurringRuleDao = db.recurringRuleDao()
 }
