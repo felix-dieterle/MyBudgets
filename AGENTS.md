@@ -100,6 +100,12 @@ scripts\500-verify-sync.cmd
 **Automatisch beim Build:**
 - **Lokal (mama-razzi):** `F:\CascadeProjects\mama-razzi\public\apps\mybudgets\`
 - **NAS (secure-storage):** `\\secure-storage\home\Downloads\MyBudgets\`
+  
+**Local Deployment Rules:**
+
+- Always use `scripts/202-build-apk.cmd` when producing APKs for distribution. It matches CI and produces versioned filenames.
+- When copying to NAS, use a new versioned filename (example: `MyBudgets-v<versionName>-<versionCode>-<timestamp>.apk`) instead of overwriting `MyBudgets-latest.apk`. The copy step sometimes does not overwrite remote files when using the same filename.
+- The build script still writes `MyBudgets-latest.apk` for convenience, but for reliable installs pick the versioned file.
 
 **Download-URLs:**
 - **NAS (direkt):** `\\secure-storage\home\Downloads\MyBudgets\MyBudgets-latest.apk` (vom Handy via File-Manager)

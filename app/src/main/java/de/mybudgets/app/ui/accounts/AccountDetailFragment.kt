@@ -15,10 +15,12 @@ import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.AccountType
 import de.mybudgets.app.databinding.FragmentAccountDetailBinding
 import de.mybudgets.app.ui.transactions.TransactionAdapter
+import de.mybudgets.app.ui.transactions.RecurringPatternDialog
 import de.mybudgets.app.ui.transfers.pinDialog
 import de.mybudgets.app.ui.transfers.tanDialog
 import de.mybudgets.app.ui.transfers.decoupledConfirmDialog
 import de.mybudgets.app.util.CurrencyFormatter
+import de.mybudgets.app.util.RecurringPatternDetector
 import de.mybudgets.app.viewmodel.AccountViewModel
 import de.mybudgets.app.viewmodel.BankSyncState
 import kotlinx.coroutines.launch
@@ -77,9 +79,12 @@ class AccountDetailFragment : Fragment() {
                                 Snackbar.make(
                                     requireView(),
                                     getString(R.string.bank_sync_result, state.importedCount),
-                                    Snackbar.LENGTH_LONG
+                                    Snackbar.LENGTH_SHORT
                                 ).show()
                                 vm.resetBankSyncState()
+                                if (state.importedCount > 0) {
+                                    checkForRecurringPatterns()
+                                }
                             }
                             is BankSyncState.Error -> {
                                 Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show()
@@ -189,6 +194,16 @@ class AccountDetailFragment : Fragment() {
             }
         } else {
             binding.layoutLinkedAccount.visibility = View.GONE
+        }
+    }
+
+    private fun checkForRecurringPatterns() {
+        val transactions = vm.accountTransactions.value
+        if (transactions.isEmpty()) return
+        val patterns = RecurringPatternDetector.detectPatterns(transactions)
+        if (patterns.isNotEmpty()) {
+            RecurringPatternDialog.newInstance(patterns)
+                .show(childFragmentManager, RecurringPatternDialog.TAG)
         }
     }
 

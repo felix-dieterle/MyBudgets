@@ -179,4 +179,9 @@
     <string name="dashboard_predictions">Prognosen &amp; Warnungen</string>
     <string name="dashboard_no_virtual_accounts">Keine virtuellen Konten</string>
     <string name="dashboard_no_warnings">Keine Warnungen</string>
+
+    <!-- Recurring Patterns -->
+    <string name="recurring_patterns_detected">%d wiederkehrende Buchungen erkannt</string>
+    <string name="recurring_patterns_none">Keine wiederkehrenden Muster erkannt</string>
+    <string name="recurring_patterns_saved">Dauerauftrag aus Muster erstellt</string>
 </resources>

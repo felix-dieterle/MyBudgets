@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🤖 Smart-Kategorisierung"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Soll diese Regel auch für ähnliche Buchungen gelten?"
+        android:textSize="14sp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- IBAN Pattern Option -->
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/radioIban"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="IBAN-Regel erstellen" />
+
+        <TextView
+            android:id="@+id/tvIbanValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DE89****3000"
+            android:textSize="12sp"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvIbanHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Alle zukünftigen Buchungen von diesem Empfänger"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Text Pattern Option -->
+        <RadioButton
+            android:id="@+id/radioText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Text-Regel erstellen" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Erkannte Schlüsselwörter:"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupKeywords"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="8dp"
+            app:singleSelection="false"
+            app:chipSpacingHorizontal="8dp" />
+
+        <TextView
+            android:id="@+id/tvTextHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Buchungen mit diesen Begriffen werden automatisch zugeordnet"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- No Pattern Option -->
+        <RadioButton
+            android:id="@+id/radioNone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Keine Regel (nur einmalig)"
+            android:checked="true" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nur diese Buchung kategorisieren"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="16dp" />
+
+    </RadioGroup>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Abbrechen" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kategorie wählen"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
