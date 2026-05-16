@@ -76,7 +76,10 @@ class AccountDetailFragment : Fragment() {
                             is BankSyncState.Idle -> Unit
                             is BankSyncState.Loading -> Unit
                             is BankSyncState.Success -> {
-                                val msg = getString(R.string.bank_sync_result, state.importedCount)
+                                val balanceStr = if (state.balance != null) {
+                                    " · ${CurrencyFormatter.format(state.balance)}"
+                                } else ""
+                                val msg = getString(R.string.bank_sync_result, state.importedCount) + balanceStr
                                 if (state.importedCount > 0 && vm.canContinueSync) {
                                     Snackbar.make(requireView(), msg, Snackbar.LENGTH_INDEFINITE)
                                         .setAction(R.string.bank_sync_load_more) { vm.continueSyncOlder(accountId) }

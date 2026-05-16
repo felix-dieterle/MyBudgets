@@ -28,7 +28,7 @@ sealed class BankSyncState {
     ) : BankSyncState() {
         override fun toString() = "$phase${if (detailMessage.isNotBlank()) ": $detailMessage" else ""}"
     }
-    data class Success(val importedCount: Int) : BankSyncState()
+    data class Success(val importedCount: Int, val balance: Double? = null) : BankSyncState()
     data class Error(val message: String, val phase: SyncPhase? = null) : BankSyncState()
 }
 
@@ -63,13 +63,9 @@ class AccountViewModel @Inject constructor(
     private val _bankSyncState = MutableStateFlow<BankSyncState>(BankSyncState.Idle)
     val bankSyncState: StateFlow<BankSyncState> = _bankSyncState
 
-    private var lastSyncActualFromMillis: Long? = null
     private var lastSyncEarliestNewMillis: Long? = null
 
-    val canContinueSync: Boolean get() {
-        val from = lastSyncActualFromMillis ?: return false
-        return (System.currentTimeMillis() - from) > 155_520_000_000L // > 6 Monate
-    }
+    val canContinueSync: Boolean get() = lastSyncEarliestNewMillis != null
 
     fun continueSyncOlder(accountId: Long) {
         val from = lastSyncEarliestNewMillis ?: return
@@ -126,23 +122,19 @@ class AccountViewModel @Inject constructor(
             }
 
             val fromDate: java.util.Date?
-            val actualFromMillis: Long
             if (fromDateMillis != NO_FROM_DATE) {
                 fromDate = java.util.Date(fromDateMillis)
-                actualFromMillis = fromDateMillis
             } else {
                 val latestTxDate = txRepo.getLatestDateForAccount(account.id)
-                actualFromMillis = if (latestTxDate != null) {
+                fromDate = if (latestTxDate != null) {
                     val buffer = latestTxDate - 86_400_000L
                     AppLogger.i(TAG, "Inkrementeller Sync ab ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(buffer))} (letzte Buchung: ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(latestTxDate))})")
-                    buffer
+                    java.util.Date(buffer)
                 } else {
                     AppLogger.i(TAG, "Voll-Sync (keine bekannten Buchungen)")
-                    0L
+                    null
                 }
-                fromDate = if (latestTxDate != null) java.util.Date(actualFromMillis) else null
             }
-            lastSyncActualFromMillis = actualFromMillis
             val syncResult = fintsService.fetchAccountStatement(account, fromDate)
 
             syncResult.onSuccess { transactions ->
@@ -152,8 +144,9 @@ class AccountViewModel @Inject constructor(
                 newTx.forEach { tx -> txRepo.save(tx.copy(accountId = account.id)) }
                 val earliest = newTx.minOfOrNull { it.date }
                 lastSyncEarliestNewMillis = earliest
-                _bankSyncState.value = BankSyncState.Success(newTx.size)
-                AppLogger.i(TAG, "syncBankTransactions: ${newTx.size} neue Buchungen für Konto ${account.id}")
+                val updatedAccount = repo.getById(accountId)
+                _bankSyncState.value = BankSyncState.Success(newTx.size, updatedAccount?.balance)
+                AppLogger.i(TAG, "syncBankTransactions: ${newTx.size} neue Buchungen für Konto ${account.id}, Saldo=${updatedAccount?.balance}")
             }.onFailure { e ->
                 AppLogger.e(TAG, "syncBankTransactions fehlgeschlagen: ${e.message}", e)
                 _bankSyncState.value = BankSyncState.Error(e.message ?: "Synchronisation fehlgeschlagen", lastPhaseRef.get())
