@@ -108,7 +108,17 @@ class AccountViewModel @Inject constructor(
                 }
             }
 
-            val fromDate = if (fromDateMillis != NO_FROM_DATE) java.util.Date(fromDateMillis) else null
+            val fromDate: java.util.Date?
+            if (fromDateMillis != NO_FROM_DATE) {
+                fromDate = java.util.Date(fromDateMillis)
+            } else {
+                val latestTxDate = txRepo.getLatestDateForAccount(account.id)
+                fromDate = if (latestTxDate != null) {
+                    val buffer = latestTxDate - 86_400_000L // -1 Tag Puffer für zeitliche Überschneidungen
+                    AppLogger.i(TAG, "Inkrementeller Sync ab ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(buffer))} (letzte Buchung: ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(latestTxDate))})")
+                    java.util.Date(buffer)
+                } else null
+            }
             val syncResult = fintsService.fetchAccountStatement(account, fromDate)
 
             syncResult.onSuccess { transactions ->

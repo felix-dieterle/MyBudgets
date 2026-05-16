@@ -32,6 +32,9 @@ interface TransactionDao {
     @Query("SELECT remoteId FROM transactions WHERE remoteId IS NOT NULL")
     suspend fun getAllRemoteIds(): List<String>
 
+    @Query("SELECT MAX(date) FROM transactions WHERE accountId = :accountId")
+    suspend fun getLatestDateForAccount(accountId: Long): Long?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(transaction: Transaction): Long
 
