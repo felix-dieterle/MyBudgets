@@ -215,9 +215,9 @@ class AccountDetailFragment : Fragment() {
                 .setOnApplyListener { ids ->
                     val intervalDays = patterns.firstOrNull()?.detectedIntervalDays ?: 30
                     vm.markTransactionsAsRecurring(ids, intervalDays)
-                    Snackbar.make(requireView(),
+                    android.widget.Toast.makeText(requireContext(),
                         getString(R.string.recurring_patterns_apply, ids.size),
-                        Snackbar.LENGTH_SHORT).show()
+                        android.widget.Toast.LENGTH_SHORT).show()
                 }
                 .setOnDismissListener(onDismiss)
                 .show(childFragmentManager, RecurringPatternDialog.TAG)
