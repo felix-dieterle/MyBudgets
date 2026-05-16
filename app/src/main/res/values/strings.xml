@@ -112,6 +112,7 @@
     <string name="bank_historical_sync_dialog_message">Buchungen ab diesem Datum von der Bank importieren:</string>
     <string name="bank_historical_sync_started">Historischer Import wird durchgeführt…</string>
     <string name="bank_sync_result">%d neue Buchungen importiert</string>
+    <string name="bank_sync_load_more">Mehr laden</string>
     <string name="bank_sync_failed">Synchronisation fehlgeschlagen</string>
 
     <!-- Backend Sync -->

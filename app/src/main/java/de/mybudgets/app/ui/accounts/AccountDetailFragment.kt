@@ -76,11 +76,14 @@ class AccountDetailFragment : Fragment() {
                             is BankSyncState.Idle -> Unit
                             is BankSyncState.Loading -> Unit
                             is BankSyncState.Success -> {
-                                Snackbar.make(
-                                    requireView(),
-                                    getString(R.string.bank_sync_result, state.importedCount),
-                                    Snackbar.LENGTH_SHORT
-                                ).show()
+                                val msg = getString(R.string.bank_sync_result, state.importedCount)
+                                if (state.importedCount > 0 && vm.canContinueSync) {
+                                    Snackbar.make(requireView(), msg, Snackbar.LENGTH_INDEFINITE)
+                                        .setAction(R.string.bank_sync_load_more) { vm.continueSyncOlder(accountId) }
+                                        .show()
+                                } else {
+                                    Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT).show()
+                                }
                                 vm.resetBankSyncState()
                                 if (state.importedCount > 0) {
                                     checkForRecurringPatterns()

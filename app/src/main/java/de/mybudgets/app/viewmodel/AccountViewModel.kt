@@ -63,6 +63,19 @@ class AccountViewModel @Inject constructor(
     private val _bankSyncState = MutableStateFlow<BankSyncState>(BankSyncState.Idle)
     val bankSyncState: StateFlow<BankSyncState> = _bankSyncState
 
+    private var lastSyncActualFromMillis: Long? = null
+    private var lastSyncEarliestNewMillis: Long? = null
+
+    val canContinueSync: Boolean get() {
+        val from = lastSyncActualFromMillis ?: return false
+        return (System.currentTimeMillis() - from) > 155_520_000_000L // > 6 Monate
+    }
+
+    fun continueSyncOlder(accountId: Long) {
+        val from = lastSyncEarliestNewMillis ?: return
+        syncBankTransactions(accountId, from - 7_776_000_000L) // 90 Tage weiter zurück
+    }
+
     fun save(account: Account) = viewModelScope.launch { repo.save(account) }
     fun delete(account: Account) = viewModelScope.launch { repo.delete(account) }
 
@@ -109,16 +122,23 @@ class AccountViewModel @Inject constructor(
             }
 
             val fromDate: java.util.Date?
+            val actualFromMillis: Long
             if (fromDateMillis != NO_FROM_DATE) {
                 fromDate = java.util.Date(fromDateMillis)
+                actualFromMillis = fromDateMillis
             } else {
                 val latestTxDate = txRepo.getLatestDateForAccount(account.id)
-                fromDate = if (latestTxDate != null) {
-                    val buffer = latestTxDate - 86_400_000L // -1 Tag Puffer für zeitliche Überschneidungen
+                actualFromMillis = if (latestTxDate != null) {
+                    val buffer = latestTxDate - 86_400_000L
                     AppLogger.i(TAG, "Inkrementeller Sync ab ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(buffer))} (letzte Buchung: ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(latestTxDate))})")
-                    java.util.Date(buffer)
-                } else null
+                    buffer
+                } else {
+                    AppLogger.i(TAG, "Voll-Sync (keine bekannten Buchungen)")
+                    0L
+                }
+                fromDate = if (latestTxDate != null) java.util.Date(actualFromMillis) else null
             }
+            lastSyncActualFromMillis = actualFromMillis
             val syncResult = fintsService.fetchAccountStatement(account, fromDate)
 
             syncResult.onSuccess { transactions ->
@@ -126,6 +146,8 @@ class AccountViewModel @Inject constructor(
                 val existingRemoteIds = txRepo.getAllRemoteIds()
                 val newTx = transactions.filter { it.remoteId == null || it.remoteId !in existingRemoteIds }
                 newTx.forEach { tx -> txRepo.save(tx.copy(accountId = account.id)) }
+                val earliest = newTx.minOfOrNull { it.date }
+                lastSyncEarliestNewMillis = earliest
                 _bankSyncState.value = BankSyncState.Success(newTx.size)
                 AppLogger.i(TAG, "syncBankTransactions: ${newTx.size} neue Buchungen für Konto ${account.id}")
             }.onFailure { e ->
