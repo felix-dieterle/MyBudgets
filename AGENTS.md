@@ -77,12 +77,45 @@ Bundle-Argumente: `putLong("id", entity.id)` (nie SafeArgs).
 ### Banking/Sync-Protokoll (NO TOUCH ZONE)
 
 - **FintsService.kt** + `camt/`-Package + Banking-States (`BankSyncState`, `TransferState`) nie ändern.
-- **CUstomCamtParser** (XmlPullParser) + **HbciCamtPatcher** (XML-Repair) + **CamtExtractionHelper** (JAXB-Intercept) sind bewährt – nur bei neuem Fehlermuster anfassen.
-- **Java-Sync = Referenz** (`scripts/java-sync/BbbankSync.java`). App-Code (FintsService) muss 1:1 synchron sein (HBCI-Version, Jobs, Parameter).
-- Sync-Test erst via `scripts/100-quick-test.cmd` (10-15s), dann App-Build.
-- Verifikation: `scripts/500-verify-sync.cmd`.
+- **CustomCamtParser** (XmlPullParser) + **HbciCamtPatcher** (XML-Repair) + **CamtExtractionHelper** (JAXB-Intercept) sind bewährt – nur bei neuem Fehlermuster anfassen.
+- **App-Code ist Quelle der Wahrheit**, Änderungen nur im App-Code (`FintsService.kt`, `camt/`).
 - Bei BBBank: FinTS 3.0 ("300") Primary, Fallback 2.2 ("220").
 - Job-Reihenfolge: `KUmsAllCamt` → `KUmsZeitSEPA` → `KUmsAll` → `KUmsNew`.
+- Testen via App-Build: `scripts/202-build-apk.cmd`.
+
+## UI/UX Standards
+
+**Theme:** `Theme.Material3.DayNight.NoActionBar`. Karten via `MaterialCardView` (16dp padding/bottomMargin, eckig). Buttons: `MaterialButton` (filled = primary, `?attr/materialButtonOutlinedStyle` = secondary). Chips via `ChipGroup` (singleSelection=true, `Widget.Material3.Chip.Assist.Elevated` oder `.Filter`).
+
+**Dialoge (3 Patterns):**
+- **Einfach:** `MaterialAlertDialogBuilder(requireContext())` inline (Bestätigung, Löschen, Listen-Auswahl)
+- **Komplex:** `DialogFragment` + ViewBinding + setter-basierter Listener (`setOnXxxListener {}`)
+- **PIN/TAN:** `suspendCancellableCoroutine` in Top-Level-Funktionen (`PinTanDialogs.kt`). Provider vor Sync registrieren, in `onDestroyView` nullen.
+
+**Formulare:** `ScrollView` → `LinearLayout(vertical)` → `TextInputLayout/TextInputEditText`.
+- Validation: `etName.error = getString(R.string.error_*)` + `return@setOnClickListener`.
+- Edit-Mode: `existing.copy(name = newName, ...)` (id/balance/createdAt nie überschreiben).
+- DatePicker: `DatePickerDialog` + `Calendar` + `DateFormatter.formatDate(millis)`. Read-only-Feld via `focusable=false, clickable=true`.
+- Spinner: `ArrayAdapter` mit `simple_spinner_item`/`simple_spinner_dropdown_item`.
+
+**Listen:** `ListAdapter<T, VH>` + `DiffUtil.ItemCallback`. Click-Handler als Lambda-Konstruktor-Parameter. Formatter (CurrencyFormatter, DateFormatter) im ViewHolder direkt aufrufen.
+
+**Leerzustände:** `LinearLayout` mit Emoji + `textAppearanceTitleLarge` + `textAppearanceBodyMedium(alpha=0.7)`, gesteuert via `visibility = if (list.isEmpty()) VISIBLE else GONE`.
+
+**Loading: Button deaktivieren (btnSave.isEnabled = false)** – keine Spinner/ProgressBar.
+
+**Fehler:** Transient → `Snackbar.make(view, msg, LENGTH_LONG).show()`. Feld-Validation → `EditText.error`.
+
+**PIN/TAN-Lebenszyklus:**
+```kotlin
+fintsService.pinProvider = { bankName -> pinDialog(...) }
+// in onDestroyView:
+fintsService.pinProvider = null  // + tanProvider, decoupledConfirmProvider
+```
+
+**Zurück-Navigation:** `findNavController().navigateUp()` nach erfolgreichem Speichern. Vorwärts: `navigate(R.id.action_X_to_Y, Bundle().apply { putLong("id", entity.id) })`.
+
+**Kategorie-Vorschlag:** 3-Button-Dialog (`Positive=Übernehmen, Negative=Überspringen, Neutral=Manuell`).
 
 ## AI Communication Style
 
@@ -113,9 +146,7 @@ MyBudgets/
 │       ├── data/db/            # Room Database
 │       └── viewmodel/          # ViewModels
 ├── scripts/                    # Test & Build Scripts
-│   ├── java-sync/              # Java-Sync Referenz-Implementation
 │   ├── build.cmd               # APK Build-Script
-│   ├── qt.cmd                  # Quick-Test (Java-Sync)
 │   └── workflow.cmd            # Kompletter Test→Build→Install
 └── keystore/                   # Debug Keystore
 ```
@@ -132,8 +163,6 @@ MyBudgets/
 - **[BBBank-Sync-E2E-Test.md](./BBBank-Sync-E2E-Test.md)** - Vollständiges Test-Protokoll & Analyse
 
 **Test & Development:**
-- **[TESTING-WORKFLOW.md](./TESTING-WORKFLOW.md)** - Test-Workflow ohne App-Builds (Java-Sync)
-- **[QUICK-REFERENCE.md](./QUICK-REFERENCE.md)** - Cheatsheet für schnelle Befehle
 - **[scripts/README.md](./scripts/README.md)** - Script-Übersicht
 
 ### BBBank-Spezifische Regeln
@@ -141,7 +170,6 @@ MyBudgets/
 **HBCI-Version:**
 - BBBank: **FinTS 3.0 ("300")** als Primary (siehe FintsService.kt:531)
 - Fallback auf HBCI 2.2 ("220") für andere Banken
-- **Java-Sync ist Referenz** - App muss Code 1:1 synchron halten
 
 **Job-Typen:**
 - ✅ **KUmsAllCamt (CAMT):** Funktionierte 2026-05-12 mit CustomCamtParser (150 TXs)
@@ -153,27 +181,16 @@ MyBudgets/
 - `HbciCamtPatcher.kt` repariert ungültiges XML von BBBank
 - Bewährte Implementation seit 2026-05-12
 
-**Referenz-Implementation:**
-- `scripts/java-sync/src/BbbankSync.java` (hbci4java 3.1.88)
-- **Regel:** App muss Code 1:1 mit Java-Sync synchron halten (HBCI-Version, Jobs, Parameter)
-- **Dokumentation:** Siehe `TEST-SCRIPTS-INVENTORY.md` für Test-Ablauf
-
 ## Build & Deployment
 
 ### Lokal bauen
 
 ```bash
-# APK bauen (oder Alias: scripts\build.cmd)
+# APK bauen
 scripts\200-build-debug.cmd
-
-# Schneller Test ohne App-Build (oder Alias: scripts\qt.cmd)
-scripts\100-quick-test.cmd
 
 # Kompletter Workflow: Test → Build → Install
 scripts\300-workflow.cmd
-
-# Code-Sync Verifikation (prüft ob App = Java-Sync)
-scripts\500-verify-sync.cmd
 ```
 
 ### APK Distribution
@@ -205,16 +222,6 @@ cd F:\CascadeProjects\mama-razzi
 
 ## Entwicklungs-Workflow
 
-### Bei Banking-Code-Änderungen
-
-1. **IMMER zuerst Java-Sync ändern** (`scripts/java-sync/BbbankSync.java`)
-2. **Java-Sync testen** (`scripts\100-quick-test.cmd` oder Alias `qt.cmd`) - dauert nur 10-15s
-3. **Änderungen in App übertragen** (`app/src/main/java/de/mybudgets/app/data/banking/FintsService.kt`)
-4. **Verifikation** (`scripts\500-verify-sync.cmd`) - prüft ob App = Java-Sync
-5. **App bauen & testen** (`scripts\200-build-debug.cmd` oder Alias `build.cmd`)
-
-**Vorteil:** 80-90% Zeitersparnis durch schnelle Java-Sync-Iterationen statt App-Builds
-
 ### Test-Credentials
 
 - **Location:** `scripts/java-sync/config.properties` (lokal, nicht im Git)
@@ -230,11 +237,9 @@ cd F:\CascadeProjects\mama-razzi
 **Lösung:** Siehe **[BBBank-Sync-Troubleshooting.md](./BBBank-Sync-Troubleshooting.md)**
 
 **Quick-Check:**
-1. Java-Sync funktioniert? (`scripts\100-quick-test.cmd` oder `qt.cmd`)
-2. HBCI-Version in App = HBCI 2.2 mit Fallback auf 3.0? ✅
-3. Job-Liste in App = `KUmsZeitSEPA → KUmsAll → KUmsNew`? ✅
-4. CAMT deaktiviert? ✅
-5. Verifikation: `scripts\500-verify-sync.cmd` ✅
+1. HBCI-Version in App = HBCI 2.2 mit Fallback auf 3.0? ✅
+2. Job-Liste in App = `KUmsZeitSEPA → KUmsAll → KUmsNew`? ✅
+3. CAMT aktiviert (KUmsAllCamt via CustomCamtParser)? ✅
 
 ### Build-Probleme
 
@@ -256,7 +261,6 @@ FAILURE: SDK location not found
 ### Credentials
 
 - **App:** User-Eingabe, gespeichert in App-internem Storage (verschlüsselt)
-- **Java-Sync:** `scripts/java-sync/config.properties` (lokal, `.gitignore`)
 - **NIEMALS** echte Credentials ins Git committen!
 
 ### Keystore
