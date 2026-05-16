@@ -119,6 +119,7 @@ dependencies {
     // it finds a source file in the java.awt package.
     implementation(files("libs/java-awt-stub.jar"))
     implementation(libs.security.crypto)
+    implementation(libs.mpandroidchart)
 
     testImplementation(libs.junit4)
     testImplementation(libs.coroutines.test)
