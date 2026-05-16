@@ -1,6 +1,8 @@
 package de.mybudgets.app.ui.transactions
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -38,9 +40,16 @@ class TransactionsFragment : Fragment() {
         binding.fabNewTransfer.setOnClickListener {
             findNavController().navigate(R.id.action_transactionsFragment_to_transferFragment)
         }
+
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) { vm.setSearchQuery(s?.toString() ?: "") }
+        })
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.transactionsWithCategory.collect { list ->
+                vm.searchedTransactions.collect { list ->
                     adapter.submitList(list)
                     binding.layoutEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
                 }
