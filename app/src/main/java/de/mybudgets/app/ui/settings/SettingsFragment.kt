@@ -81,6 +81,10 @@ class SettingsFragment : Fragment() {
             }
         }
 
+        binding.btnRecurringRules.setOnClickListener {
+            findNavController().navigate(R.id.action_settingsFragment_to_recurringRulesFragment)
+        }
+
         binding.btnStandingOrders.setOnClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_standingOrdersFragment)
         }

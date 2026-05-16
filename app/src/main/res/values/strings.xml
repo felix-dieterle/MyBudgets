@@ -5,6 +5,12 @@
     <string name="nav_transactions">Buchungen</string>
     <string name="nav_categories">Kategorien</string>
     <string name="nav_settings">Einstellungen</string>
+    <string name="nav_recurring_rules">Regelmäßige Buchungen</string>
+    <string name="recurring_rules_empty">Noch keine Regeln definiert</string>
+    <string name="recurring_rules_empty_hint">Erkennen Sie Muster nach einem Sync oder fügen Sie Regeln manuell hinzu</string>
+    <string name="recurring_rule_deactivated">Regel deaktiviert</string>
+    <string name="recurring_rule_activated">Regel aktiviert</string>
+    <string name="recurring_rule_deleted">Regel gelöscht</string>
 
     <string name="total_balance">Gesamtsaldo</string>
     <string name="accounts">Konten</string>

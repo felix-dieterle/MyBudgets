@@ -97,6 +97,13 @@
             android:text="@string/sync_now" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_recurring_rules"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/nav_recurring_rules" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_standing_orders"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="match_parent" android:layout_height="wrap_content"

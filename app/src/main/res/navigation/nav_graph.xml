@@ -82,6 +82,8 @@
             app:destination="@id/legalFragment" />
         <action android:id="@+id/action_settingsFragment_to_standingOrdersFragment"
             app:destination="@id/standingOrdersFragment" />
+        <action android:id="@+id/action_settingsFragment_to_recurringRulesFragment"
+            app:destination="@id/recurringRulesFragment" />
         <action android:id="@+id/action_settingsFragment_to_logConsoleFragment"
             app:destination="@id/logConsoleFragment" />
     </fragment>
@@ -111,5 +113,9 @@
     <fragment android:id="@+id/logConsoleFragment"
         android:name="de.mybudgets.app.ui.log.LogConsoleFragment"
         android:label="@string/log_console_title" />
+
+    <fragment android:id="@+id/recurringRulesFragment"
+        android:name="de.mybudgets.app.ui.recurringrules.RecurringRulesFragment"
+        android:label="@string/nav_recurring_rules" />
 
 </navigation>
