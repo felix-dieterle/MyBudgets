@@ -1,7 +1,7 @@
 # v1.0.44 - Bank-Sync Fix (CRITICAL)
 
 **Datum:** 2026-05-15  
-**Status:** In Arbeit (Build-Fehler)
+**Status:** Superseded by ROADMAP.md (2026-05-17) – KUmsAllCamt re-activated, Build-Fehler durch entfernen des unfertigen VirtualAccount-Codes gelöst in späteren Commits
 
 ## 🔴 KRITISCHER FIX: Bank-Sync repariert
 

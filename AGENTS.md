@@ -153,7 +153,12 @@ MyBudgets/
 
 ## Wichtige Dokumentation
 
-### UI/UX Structure
+### Roadmap & Planning
+- **[ROADMAP.md](./ROADMAP.md)** - Aktuelle Phasen, Milestones, Prioritäten
+- **[features/Interview-2026-05-17.md](./features/Interview-2026-05-17.md)** - Nutzer-Interview: Ziele, Pain Points, Feature-Ideen
+- **[ROADMAP-2026-05-12-archived.md](./ROADMAP-2026-05-12-archived.md)** - Alte Roadmap (archiviert, enthält Out-of-Scope-Ideen)
+
+## UI/UX Structure
 - **[UI-UX-STRUCTURE.md](./UI-UX-STRUCTURE.md)** - Navigation flow, user journeys, design principles
 
 ### Banking & FinTS
@@ -282,4 +287,4 @@ FAILURE: SDK location not found
 
 ---
 
-**Zuletzt aktualisiert:** 2026-05-16
+**Zuletzt aktualisiert:** 2026-05-17
