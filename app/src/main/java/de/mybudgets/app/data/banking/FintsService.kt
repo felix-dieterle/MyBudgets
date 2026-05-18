@@ -20,6 +20,7 @@ import org.kapott.hbci.GV_Result.GVRKUms
 import org.kapott.hbci.callback.AbstractHBCICallback
 import org.kapott.hbci.exceptions.InvalidUserDataException
 import org.kapott.hbci.exceptions.JobNotSupportedException
+import org.kapott.hbci.exceptions.OverwriteException
 import org.kapott.hbci.manager.HBCIHandler
 import org.kapott.hbci.manager.HBCIUtils
 import org.kapott.hbci.passport.AbstractHBCIPassport
@@ -252,52 +253,26 @@ class FintsService @Inject constructor(
                 AppLogger.i(TAG, "[$syncPhase/2-bic] BIC resolved: $bic")
 
                 // PHASE 3: Job Selection
-                // Fetch account statement with an ordered fallback strategy:
+                // Try jobs sequentially (first success wins). Different strategies:
                 //
-                // Priority order (first success wins):
-                //  1. KUmsAllCamt (HKCAZ CAMT/ISO 20022, FinTS 3.0+) — most modern banks
-                //     (e.g. BBBank / VR cooperative banks) advertise HKCAZ only in CAMT format
-                //     (camt.052) in their BPD. GVKUmsAllCamt handles date filtering natively.
-                //  2. KUmsZeitSEPA (HKCAZ SEPA MT940-style, FinTS 3.0) — banks that advertise
-                //     the SEPA HKCAZ variant (not CAMT). Supports date filtering.
-                //  3. KUmsAll   (HKKAZ, FinTS 3.0) — tried first when fromDate == null; also
-                //     tried as a fallback (returns more transactions than requested when
-                //     fromDate was set, which is acceptable).
-                //  4. KUmsNew   (HKKAZ, HBCI 2.x)  — legacy fallback for older bank servers.
+                // Normal sync (fromDate != null):
+                //   KUmsAllCamt(3.0, with date) → modern CAMT format, date-filtered
                 //
-                // Note: KUmsAll and KUmsNew do not support date filtering; if fromDate was set
-                // and only these succeed, more transactions than requested will be returned.
+                // Historical sync / Voll-Sync (fromDate == null):
+                //   KUmsZeitSEPA(HBCI 2.2, Date(0)) → MT940-format, often uncapped,
+                //   liefert ältere Buchungen die KUmsAllCamt nicht zurückgibt
+                //   Fallback: KUmsAllCamt(3.0, no date) → liefert max 150
+                //
+                // KUmsAll und KUmsNew sind Legacy-Fallback wenn nichts anderes geht.
                 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY)
-
-                // Build the ordered list of job names + optional startdate to try.
-                // Job-Sequence: CAMT ist bevorzugt (BBBank unterstützt primär CAMT)
-                // Fallback auf MT940-basierte Jobs falls CAMT fehlschlägt
-                //
-                // fromDate != null  → KUmsAllCamt (with date), KUmsZeitSEPA, KUmsAll, KUmsNew
-                // fromDate == null  → KUmsAllCamt (all), KUmsZeitSEPA, KUmsAll, KUmsNew
-                data class JobAttempt(val name: String, val startDate: Date? = null)
-                val jobAttempts = if (fromDate != null) listOf(
-                    JobAttempt("KUmsAllCamt", fromDate),
-                    JobAttempt("KUmsZeitSEPA", fromDate),
-                    JobAttempt("KUmsAll"),
-                    JobAttempt("KUmsNew"),
-                ) else listOf(
-                    // Voll-Sync: KUmsZeitSEPA zuerst, weil KUmsAllCamt bei BBBank
-                    // auf ~150 Buchungen capped. KUmsZeitSEPA mit Date(0) liefert
-                    // evtl. vollständigen Datensatz plus kein JAXB-Bug.
-                    JobAttempt("KUmsZeitSEPA", Date(0)),
-                    JobAttempt("KUmsAllCamt"),
-                    JobAttempt("KUmsAll"),
-                    JobAttempt("KUmsNew"),
-                )
-
+                val jobAttempts = buildJobAttempts(fromDate)
                 AppLogger.i(TAG, "[$syncPhase/3-job] Trying job sequence: ${jobAttempts.map { it.name }.joinToString(" → ")}")
                 syncPhaseUpdateHandler?.invoke("3-job", "HBCI-Jobs werden vorbereitet...")
+
                 var lastJobException: Exception? = null
                 var attemptIdx = 0
-
-                // Alle unterstützten Jobs sammeln (nicht nur den ersten Erfolg)
-                val allAddedJobs = mutableListOf<HBCIJob>()
+                var selectedJob: HBCIJob? = null
+                var selectedJobAttempt: JobAttempt? = null
                 for (attempt in jobAttempts) {
                     attemptIdx++
                     runCatching {
@@ -307,8 +282,9 @@ class FintsService @Inject constructor(
                         j.setParam("my", buildKonto(account, bic, passport))
                         attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
                         handler.addJob(j)
-                        AppLogger.d(TAG, "[$syncPhase/3-job] Job ${attempt.name} added successfully")
-                        allAddedJobs.add(j)
+                        AppLogger.i(TAG, "[$syncPhase/3-job] Job ${attempt.name} added successfully")
+                        selectedJob = j
+                        selectedJobAttempt = attempt
                     }.onFailure { ex ->
                         val actualEx = ex as? Exception ?: throw ex
                         if (actualEx.hasCause<JobNotSupportedException> { true } ||
@@ -325,9 +301,10 @@ class FintsService @Inject constructor(
                             throw actualEx
                         }
                     }
+                    if (selectedJob != null) break
                 }
 
-                if (allAddedJobs.isEmpty()) {
+                if (selectedJob == null) {
                     AppLogger.e(TAG, "[$syncPhase/3-job] ALL job attempts failed. Last error: ${lastJobException?.message}")
                     throw UnsupportedOperationException(
                         "Diese Bank unterstützt keinen HBCI-Kontoauszug-Abruf " +
@@ -336,8 +313,11 @@ class FintsService @Inject constructor(
                     )
                 }
 
-                // PHASE 4: Execute (alle Jobs in einem Dialog mit einer TAN)
-                AppLogger.i(TAG, "[$syncPhase/4-exec] Sending request to bank with ${allAddedJobs.size} job(s)...")
+                val activeJob = selectedJob!!
+                val activeJobAttempt = selectedJobAttempt!!
+
+                // PHASE 4: Execute
+                AppLogger.i(TAG, "[$syncPhase/4-exec] Sending request to bank with job ${activeJobAttempt.name}...")
                 syncPhaseUpdateHandler?.invoke("4-exec", "Anfrage wird an Bankserver gesendet...")
                 val status = handler.execute()
                 
@@ -356,23 +336,17 @@ class FintsService @Inject constructor(
                     AppLogger.i(TAG, "[$syncPhase/4-exec] Bank response OK")
                 }
 
-                // PHASE 5: Parse Result (alle Jobs auswerten + mergen)
-                AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from ${allAddedJobs.size} job result(s)...")
+                // PHASE 5: Parse Result
+                AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from job ${activeJob.javaClass.simpleName}...")
                 syncPhaseUpdateHandler?.invoke("5-parse", "Transaktionsdaten werden aus Bankantwort extrahiert...")
                 
-                val allFlatData = mutableListOf<GVRKUms.UmsLine>()
+                val result = activeJob.jobResult as? GVRKUms
+                    ?: error("Job-Result ist kein GVRKUms")
                 val konto = buildKonto(account, bic, passport)
-                for (j in allAddedJobs) {
-                    val jr = j.jobResult as? GVRKUms ?: continue
-                    val jd = extractFlatData(j, jr, hasCamtParsingError, konto)
-                    if (jd != null && jd.isNotEmpty()) {
-                        AppLogger.i(TAG, "[$syncPhase/5-parse] Job ${j.javaClass.simpleName}: ${jd.size} Buchungen")
-                        allFlatData.addAll(jd)
-                    }
-                }
-                AppLogger.i(TAG, "[$syncPhase/5-parse] Total merged: ${allFlatData.size} Buchungen aus ${allAddedJobs.size} Jobs")
+                val flatData = extractFlatData(activeJob, result, hasCamtParsingError, konto)
+                    ?: error("Keine Buchungsdaten extrahierbar")
 
-                val transactions = allFlatData.map { entry ->
+                val transactions = flatData.map { entry ->
                     val isIncome = entry.value.longValue >= 0
                     Transaction(
                         accountId   = account.id,
@@ -397,6 +371,58 @@ class FintsService @Inject constructor(
                 AppLogger.e(TAG, "[$syncPhase] FAILED: ${e.message}", e)
         }
         wrapWrongPinResult(operationResult)
+    }
+
+    private fun buildJobAttempts(fromDate: Date?): List<JobAttempt> = if (fromDate != null) {
+        // Normal-Sync: CAMT bevorzugt (3.0, date-filtered)
+        listOf(
+            JobAttempt("KUmsAllCamt", fromDate),
+            JobAttempt("KUmsZeitSEPA", fromDate),
+            JobAttempt("KUmsAll"),
+            JobAttempt("KUmsNew"),
+        )
+    } else {
+        // Historischer Sync / Voll-Sync:
+        // KUmsZeitSEPA(Date(0)) zuerst – MT940 2.2 liefert oft ältere Buchungen
+        // die CAMT (150er-Cap) nicht zurückgibt. Fallback auf KUmsAllCamt.
+        listOf(
+            JobAttempt("KUmsZeitSEPA", Date(0)),
+            JobAttempt("KUmsAllCamt"),
+            JobAttempt("KUmsAll"),
+            JobAttempt("KUmsNew"),
+        )
+    }
+
+    data class JobAttempt(val name: String, val startDate: Date? = null)
+
+    /**
+     * Löscht die Passport-Datei und setzt den Passport-Singleton via Reflection zurück,
+     * damit hbci4java beim nächsten getInstance() einen frischen Passport erstellt.
+     * Wird bei OverwriteException (stale Dialog-State) oder ungültiger TAN-Methode verwendet.
+     */
+    private fun resetPassportAndDelete(
+        passportFile: File,
+        blz: String,
+        account: Account
+    ): AbstractHBCIPassport {
+        passportFile.delete()
+        HBCIUtils.setParam("client.passport.PinTan.filename", passportFile.absolutePath)
+        HBCIUtils.setParam("client.passport.PinTan.init", "1")
+        try {
+            val field = AbstractHBCIPassport::class.java.getDeclaredField("passportRef")
+            field.isAccessible = true
+            field.set(null, null)
+        } catch (e: Exception) {
+            AppLogger.w(TAG, "resetPassportAndDelete: Reflection-Fehler beim Zurücksetzen des Passport-Singletons: ${e.message}")
+        }
+        val fresh = AbstractHBCIPassport.getInstance("PinTan") as AbstractHBCIPassport
+        fresh.country = "DE"
+        fresh.blz = blz
+        if (account.userId.isNotBlank()) {
+            fresh.userId = account.userId
+            fresh.customerId = account.userId
+        }
+        return fresh
     }
 
     // ─── Sensitive data masking helpers ──────────────────────────────────────────────
@@ -477,30 +503,32 @@ class FintsService @Inject constructor(
             handler = HBCIHandler("220", passport)
             AppLogger.i(TAG, "openSession: HBCI-Handler bereit – Server=${passport.host}:${passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=220 Produkt=MyBudgets")
         } catch (e220: Exception) {
-            AppLogger.w(TAG, "openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: ${e220.message}")
+            AppLogger.w(TAG, "openSession: HBCI 2.2 fehlgeschlagen: ${e220.message}")
+            // OverwriteException = stale passport dialog state (msgnum already set).
+            // Delete passport file + reset singleton → retry 2.2 with fresh passport.
+            if (e220.hasCause<OverwriteException> { true }
+                && passportFile.exists()
+            ) {
+                AppLogger.w(TAG, "openSession: OverwriteException – lösche Passport und versuche 2.2 mit frischem Passport")
+                val fresh22Passport = resetPassportAndDelete(passportFile, blz, account)
+                try {
+                    handler = HBCIHandler("220", fresh22Passport)
+                    AppLogger.i(TAG, "openSession: HBCI-Handler bereit (nach Passport-Reset) – Server=${fresh22Passport.host}:${fresh22Passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=220 Produkt=MyBudgets")
+                    return Pair(handler!!, fresh22Passport)
+                } catch (e220retry: Exception) {
+                    AppLogger.w(TAG, "openSession: HBCI 2.2 nach Passport-Reset immer noch fehlgeschlagen: ${e220retry.message}")
+                }
+            }
             hbciVersion = "300"
             try {
                 handler = HBCIHandler("300", passport)
                 AppLogger.i(TAG, "openSession: HBCI-Handler bereit – Server=${passport.host}:${passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=300 Produkt=MyBudgets")
             } catch (e300: Exception) {
-                // If the TAN method stored in the passport is no longer supported by the bank
-                // (e.g. the bank updated their TAN method list), delete the stale passport file
-                // and retry once with a fresh passport so hbci4j can re-negotiate.
                 if (e300.hasCause<InvalidUserDataException> { it.message?.contains("selected pintan method not supported") == true }
                     && passportFile.exists()
                 ) {
                     AppLogger.w(TAG, "openSession: gespeicherte TAN-Methode ungültig – lösche Passport-Datei und versuche erneut")
-                    passportFile.delete()
-                    HBCIUtils.setParam("client.passport.PinTan.filename", passportFile.absolutePath)
-                    HBCIUtils.setParam("client.passport.PinTan.init", "1")
-                    val freshPassport = AbstractHBCIPassport.getInstance("PinTan") as AbstractHBCIPassport
-                    freshPassport.country = "DE"
-                    freshPassport.blz = blz
-                    if (account.userId.isNotBlank()) {
-                        freshPassport.userId = account.userId
-                        freshPassport.customerId = account.userId
-                    }
-                    // Try 220 first with fresh passport
+                    val freshPassport = resetPassportAndDelete(passportFile, blz, account)
                     try {
                         handler = HBCIHandler("220", freshPassport)
                         AppLogger.i(TAG, "openSession: HBCI-Handler bereit (nach Passport-Reset) – Server=${freshPassport.host}:${freshPassport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=220 Produkt=MyBudgets")
