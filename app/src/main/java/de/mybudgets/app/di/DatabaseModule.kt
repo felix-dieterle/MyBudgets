@@ -16,8 +16,10 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "mybudgets.db")
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+        val prefs = context.getSharedPreferences("mybudgets_prefs", Context.MODE_PRIVATE)
+        val prevVersion = prefs.getInt("db_version", 0)
+        val db = Room.databaseBuilder(context, AppDatabase::class.java, "mybudgets.db")
             .addMigrations(
                 AppDatabase.MIGRATION_1_2,
                 AppDatabase.MIGRATION_2_3,
@@ -32,6 +34,13 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_11_12
             )
             .build()
+        if (prevVersion != 0 && prevVersion < 12) {
+            val mig = AppDatabase.lastMigrationVersion ?: "v$prevVersion→v12"
+            prefs.edit().putString("migration_info", mig).apply()
+        }
+        prefs.edit().putInt("db_version", 12).apply()
+        return db
+    }
 
     @Provides fun provideAccountDao(db: AppDatabase): AccountDao = db.accountDao()
     @Provides fun provideTransactionDao(db: AppDatabase): TransactionDao = db.transactionDao()

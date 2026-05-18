@@ -35,6 +35,9 @@ interface TransactionDao {
     @Query("SELECT MAX(date) FROM transactions WHERE accountId = :accountId")
     suspend fun getLatestDateForAccount(accountId: Long): Long?
 
+    @Query("SELECT MIN(date) FROM transactions WHERE accountId = :accountId")
+    suspend fun getEarliestDateForAccount(accountId: Long): Long?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(transaction: Transaction): Long
 

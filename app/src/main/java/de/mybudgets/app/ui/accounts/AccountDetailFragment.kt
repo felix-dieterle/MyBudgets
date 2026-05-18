@@ -1,6 +1,7 @@
 package de.mybudgets.app.ui.accounts
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
@@ -54,6 +55,12 @@ class AccountDetailFragment : Fragment() {
         }
         binding.rvAccountTransactions.adapter = txAdapter
         vm.selectAccount(accountId)
+
+        val prefs = requireContext().getSharedPreferences("mybudgets_prefs", Context.MODE_PRIVATE)
+        prefs.getString("migration_info", null)?.let { info ->
+            prefs.edit().remove("migration_info").apply()
+            Snackbar.make(view, getString(R.string.db_migration_done, info), Snackbar.LENGTH_LONG).show()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

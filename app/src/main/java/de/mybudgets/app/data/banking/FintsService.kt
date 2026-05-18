@@ -20,7 +20,6 @@ import org.kapott.hbci.GV_Result.GVRKUms
 import org.kapott.hbci.callback.AbstractHBCICallback
 import org.kapott.hbci.exceptions.InvalidUserDataException
 import org.kapott.hbci.exceptions.JobNotSupportedException
-import org.kapott.hbci.exceptions.OverwriteException
 import org.kapott.hbci.manager.HBCIHandler
 import org.kapott.hbci.manager.HBCIUtils
 import org.kapott.hbci.passport.AbstractHBCIPassport
@@ -498,28 +497,11 @@ class FintsService @Inject constructor(
         // BBBank requires HBCI 2.2 for MT940-based jobs (KUmsZeitSEPA, KUmsAll, KUmsNew)
         // Try 220 first, fallback to 300 if that fails
         var handler: HBCIHandler? = null
-        var hbciVersion = "220"
         try {
             handler = HBCIHandler("220", passport)
             AppLogger.i(TAG, "openSession: HBCI-Handler bereit – Server=${passport.host}:${passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=220 Produkt=MyBudgets")
         } catch (e220: Exception) {
-            AppLogger.w(TAG, "openSession: HBCI 2.2 fehlgeschlagen: ${e220.message}")
-            // OverwriteException = stale passport dialog state (msgnum already set).
-            // Delete passport file + reset singleton → retry 2.2 with fresh passport.
-            if (e220.hasCause<OverwriteException> { true }
-                && passportFile.exists()
-            ) {
-                AppLogger.w(TAG, "openSession: OverwriteException – lösche Passport und versuche 2.2 mit frischem Passport")
-                val fresh22Passport = resetPassportAndDelete(passportFile, blz, account)
-                try {
-                    handler = HBCIHandler("220", fresh22Passport)
-                    AppLogger.i(TAG, "openSession: HBCI-Handler bereit (nach Passport-Reset) – Server=${fresh22Passport.host}:${fresh22Passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=220 Produkt=MyBudgets")
-                    return Pair(handler!!, fresh22Passport)
-                } catch (e220retry: Exception) {
-                    AppLogger.w(TAG, "openSession: HBCI 2.2 nach Passport-Reset immer noch fehlgeschlagen: ${e220retry.message}")
-                }
-            }
-            hbciVersion = "300"
+            AppLogger.w(TAG, "openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: ${e220.message}")
             try {
                 handler = HBCIHandler("300", passport)
                 AppLogger.i(TAG, "openSession: HBCI-Handler bereit – Server=${passport.host}:${passport.port} BLZ=$blz iban=${maskIban(account.iban)} HBCI=300 Produkt=MyBudgets")

@@ -76,7 +76,17 @@ class AccountViewModel @Inject constructor(
 
     fun continueSyncOlder(accountId: Long) {
         if (!canContinueSync) return
-        syncBankTransactions(accountId, NO_FROM_DATE) // Voll-Sync ohne Datumsfilter
+        viewModelScope.launch {
+            val fromDate = if (syncLastFromDate != NO_FROM_DATE) {
+                syncLastFromDate - 1L
+            } else {
+                val earliest = txRepo.getEarliestDateForAccount(accountId)
+                if (earliest == null || earliest <= SYNC_STOP_MILLIS) { syncLastFromDate = NO_FROM_DATE; return@launch }
+                earliest - 1L
+            }
+            if (fromDate <= SYNC_STOP_MILLIS) { syncLastFromDate = NO_FROM_DATE; return@launch }
+            syncBankTransactions(accountId, fromDate)
+        }
     }
 
     private suspend fun matchTransactionsAgainstRules(transactions: List<de.mybudgets.app.data.model.Transaction>, accountId: Long) {

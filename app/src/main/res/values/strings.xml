@@ -194,4 +194,5 @@
     <string name="recurring_patterns_apply">%d Muster übernommen</string>
     <string name="recurring_pattern_date_range">%s – %s</string>
     <string name="recurring_pattern_tx_count">%d Transaktionen</string>
+    <string name="db_migration_done">Datenbank aktualisiert: %s</string>
 </resources>

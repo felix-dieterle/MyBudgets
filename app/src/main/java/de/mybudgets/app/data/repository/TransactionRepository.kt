@@ -30,6 +30,7 @@ class TransactionRepository @Inject constructor(
     suspend fun getAllRemoteIds(): Set<String> = dao.getAllRemoteIds().toHashSet()
 
     suspend fun getLatestDateForAccount(accountId: Long): Long? = dao.getLatestDateForAccount(accountId)
+    suspend fun getEarliestDateForAccount(accountId: Long): Long? = dao.getEarliestDateForAccount(accountId)
 
     suspend fun markTransactionsAsRecurring(ids: List<Long>, intervalDays: Int) {
         dao.markAsRecurring(ids, intervalDays)
