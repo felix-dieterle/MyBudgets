@@ -1,15 +1,17 @@
-MyBudgets Fehlerprotokoll  –  exportiert 2026-05-16 23:45:47.930
+MyBudgets Fehlerprotokoll  –  exportiert 2026-05-18 18:07:31.938
 ========================================================================
-2026-05-16 23:45:18.010  [I]  AccountViewModel:  syncBankTransactions: 0 neue Buchungen für Konto 1, Saldo=0.0
-2026-05-16 23:45:17.979  [I]  FintsService:  [fetchAccountStatement/5-parse] SUCCESS: Extracted 150 transactions
-2026-05-16 23:45:17.977  [I]  FintsService:  tryCamtFallbackExtraction: ✅ SUCCESS - Extracted 150 transactions
-2026-05-16 23:45:17.977  [E]  CamtExtractionHelper:  injectTransactions: Failed to inject transactions
-java.lang.NoSuchFieldException: No field flatData in class Lorg/kapott/hbci/GV_Result/GVRKUms; (declaration of 'org.kapott.hbci.GV_Result.GVRKUms' appears in /data/app/~~S6SDJ4_f_Yzta4KV6aPSaw==/de.mybudgets.app-InbQz03daq3oaLDsx3zLCw==/base.apk)
+2026-05-18 18:07:14.016  [I]  AccountViewModel:  syncBankTransactions: 0 neue Buchungen für Konto 1, Saldo=0.0
+2026-05-18 18:07:13.998  [I]  FintsService:  [fetchAccountStatement/5-parse] SUCCESS: Extracted 150 transactions
+2026-05-18 18:07:13.996  [I]  FintsService:  tryCamtFallbackExtraction: ✅ SUCCESS - Extracted 150 transactions
+2026-05-18 18:07:13.996  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
+2026-05-18 18:07:13.970  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (170896 bytes)
+2026-05-18 18:07:13.970  [E]  CamtExtractionHelper:  injectTransactions: Failed to inject transactions
+java.lang.NoSuchFieldException: No field flatData in class Lorg/kapott/hbci/GV_Result/GVRKUms; (declaration of 'org.kapott.hbci.GV_Result.GVRKUms' appears in /data/app/~~X1Vyzirvx9JxxLQ9GolMYQ==/de.mybudgets.app-rTP1IvGI_CLmX4ANN9LJuA==/base.apk)
 at java.lang.Class.getDeclaredField(Native Method)
 at de.mybudgets.app.data.banking.camt.CamtExtractionHelper.injectTransactions(CamtExtractionHelper.kt:130)
-at de.mybudgets.app.data.banking.FintsService.tryCamtFallbackExtraction(FintsService.kt:915)
+at de.mybudgets.app.data.banking.FintsService.tryCamtFallbackExtraction(FintsService.kt:917)
 at de.mybudgets.app.data.banking.FintsService.access$tryCamtFallbackExtraction(FintsService.kt:60)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:372)
+at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:374)
 at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
 at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
 at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
@@ -19,54 +21,54 @@ at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(Coroutine
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
 
-2026-05-16 23:45:17.977  [I]  CamtExtractionHelper:  injectTransactions: Injecting 150 transactions into GVRKUms
-2026-05-16 23:45:17.977  [I]  FintsService:  tryCamtFallbackExtraction: Step 3 - Injecting 150 transactions into result...
-2026-05-16 23:45:17.977  [I]  FintsService:  tryCamtFallbackExtraction: CamtExtractionHelper returned 150 transactions
-2026-05-16 23:45:17.977  [I]  HbciCamtPatcher:  parseAndConvert: Converted 150 UmsLines
-2026-05-16 23:45:17.975  [I]  HbciCamtPatcher:  parseAndConvert: Parsed 150 transactions
-2026-05-16 23:45:17.975  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
-2026-05-16 23:45:17.953  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (212993 bytes)
-2026-05-16 23:45:17.953  [I]  HbciCamtPatcher:  parseAndConvert: Parsing CAMT XML (212993 bytes)
-2026-05-16 23:45:17.953  [I]  CamtExtractionHelper:  extractFromJobResult: Found CAMT XML (212993 bytes)
-2026-05-16 23:45:17.953  [D]  CamtExtractionHelper:  findCamtXml: Found CAMT XML at key 'content.booked.message'
-2026-05-16 23:45:17.953  [D]  CamtExtractionHelper:  extractFromJobResult: Job result has 14 properties
-2026-05-16 23:45:17.953  [I]  CamtExtractionHelper:  extractFromJobResult: Attempting custom CAMT extraction
-2026-05-16 23:45:17.952  [I]  FintsService:  tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...
-2026-05-16 23:45:17.952  [D]  FintsService:  tryCamtFallbackExtraction: Job properties keys: content.SegHead.seq, content.KTV.KIK.country, content.KTV.bic, basic.dialogid, content.SegHead.code, basic.msgnum, content.booked.message, content.KTV.KIK.blz, content.SegHead.ref, basic.segnum, content.KTV.number, content.SegHead.version, content.format, content.KTV.iban
-2026-05-16 23:45:17.952  [I]  FintsService:  tryCamtFallbackExtraction: Found 14 job properties
-2026-05-16 23:45:17.952  [I]  FintsService:  extractJobProperties: Found 14 properties via getResultData()
-2026-05-16 23:45:17.952  [D]  FintsService:  extractJobProperties: JobResult has 9 fields
-2026-05-16 23:45:17.952  [D]  FintsService:  extractJobProperties: Searching all fields in jobResult...
-2026-05-16 23:45:17.952  [D]  FintsService:  extractJobProperties: JobResult class: GVRKUms
-2026-05-16 23:45:17.952  [D]  FintsService:  extractJobProperties: Extracting from job class GVKUmsAllCamt
-2026-05-16 23:45:17.952  [I]  FintsService:  tryCamtFallbackExtraction: Step 1 - Extracting job properties...
-2026-05-16 23:45:17.952  [I]  FintsService:  tryCamtFallbackExtraction: Target account IBAN=DE91660908000007690118
-2026-05-16 23:45:17.952  [I]  FintsService:  tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...
-2026-05-16 23:45:17.952  [W]  FintsService:  [fetchAccountStatement/5-parse] CAMT JAXB parsing failed (flatData empty), using custom parser fallback
-2026-05-16 23:45:17.952  [I]  FintsService:  [fetchAccountStatement/5-parse] Extracting transaction data from response...
-2026-05-16 23:45:17.952  [W]  FintsService:  [fetchAccountStatement/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...
-2026-05-16 23:45:17.951  [D]  FintsService:  HBCI callback reason=25 msg=Sie k�nnen die Internetverbindung jetzt beenden
-2026-05-16 23:45:17.951  [D]  FintsService:  HBCI status tag=20
-2026-05-16 23:45:17.949  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:45:17.941  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:45:17.928  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:45:17.928  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:45:17.920  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:45:17.920  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:45:17.792  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:45:17.790  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:45:17.790  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:45:17.782  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:45:17.548  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:45:17.543  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:45:17.542  [D]  FintsService:  HBCI status tag=19
-2026-05-16 23:45:17.542  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
-2026-05-16 23:45:17.542  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Speichern der Ergebnisdaten f�r Job TAN2Step7 im JobResult-Objekt
+2026-05-18 18:07:13.970  [I]  CamtExtractionHelper:  injectTransactions: Injecting 150 transactions into GVRKUms
+2026-05-18 18:07:13.970  [I]  FintsService:  tryCamtFallbackExtraction: Step 3 - Injecting 150 transactions into result...
+2026-05-18 18:07:13.970  [I]  FintsService:  tryCamtFallbackExtraction: CamtExtractionHelper returned 150 transactions
+2026-05-18 18:07:13.970  [I]  HbciCamtPatcher:  parseAndConvert: Converted 150 UmsLines
+2026-05-18 18:07:13.969  [I]  HbciCamtPatcher:  parseAndConvert: Parsed 150 transactions
+2026-05-18 18:07:13.968  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
+2026-05-18 18:07:13.934  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (170896 bytes)
+2026-05-18 18:07:13.934  [I]  HbciCamtPatcher:  parseAndConvert: Parsing CAMT XML (170896 bytes)
+2026-05-18 18:07:13.934  [I]  CamtExtractionHelper:  extractFromJobResult: Found CAMT XML (170896 bytes)
+2026-05-18 18:07:13.934  [D]  CamtExtractionHelper:  findCamtXml: Found CAMT XML at key 'content.booked.message'
+2026-05-18 18:07:13.934  [D]  CamtExtractionHelper:  extractFromJobResult: Job result has 14 properties
+2026-05-18 18:07:13.934  [I]  CamtExtractionHelper:  extractFromJobResult: Attempting custom CAMT extraction
+2026-05-18 18:07:13.933  [I]  FintsService:  tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...
+2026-05-18 18:07:13.933  [D]  FintsService:  tryCamtFallbackExtraction: Job properties keys: content.SegHead.seq, content.KTV.KIK.country, content.KTV.bic, basic.dialogid, content.SegHead.code, basic.msgnum, content.booked.message, content.KTV.KIK.blz, content.SegHead.ref, basic.segnum, content.KTV.number, content.SegHead.version, content.format, content.KTV.iban
+2026-05-18 18:07:13.933  [I]  FintsService:  tryCamtFallbackExtraction: Found 14 job properties
+2026-05-18 18:07:13.933  [I]  FintsService:  extractJobProperties: Found 14 properties via getResultData()
+2026-05-18 18:07:13.933  [D]  FintsService:  extractJobProperties: JobResult has 9 fields
+2026-05-18 18:07:13.933  [D]  FintsService:  extractJobProperties: Searching all fields in jobResult...
+2026-05-18 18:07:13.933  [D]  FintsService:  extractJobProperties: JobResult class: GVRKUms
+2026-05-18 18:07:13.933  [D]  FintsService:  extractJobProperties: Extracting from job class GVKUmsAllCamt
+2026-05-18 18:07:13.933  [I]  FintsService:  tryCamtFallbackExtraction: Step 1 - Extracting job properties...
+2026-05-18 18:07:13.933  [I]  FintsService:  tryCamtFallbackExtraction: Target account IBAN=DE91660908000007690118
+2026-05-18 18:07:13.933  [I]  FintsService:  tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...
+2026-05-18 18:07:13.932  [W]  FintsService:  [fetchAccountStatement/5-parse] CAMT JAXB parsing failed (flatData empty), using custom parser fallback
+2026-05-18 18:07:13.932  [I]  FintsService:  [fetchAccountStatement/5-parse] Extracting transaction data from response...
+2026-05-18 18:07:13.932  [W]  FintsService:  [fetchAccountStatement/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...
+2026-05-18 18:07:13.932  [D]  FintsService:  HBCI callback reason=25 msg=Sie k�nnen die Internetverbindung jetzt beenden
+2026-05-18 18:07:13.932  [D]  FintsService:  HBCI status tag=20
+2026-05-18 18:07:13.929  [D]  FintsService:  HBCI status tag=26
+2026-05-18 18:07:13.920  [D]  FintsService:  HBCI status tag=28
+2026-05-18 18:07:13.904  [D]  FintsService:  HBCI status tag=31
+2026-05-18 18:07:13.904  [D]  FintsService:  HBCI status tag=25
+2026-05-18 18:07:13.896  [D]  FintsService:  HBCI status tag=28
+2026-05-18 18:07:13.895  [D]  FintsService:  HBCI status tag=32
+2026-05-18 18:07:13.841  [D]  FintsService:  HBCI status tag=27
+2026-05-18 18:07:13.839  [D]  FintsService:  HBCI status tag=30
+2026-05-18 18:07:13.839  [D]  FintsService:  HBCI status tag=24
+2026-05-18 18:07:13.831  [D]  FintsService:  HBCI status tag=23
+2026-05-18 18:07:13.597  [D]  FintsService:  HBCI status tag=22
+2026-05-18 18:07:13.592  [D]  FintsService:  HBCI status tag=21
+2026-05-18 18:07:13.592  [D]  FintsService:  HBCI status tag=19
+2026-05-18 18:07:13.592  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
+2026-05-18 18:07:13.592  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Speichern der Ergebnisdaten f�r Job TAN2Step7 im JobResult-Objekt
 at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:937)
 at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:311)
 at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:467)
 at org.kapott.hbci.manager.HBCIHandler.execute(HBCIHandler.java:545)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:340)
+at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:342)
 at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
 at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
 at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
@@ -94,454 +96,67 @@ Caused by: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/
 at org.apache.harmony.xml.parsers.SAXParserFactoryImpl.setFeature(SAXParserFactoryImpl.java:93)
 at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:136)
 ... 21 more
-2026-05-16 23:45:17.542  [E]  FintsService:  HBCI log level=1 msg=  unable to parse camt data: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-2026-05-16 23:45:17.411  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:45:17.269  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:45:16.993  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:45:16.986  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:45:16.915  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:45:16.914  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:45:15.456  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:45:15.358  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:45:15.357  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:45:15.349  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:45:01.309  [I]  FintsService:  Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
+2026-05-18 18:07:13.591  [E]  FintsService:  HBCI log level=1 msg=  unable to parse camt data: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
+2026-05-18 18:07:13.400  [D]  FintsService:  HBCI status tag=26
+2026-05-18 18:07:13.284  [D]  FintsService:  HBCI status tag=28
+2026-05-18 18:07:13.063  [D]  FintsService:  HBCI status tag=31
+2026-05-18 18:07:13.059  [D]  FintsService:  HBCI status tag=25
+2026-05-18 18:07:13.023  [D]  FintsService:  HBCI status tag=28
+2026-05-18 18:07:13.022  [D]  FintsService:  HBCI status tag=32
+2026-05-18 18:07:11.480  [D]  FintsService:  HBCI status tag=27
+2026-05-18 18:07:11.340  [D]  FintsService:  HBCI status tag=30
+2026-05-18 18:07:11.339  [D]  FintsService:  HBCI status tag=24
+2026-05-18 18:07:11.330  [D]  FintsService:  HBCI status tag=23
+2026-05-18 18:06:51.533  [I]  FintsService:  Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
 TAN
 
 Bitte bestätigen Sie den Vorgang in Ihrer SecureGo plus App
-2026-05-16 23:45:01.062  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:45:01.051  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:45:01.051  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:45:01.050  [D]  FintsService:  HBCI status tag=2
-2026-05-16 23:45:01.050  [D]  FintsService:  HBCI status tag=2
-2026-05-16 23:45:01.046  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:45:01.024  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:45:00.989  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:45:00.989  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:45:00.978  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:45:00.978  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:45:00.372  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:45:00.370  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:45:00.370  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:45:00.363  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:45:00.136  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:45:00.123  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:45:00.123  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:45:00.123  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:45:00.114  [D]  FintsService:  HBCI status tag=18
-2026-05-16 23:44:59.876  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:44:59.836  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:59.739  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:44:59.738  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:44:59.723  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:59.722  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:44:59.450  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:44:59.315  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:44:59.315  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:44:59.314  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
-2026-05-16 23:44:59.300  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:44:59.290  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
-2026-05-16 23:44:52.180  [I]  FintsService:  PIN-Anfrage für BLZ 66090800 userId='76****a'
-2026-05-16 23:44:51.945  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:44:51.935  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:44:51.932  [D]  FintsService:  HBCI status tag=17
-2026-05-16 23:44:51.932  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank...
-2026-05-16 23:44:51.932  [D]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
-2026-05-16 23:44:51.904  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2025-07-01)
-2026-05-16 23:44:51.904  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew
-2026-05-16 23:44:51.904  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
-2026-05-16 23:44:51.904  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
-2026-05-16 23:44:51.904  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geöffnet – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
-2026-05-16 23:44:51.903  [I]  FintsService:  openSession: HBCI-Handler bereit – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
-2026-05-16 23:44:51.851  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
-2026-05-16 23:44:51.850  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: �berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m�glich
-at org.kapott.hbci.protocol.DE.propagateValue(DE.java:72)
-at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
-at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
-at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
-at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
-at org.kapott.hbci.protocol.MSG.propagateUserData(MSG.java:79)
-at org.kapott.hbci.protocol.MSG.initData(MSG.java:128)
-at org.kapott.hbci.protocol.MSG.init(MSG.java:123)
-at org.kapott.hbci.protocol.factory.MSGFactory.createMSG(MSGFactory.java:60)
-at org.kapott.hbci.manager.MsgGen.generate(MsgGen.java:112)
-at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:209)
-at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:176)
-at org.kapott.hbci.dialog.AbstractRawHBCIDialog.sendData(AbstractRawHBCIDialog.java:126)
-at org.kapott.hbci.dialog.AbstractRawHBCIDialog.execute(AbstractRawHBCIDialog.java:99)
-at org.kapott.hbci.manager.HBCIUser.fetchUPD(HBCIUser.java:639)
-at org.kapott.hbci.manager.HBCIUser.sync(HBCIUser.java:696)
-at org.kapott.hbci.manager.HBCIUser.register(HBCIUser.java:721)
-at org.kapott.hbci.manager.HBCIHandler.registerUser(HBCIHandler.java:296)
-at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:166)
-at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:116)
-at de.mybudgets.app.data.banking.FintsService.openSession(FintsService.kt:489)
-at de.mybudgets.app.data.banking.FintsService.access$openSession(FintsService.kt:60)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:240)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-2026-05-16 23:44:51.845  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:44:51.617  [D]  FintsService:  HBCI status tag=11
-2026-05-16 23:44:51.335  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
-2026-05-16 23:44:51.335  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
-2026-05-16 23:44:51.335  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
-2026-05-16 23:44:51.335  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Tue Jul 01 00:00:00 GMT+02:00 2025
-2026-05-16 23:44:51.334  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=288)
-2026-05-16 23:44:47.545  [I]  AccountViewModel:  syncBankTransactions: 146 neue Buchungen für Konto 1, Saldo=0.0
-2026-05-16 23:44:33.694  [I]  FintsService:  [fetchAccountStatement/5-parse] SUCCESS: Extracted 150 transactions
-2026-05-16 23:44:33.693  [I]  FintsService:  tryCamtFallbackExtraction: ✅ SUCCESS - Extracted 150 transactions
-2026-05-16 23:44:33.693  [E]  CamtExtractionHelper:  injectTransactions: Failed to inject transactions
-java.lang.NoSuchFieldException: No field flatData in class Lorg/kapott/hbci/GV_Result/GVRKUms; (declaration of 'org.kapott.hbci.GV_Result.GVRKUms' appears in /data/app/~~S6SDJ4_f_Yzta4KV6aPSaw==/de.mybudgets.app-InbQz03daq3oaLDsx3zLCw==/base.apk)
-at java.lang.Class.getDeclaredField(Native Method)
-at de.mybudgets.app.data.banking.camt.CamtExtractionHelper.injectTransactions(CamtExtractionHelper.kt:130)
-at de.mybudgets.app.data.banking.FintsService.tryCamtFallbackExtraction(FintsService.kt:915)
-at de.mybudgets.app.data.banking.FintsService.access$tryCamtFallbackExtraction(FintsService.kt:60)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:372)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-
-2026-05-16 23:44:33.693  [I]  CamtExtractionHelper:  injectTransactions: Injecting 150 transactions into GVRKUms
-2026-05-16 23:44:33.693  [I]  FintsService:  tryCamtFallbackExtraction: Step 3 - Injecting 150 transactions into result...
-2026-05-16 23:44:33.693  [I]  FintsService:  tryCamtFallbackExtraction: CamtExtractionHelper returned 150 transactions
-2026-05-16 23:44:33.693  [I]  HbciCamtPatcher:  parseAndConvert: Converted 150 UmsLines
-2026-05-16 23:44:33.692  [I]  HbciCamtPatcher:  parseAndConvert: Parsed 150 transactions
-2026-05-16 23:44:33.692  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
-2026-05-16 23:44:33.665  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (209905 bytes)
-2026-05-16 23:44:33.665  [I]  HbciCamtPatcher:  parseAndConvert: Parsing CAMT XML (209905 bytes)
-2026-05-16 23:44:33.665  [I]  CamtExtractionHelper:  extractFromJobResult: Found CAMT XML (209905 bytes)
-2026-05-16 23:44:33.665  [D]  CamtExtractionHelper:  findCamtXml: Found CAMT XML at key 'content.booked.message'
-2026-05-16 23:44:33.665  [D]  CamtExtractionHelper:  extractFromJobResult: Job result has 14 properties
-2026-05-16 23:44:33.665  [I]  CamtExtractionHelper:  extractFromJobResult: Attempting custom CAMT extraction
-2026-05-16 23:44:33.665  [I]  FintsService:  tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...
-2026-05-16 23:44:33.665  [D]  FintsService:  tryCamtFallbackExtraction: Job properties keys: content.SegHead.seq, content.KTV.KIK.country, content.KTV.bic, basic.dialogid, content.SegHead.code, basic.msgnum, content.booked.message, content.KTV.KIK.blz, content.SegHead.ref, basic.segnum, content.KTV.number, content.SegHead.version, content.format, content.KTV.iban
-2026-05-16 23:44:33.665  [I]  FintsService:  tryCamtFallbackExtraction: Found 14 job properties
-2026-05-16 23:44:33.665  [I]  FintsService:  extractJobProperties: Found 14 properties via getResultData()
-2026-05-16 23:44:33.665  [D]  FintsService:  extractJobProperties: JobResult has 9 fields
-2026-05-16 23:44:33.664  [D]  FintsService:  extractJobProperties: Searching all fields in jobResult...
-2026-05-16 23:44:33.664  [D]  FintsService:  extractJobProperties: JobResult class: GVRKUms
-2026-05-16 23:44:33.664  [D]  FintsService:  extractJobProperties: Extracting from job class GVKUmsAllCamt
-2026-05-16 23:44:33.664  [I]  FintsService:  tryCamtFallbackExtraction: Step 1 - Extracting job properties...
-2026-05-16 23:44:33.664  [I]  FintsService:  tryCamtFallbackExtraction: Target account IBAN=DE91660908000007690118
-2026-05-16 23:44:33.664  [I]  FintsService:  tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...
-2026-05-16 23:44:33.664  [W]  FintsService:  [fetchAccountStatement/5-parse] CAMT JAXB parsing failed (flatData empty), using custom parser fallback
-2026-05-16 23:44:33.664  [I]  FintsService:  [fetchAccountStatement/5-parse] Extracting transaction data from response...
-2026-05-16 23:44:33.664  [W]  FintsService:  [fetchAccountStatement/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...
-2026-05-16 23:44:33.663  [D]  FintsService:  HBCI callback reason=25 msg=Sie k�nnen die Internetverbindung jetzt beenden
-2026-05-16 23:44:33.663  [D]  FintsService:  HBCI status tag=20
-2026-05-16 23:44:33.661  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:44:33.653  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:33.639  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:44:33.638  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:44:33.629  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:33.628  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:44:33.564  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:44:33.562  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:44:33.562  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:44:33.554  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:44:33.318  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:44:33.313  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:44:33.313  [D]  FintsService:  HBCI status tag=19
-2026-05-16 23:44:33.313  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
-2026-05-16 23:44:33.313  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Speichern der Ergebnisdaten f�r Job TAN2Step7 im JobResult-Objekt
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:937)
-at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:311)
-at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:467)
-at org.kapott.hbci.manager.HBCIHandler.execute(HBCIHandler.java:545)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:340)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-Caused by: org.kapott.hbci.exceptions.HBCI_Exception: Error parsing CAMT document
-at org.kapott.hbci.GV.GVKUmsAllCamt.extractResults(GVKUmsAllCamt.java:188)
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResultFromTanJob(HBCIJobImpl.java:873)
-at org.kapott.hbci.GV.GVTAN2Step.extractResults(GVTAN2Step.java:242)
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:929)
-... 12 more
-Caused by: java.lang.IllegalStateException: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:143)
-at com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.getXMLReader(UnmarshallerImpl.java:154)
-at com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.unmarshal(UnmarshallerImpl.java:291)
-at javax.xml.bind.JAXB.unmarshal(JAXB.java:238)
-at org.kapott.hbci.GV.parsers.ParseCamt05200108.parse(ParseCamt05200108.java:77)
-at org.kapott.hbci.GV.parsers.ParseCamt05200108.parse(ParseCamt05200108.java:68)
-at org.kapott.hbci.GV.GVKUmsAllCamt.extractResults(GVKUmsAllCamt.java:182)
-... 15 more
-Caused by: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-at org.apache.harmony.xml.parsers.SAXParserFactoryImpl.setFeature(SAXParserFactoryImpl.java:93)
-at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:136)
-... 21 more
-2026-05-16 23:44:33.312  [E]  FintsService:  HBCI log level=1 msg=  unable to parse camt data: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-2026-05-16 23:44:33.154  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:44:33.005  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:32.722  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:44:32.715  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:44:32.641  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:32.639  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:44:31.371  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:44:31.271  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:44:31.270  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:44:31.251  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:44:17.443  [I]  FintsService:  Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
-TAN
-
-Bitte bestätigen Sie den Vorgang in Ihrer SecureGo plus App
-2026-05-16 23:44:17.203  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:44:17.194  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:44:17.194  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:44:17.193  [D]  FintsService:  HBCI status tag=2
-2026-05-16 23:44:17.193  [D]  FintsService:  HBCI status tag=2
-2026-05-16 23:44:17.190  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:44:17.174  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:17.146  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:44:17.145  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:44:17.136  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:17.136  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:44:16.478  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:44:16.475  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:44:16.475  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:44:16.467  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:44:16.237  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:44:16.224  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:44:16.224  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:44:16.224  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:44:16.216  [D]  FintsService:  HBCI status tag=18
-2026-05-16 23:44:15.991  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:44:15.953  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:15.852  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:44:15.851  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:44:15.832  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:44:15.831  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:44:15.629  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:44:15.411  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:44:15.411  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:44:15.411  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
-2026-05-16 23:44:15.401  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:44:15.397  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
-2026-05-16 23:44:04.313  [I]  FintsService:  PIN-Anfrage für BLZ 66090800 userId='76****a'
-2026-05-16 23:44:04.067  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:44:04.057  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:44:04.052  [D]  FintsService:  HBCI status tag=17
-2026-05-16 23:44:04.051  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank...
-2026-05-16 23:44:04.051  [D]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
-2026-05-16 23:44:04.022  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2025-09-28)
-2026-05-16 23:44:04.022  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew
-2026-05-16 23:44:04.021  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
-2026-05-16 23:44:04.021  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
-2026-05-16 23:44:04.021  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geöffnet – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
-2026-05-16 23:44:04.021  [I]  FintsService:  openSession: HBCI-Handler bereit – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
-2026-05-16 23:44:03.967  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
-2026-05-16 23:44:03.967  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: �berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m�glich
-at org.kapott.hbci.protocol.DE.propagateValue(DE.java:72)
-at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
-at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
-at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
-at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
-at org.kapott.hbci.protocol.MSG.propagateUserData(MSG.java:79)
-at org.kapott.hbci.protocol.MSG.initData(MSG.java:128)
-at org.kapott.hbci.protocol.MSG.init(MSG.java:123)
-at org.kapott.hbci.protocol.factory.MSGFactory.createMSG(MSGFactory.java:60)
-at org.kapott.hbci.manager.MsgGen.generate(MsgGen.java:112)
-at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:209)
-at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:176)
-at org.kapott.hbci.dialog.AbstractRawHBCIDialog.sendData(AbstractRawHBCIDialog.java:126)
-at org.kapott.hbci.dialog.AbstractRawHBCIDialog.execute(AbstractRawHBCIDialog.java:99)
-at org.kapott.hbci.manager.HBCIUser.fetchUPD(HBCIUser.java:639)
-at org.kapott.hbci.manager.HBCIUser.sync(HBCIUser.java:696)
-at org.kapott.hbci.manager.HBCIUser.register(HBCIUser.java:721)
-at org.kapott.hbci.manager.HBCIHandler.registerUser(HBCIHandler.java:296)
-at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:166)
-at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:116)
-at de.mybudgets.app.data.banking.FintsService.openSession(FintsService.kt:489)
-at de.mybudgets.app.data.banking.FintsService.access$openSession(FintsService.kt:60)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:240)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-2026-05-16 23:44:03.962  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:44:03.722  [D]  FintsService:  HBCI status tag=11
-2026-05-16 23:44:03.414  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
-2026-05-16 23:44:03.414  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
-2026-05-16 23:44:03.414  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
-2026-05-16 23:44:03.414  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Sun Sep 28 00:00:00 GMT+02:00 2025
-2026-05-16 23:44:03.413  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=288)
-2026-05-16 23:44:03.413  [I]  AccountViewModel:  Inkrementeller Sync ab 28.09.2025 (letzte Buchung: 29.09.2025)
-2026-05-16 23:42:50.016  [I]  AccountViewModel:  syncBankTransactions: 145 neue Buchungen für Konto 1, Saldo=0.0
-2026-05-16 23:42:34.398  [I]  FintsService:  [fetchAccountStatement/5-parse] SUCCESS: Extracted 150 transactions
-2026-05-16 23:42:34.396  [I]  FintsService:  tryCamtFallbackExtraction: ✅ SUCCESS - Extracted 150 transactions
-2026-05-16 23:42:34.396  [E]  CamtExtractionHelper:  injectTransactions: Failed to inject transactions
-java.lang.NoSuchFieldException: No field flatData in class Lorg/kapott/hbci/GV_Result/GVRKUms; (declaration of 'org.kapott.hbci.GV_Result.GVRKUms' appears in /data/app/~~S6SDJ4_f_Yzta4KV6aPSaw==/de.mybudgets.app-InbQz03daq3oaLDsx3zLCw==/base.apk)
-at java.lang.Class.getDeclaredField(Native Method)
-at de.mybudgets.app.data.banking.camt.CamtExtractionHelper.injectTransactions(CamtExtractionHelper.kt:130)
-at de.mybudgets.app.data.banking.FintsService.tryCamtFallbackExtraction(FintsService.kt:915)
-at de.mybudgets.app.data.banking.FintsService.access$tryCamtFallbackExtraction(FintsService.kt:60)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:372)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-
-2026-05-16 23:42:34.395  [I]  CamtExtractionHelper:  injectTransactions: Injecting 150 transactions into GVRKUms
-2026-05-16 23:42:34.395  [I]  FintsService:  tryCamtFallbackExtraction: Step 3 - Injecting 150 transactions into result...
-2026-05-16 23:42:34.395  [I]  FintsService:  tryCamtFallbackExtraction: CamtExtractionHelper returned 150 transactions
-2026-05-16 23:42:34.395  [I]  HbciCamtPatcher:  parseAndConvert: Converted 150 UmsLines
-2026-05-16 23:42:34.394  [I]  HbciCamtPatcher:  parseAndConvert: Parsed 150 transactions
-2026-05-16 23:42:34.394  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
-2026-05-16 23:42:34.346  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (215358 bytes)
-2026-05-16 23:42:34.345  [I]  HbciCamtPatcher:  parseAndConvert: Parsing CAMT XML (215358 bytes)
-2026-05-16 23:42:34.345  [I]  CamtExtractionHelper:  extractFromJobResult: Found CAMT XML (215358 bytes)
-2026-05-16 23:42:34.345  [D]  CamtExtractionHelper:  findCamtXml: Found CAMT XML at key 'content.booked.message'
-2026-05-16 23:42:34.345  [D]  CamtExtractionHelper:  extractFromJobResult: Job result has 14 properties
-2026-05-16 23:42:34.345  [I]  CamtExtractionHelper:  extractFromJobResult: Attempting custom CAMT extraction
-2026-05-16 23:42:34.345  [I]  FintsService:  tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...
-2026-05-16 23:42:34.345  [D]  FintsService:  tryCamtFallbackExtraction: Job properties keys: content.SegHead.seq, content.KTV.KIK.country, content.KTV.bic, basic.dialogid, content.SegHead.code, basic.msgnum, content.booked.message, content.KTV.KIK.blz, content.SegHead.ref, basic.segnum, content.KTV.number, content.SegHead.version, content.format, content.KTV.iban
-2026-05-16 23:42:34.344  [I]  FintsService:  tryCamtFallbackExtraction: Found 14 job properties
-2026-05-16 23:42:34.344  [I]  FintsService:  extractJobProperties: Found 14 properties via getResultData()
-2026-05-16 23:42:34.344  [D]  FintsService:  extractJobProperties: JobResult has 9 fields
-2026-05-16 23:42:34.344  [D]  FintsService:  extractJobProperties: Searching all fields in jobResult...
-2026-05-16 23:42:34.344  [D]  FintsService:  extractJobProperties: JobResult class: GVRKUms
-2026-05-16 23:42:34.344  [D]  FintsService:  extractJobProperties: Extracting from job class GVKUmsAllCamt
-2026-05-16 23:42:34.344  [I]  FintsService:  tryCamtFallbackExtraction: Step 1 - Extracting job properties...
-2026-05-16 23:42:34.344  [I]  FintsService:  tryCamtFallbackExtraction: Target account IBAN=DE91660908000007690118
-2026-05-16 23:42:34.344  [I]  FintsService:  tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...
-2026-05-16 23:42:34.344  [W]  FintsService:  [fetchAccountStatement/5-parse] CAMT JAXB parsing failed (flatData empty), using custom parser fallback
-2026-05-16 23:42:34.343  [I]  FintsService:  [fetchAccountStatement/5-parse] Extracting transaction data from response...
-2026-05-16 23:42:34.343  [W]  FintsService:  [fetchAccountStatement/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...
-2026-05-16 23:42:34.343  [D]  FintsService:  HBCI callback reason=25 msg=Sie k�nnen die Internetverbindung jetzt beenden
-2026-05-16 23:42:34.343  [D]  FintsService:  HBCI status tag=20
-2026-05-16 23:42:34.340  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:42:34.332  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:42:34.318  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:42:34.317  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:42:34.310  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:42:34.310  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:42:34.254  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:42:34.252  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:42:34.252  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:42:34.243  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:42:34.016  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:42:34.011  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:42:34.011  [D]  FintsService:  HBCI status tag=19
-2026-05-16 23:42:34.011  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
-2026-05-16 23:42:34.011  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Speichern der Ergebnisdaten f�r Job TAN2Step7 im JobResult-Objekt
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:937)
-at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:311)
-at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:467)
-at org.kapott.hbci.manager.HBCIHandler.execute(HBCIHandler.java:545)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:340)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-Caused by: org.kapott.hbci.exceptions.HBCI_Exception: Error parsing CAMT document
-at org.kapott.hbci.GV.GVKUmsAllCamt.extractResults(GVKUmsAllCamt.java:188)
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResultFromTanJob(HBCIJobImpl.java:873)
-at org.kapott.hbci.GV.GVTAN2Step.extractResults(GVTAN2Step.java:242)
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:929)
-... 12 more
-Caused by: java.lang.IllegalStateException: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:143)
-at com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.getXMLReader(UnmarshallerImpl.java:154)
-at com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.unmarshal(UnmarshallerImpl.java:291)
-at javax.xml.bind.JAXB.unmarshal(JAXB.java:238)
-at org.kapott.hbci.GV.parsers.ParseCamt05200108.parse(ParseCamt05200108.java:77)
-at org.kapott.hbci.GV.parsers.ParseCamt05200108.parse(ParseCamt05200108.java:68)
-at org.kapott.hbci.GV.GVKUmsAllCamt.extractResults(GVKUmsAllCamt.java:182)
-... 15 more
-Caused by: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-at org.apache.harmony.xml.parsers.SAXParserFactoryImpl.setFeature(SAXParserFactoryImpl.java:93)
-at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:136)
-... 21 more
-2026-05-16 23:42:34.009  [E]  FintsService:  HBCI log level=1 msg=  unable to parse camt data: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-2026-05-16 23:42:33.806  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:42:33.664  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:42:33.394  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:42:33.389  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:42:33.315  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:42:33.314  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:42:31.958  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:42:31.824  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:42:31.824  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:42:31.809  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:42:13.483  [I]  FintsService:  Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
-TAN
-
-Bitte bestätigen Sie den Vorgang in Ihrer SecureGo plus App
-2026-05-16 23:42:13.251  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:42:13.241  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:42:13.241  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:42:13.241  [D]  FintsService:  HBCI status tag=2
-2026-05-16 23:42:13.240  [D]  FintsService:  HBCI status tag=2
-2026-05-16 23:42:13.237  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:42:13.219  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:42:13.050  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:42:13.049  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:42:13.037  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:42:13.037  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:42:12.484  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:42:12.479  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:42:12.478  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:42:12.470  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:42:12.232  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:42:12.219  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:42:12.219  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:42:12.218  [D]  FintsService:  HBCI status tag=1
-2026-05-16 23:42:12.206  [D]  FintsService:  HBCI status tag=18
-2026-05-16 23:42:11.963  [D]  FintsService:  HBCI status tag=26
-2026-05-16 23:42:11.921  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:42:11.668  [D]  FintsService:  HBCI status tag=31
-2026-05-16 23:42:11.667  [D]  FintsService:  HBCI status tag=25
-2026-05-16 23:42:11.652  [D]  FintsService:  HBCI status tag=28
-2026-05-16 23:42:11.652  [D]  FintsService:  HBCI status tag=32
-2026-05-16 23:42:11.396  [D]  FintsService:  HBCI status tag=27
-2026-05-16 23:42:11.202  [D]  FintsService:  HBCI status tag=30
-2026-05-16 23:42:11.202  [D]  FintsService:  HBCI status tag=24
-2026-05-16 23:42:11.194  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
-2026-05-16 23:42:11.183  [D]  FintsService:  HBCI status tag=23
-2026-05-16 23:42:11.176  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
-2026-05-16 23:42:04.838  [I]  FintsService:  PIN-Anfrage für BLZ 66090800 userId='76****a'
-2026-05-16 23:42:04.619  [D]  FintsService:  HBCI status tag=22
-2026-05-16 23:42:04.606  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:42:04.601  [D]  FintsService:  HBCI status tag=17
-2026-05-16 23:42:04.601  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank...
-2026-05-16 23:42:04.601  [D]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
-2026-05-16 23:42:04.559  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2025-08-18)
-2026-05-16 23:42:04.559  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew
-2026-05-16 23:42:04.559  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
-2026-05-16 23:42:04.558  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
-2026-05-16 23:42:04.558  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geöffnet – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
-2026-05-16 23:42:04.558  [I]  FintsService:  openSession: HBCI-Handler bereit – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
-2026-05-16 23:42:04.503  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
-2026-05-16 23:42:04.503  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: �berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m�glich
+2026-05-18 18:06:51.307  [D]  FintsService:  HBCI status tag=22
+2026-05-18 18:06:51.297  [D]  FintsService:  HBCI status tag=21
+2026-05-18 18:06:51.297  [D]  FintsService:  HBCI status tag=1
+2026-05-18 18:06:51.297  [D]  FintsService:  HBCI status tag=2
+2026-05-18 18:06:51.296  [D]  FintsService:  HBCI status tag=2
+2026-05-18 18:06:51.293  [D]  FintsService:  HBCI status tag=26
+2026-05-18 18:06:51.265  [D]  FintsService:  HBCI status tag=28
+2026-05-18 18:06:51.113  [D]  FintsService:  HBCI status tag=31
+2026-05-18 18:06:51.112  [D]  FintsService:  HBCI status tag=25
+2026-05-18 18:06:51.102  [D]  FintsService:  HBCI status tag=28
+2026-05-18 18:06:51.102  [D]  FintsService:  HBCI status tag=32
+2026-05-18 18:06:50.404  [D]  FintsService:  HBCI status tag=27
+2026-05-18 18:06:50.402  [D]  FintsService:  HBCI status tag=30
+2026-05-18 18:06:50.402  [D]  FintsService:  HBCI status tag=24
+2026-05-18 18:06:50.393  [D]  FintsService:  HBCI status tag=23
+2026-05-18 18:06:50.144  [D]  FintsService:  HBCI status tag=22
+2026-05-18 18:06:50.131  [D]  FintsService:  HBCI status tag=21
+2026-05-18 18:06:50.131  [D]  FintsService:  HBCI status tag=1
+2026-05-18 18:06:50.131  [D]  FintsService:  HBCI status tag=1
+2026-05-18 18:06:50.119  [D]  FintsService:  HBCI status tag=18
+2026-05-18 18:06:49.887  [D]  FintsService:  HBCI status tag=26
+2026-05-18 18:06:49.842  [D]  FintsService:  HBCI status tag=28
+2026-05-18 18:06:49.583  [D]  FintsService:  HBCI status tag=31
+2026-05-18 18:06:49.582  [D]  FintsService:  HBCI status tag=25
+2026-05-18 18:06:49.565  [D]  FintsService:  HBCI status tag=28
+2026-05-18 18:06:49.564  [D]  FintsService:  HBCI status tag=32
+2026-05-18 18:06:49.250  [D]  FintsService:  HBCI status tag=27
+2026-05-18 18:06:49.083  [D]  FintsService:  HBCI status tag=30
+2026-05-18 18:06:49.082  [D]  FintsService:  HBCI status tag=24
+2026-05-18 18:06:49.077  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
+2026-05-18 18:06:49.066  [D]  FintsService:  HBCI status tag=23
+2026-05-18 18:06:49.059  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
+2026-05-18 18:06:43.031  [I]  FintsService:  PIN-Anfrage für BLZ 66090800 userId='76****a'
+2026-05-18 18:06:42.801  [D]  FintsService:  HBCI status tag=22
+2026-05-18 18:06:42.789  [D]  FintsService:  HBCI status tag=21
+2026-05-18 18:06:42.784  [D]  FintsService:  HBCI status tag=17
+2026-05-18 18:06:42.784  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank...
+2026-05-18 18:06:42.783  [D]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
+2026-05-18 18:06:42.741  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (no date filter)
+2026-05-18 18:06:42.740  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew
+2026-05-18 18:06:42.740  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
+2026-05-18 18:06:42.738  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
+2026-05-18 18:06:42.738  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geöffnet – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
+2026-05-18 18:06:42.738  [I]  FintsService:  openSession: HBCI-Handler bereit – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
+2026-05-18 18:06:42.671  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
+2026-05-18 18:06:42.671  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: �berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m�glich
 at org.kapott.hbci.protocol.DE.propagateValue(DE.java:72)
 at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
 at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
@@ -562,9 +177,9 @@ at org.kapott.hbci.manager.HBCIUser.register(HBCIUser.java:721)
 at org.kapott.hbci.manager.HBCIHandler.registerUser(HBCIHandler.java:296)
 at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:166)
 at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:116)
-at de.mybudgets.app.data.banking.FintsService.openSession(FintsService.kt:489)
+at de.mybudgets.app.data.banking.FintsService.openSession(FintsService.kt:491)
 at de.mybudgets.app.data.banking.FintsService.access$openSession(FintsService.kt:60)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:240)
+at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:242)
 at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
 at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
 at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
@@ -573,29 +188,27 @@ at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-2026-05-16 23:42:04.492  [D]  FintsService:  HBCI status tag=21
-2026-05-16 23:42:04.253  [D]  FintsService:  HBCI status tag=11
-2026-05-16 23:42:03.657  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
-2026-05-16 23:42:03.590  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=** This test registration can be invalidated at any time!!             **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=** HBCIUtils.setParam("client.product.name","<your registration>");    **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=** After receiving your registration, add this line to your code:      **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=** and create your own registration (it's free)                        **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=** Please go to https://www.hbci-zka.de/register/prod_register.htm     **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=** ONLY be used for internal testing, not for production purpose!!     **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=** HBCI4Java is currently using a product registration that should     **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=** WARNING                                                             **
-2026-05-16 23:42:03.589  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
-2026-05-16 23:42:03.527  [D]  FintsService:  initHbciOnce: Locale normalisiert von 'de-DE-u-fw-mon-mu-celsius' zu 'de-DE' (Unicode-Erweiterungen entfernt)
-2026-05-16 23:42:03.527  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
-2026-05-16 23:42:03.527  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
-2026-05-16 23:42:03.526  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Mon Aug 18 00:00:00 GMT+02:00 2025
-2026-05-16 23:42:03.492  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=288)
-2026-05-16 23:42:03.489  [I]  AccountViewModel:  Inkrementeller Sync ab 18.08.2025 (letzte Buchung: 19.08.2025)
-
- 
+2026-05-18 18:06:42.661  [D]  FintsService:  HBCI status tag=21
+2026-05-18 18:06:42.411  [D]  FintsService:  HBCI status tag=11
+2026-05-18 18:06:41.791  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=** This test registration can be invalidated at any time!!             **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=** HBCIUtils.setParam("client.product.name","<your registration>");    **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=** After receiving your registration, add this line to your code:      **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=** and create your own registration (it's free)                        **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=** Please go to https://www.hbci-zka.de/register/prod_register.htm     **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=** ONLY be used for internal testing, not for production purpose!!     **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=** HBCI4Java is currently using a product registration that should     **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=** WARNING                                                             **
+2026-05-18 18:06:41.733  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
+2026-05-18 18:06:41.650  [D]  FintsService:  initHbciOnce: Locale normalisiert von 'de-DE-u-fw-mon-mu-celsius' zu 'de-DE' (Unicode-Erweiterungen entfernt)
+2026-05-18 18:06:41.650  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
+2026-05-18 18:06:41.650  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
+2026-05-18 18:06:41.650  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab null
+2026-05-18 18:06:41.648  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=296)
+2026-05-18 18:06:41.646  [I]  AccountViewModel:  Voll-Sync (kein Datumsfilter)

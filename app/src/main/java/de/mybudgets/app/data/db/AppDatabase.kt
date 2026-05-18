@@ -21,7 +21,7 @@ import de.mybudgets.app.data.model.*
         CategoryPattern::class,
         RecurringRule::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -191,6 +191,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE recurring_rules ADD COLUMN matchIban TEXT")
+                database.execSQL("ALTER TABLE recurring_rules ADD COLUMN matchAmountTolerance REAL")
+            }
+        }
+
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -231,7 +238,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_7_8,
                     MIGRATION_8_9,
                     MIGRATION_9_10,
-                    MIGRATION_10_11
+                    MIGRATION_10_11,
+                    MIGRATION_11_12
                 ).build().also { INSTANCE = it }
             }
     }

@@ -82,6 +82,7 @@ class RecurringPatternDialog : DialogFragment() {
             card.tvTransactionCount.text = getString(R.string.recurring_pattern_tx_count, p.transactions.size)
 
             card.etPatternKeyword.setText(p.suggestedDescription)
+            card.etPatternAmountFilter.setText(CurrencyFormatter.format(abs(tx.amount), "EUR"))
             addSuggestionChips(card.chipGroupSuggestions, p.transactions, card.etPatternKeyword, card.layoutDetail, p.transactions)
 
             addTransactionRows(card.layoutDetail, p.transactions)
@@ -168,10 +169,17 @@ class RecurringPatternDialog : DialogFragment() {
                 if (kw.isEmpty()) continue
                 val tx = p.transactions.first()
                 val commonCategory = p.transactions.map { it.categoryId }.distinct().singleOrNull()
+                val iban = card.etPatternIban.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+                val amountText = card.etPatternAmountFilter.text?.toString()?.trim()?.replace(",", ".")
+                val amountOverride = amountText?.toDoubleOrNull()
+                val toleranceText = card.etPatternTolerance.text?.toString()?.trim()?.replace(",", ".")
+                val toleranceOverride = toleranceText?.toDoubleOrNull()
                 rules.add(RecurringRule(
                     name = kw,
                     matchKeyword = kw,
-                    matchAmount = abs(tx.amount),
+                    matchAmount = amountOverride ?: abs(tx.amount),
+                    matchIban = iban,
+                    matchAmountTolerance = toleranceOverride,
                     intervalDays = p.detectedIntervalDays,
                     categoryId = commonCategory,
                     accountId = tx.accountId

@@ -9,6 +9,8 @@ data class RecurringRule(
     val name: String,
     val matchKeyword: String,
     val matchAmount: Double? = null,
+    val matchIban: String? = null,
+    val matchAmountTolerance: Double? = null,
     val intervalDays: Int,
     val categoryId: Long? = null,
     val accountId: Long? = null,

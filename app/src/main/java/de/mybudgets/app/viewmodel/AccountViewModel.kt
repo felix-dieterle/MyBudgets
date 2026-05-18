@@ -83,11 +83,25 @@ class AccountViewModel @Inject constructor(
         val rules = ruleRepo.getActive()
         val matchingRules = if (accountId != 0L) rules.filter { it.accountId == null || it.accountId == accountId } else rules
         for (tx in transactions) {
-            val matchingRule = matchingRules.firstOrNull { rule ->
-                val descNote = "${tx.description} ${tx.note}"
-                descNote.contains(rule.matchKeyword, ignoreCase = true) &&
-                    (rule.matchAmount == null || kotlin.math.abs(kotlin.math.abs(tx.amount) - rule.matchAmount) <= 1.0)
-            }
+            val matchingRule = matchingRules
+                .mapNotNull { rule ->
+                    val descNote = "${tx.description} ${tx.note}"
+                    if (!descNote.contains(rule.matchKeyword, ignoreCase = true)) return@mapNotNull null
+                    val ibanOk = rule.matchIban?.let { descNote.contains(it, ignoreCase = true) } ?: true
+                    if (!ibanOk) return@mapNotNull null
+                    val tolerance = rule.matchAmountTolerance ?: 1.0
+                    val amountOk = rule.matchAmount == null ||
+                        kotlin.math.abs(kotlin.math.abs(tx.amount) - rule.matchAmount) <= tolerance
+                    if (!amountOk) return@mapNotNull null
+                    val priority = when {
+                        rule.matchIban != null -> 3
+                        rule.matchAmount != null -> 2
+                        else -> 1
+                    }
+                    Pair(rule, priority)
+                }
+                .maxByOrNull { it.second }
+                ?.first
             if (matchingRule != null) {
                 txRepo.save(tx.copy(
                     isRecurring = true,
