@@ -66,13 +66,17 @@ class AccountViewModel @Inject constructor(
     private val _bankSyncState = MutableStateFlow<BankSyncState>(BankSyncState.Idle)
     val bankSyncState: StateFlow<BankSyncState> = _bankSyncState
 
-    private var lastSyncEarliestNewMillis: Long? = null
+    // Anchor for "weiter zurück laden": hält fest, welches fromDate zuletzt
+    // an die Bank geschickt wurde. Bei Voll-Sync (fromDate=null) wird der
+    // earliest neue TX als initialer Anchor verwendet.
+    // Wird NIE auf null gesetzt – nur auf NO_FROM_DATE (= kein weiteres Laden möglich).
+    private var syncLastFromDate: Long = NO_FROM_DATE
 
-    val canContinueSync: Boolean get() = lastSyncEarliestNewMillis != null
+    val canContinueSync: Boolean get() = syncLastFromDate != NO_FROM_DATE && syncLastFromDate > SYNC_STOP_MILLIS
 
     fun continueSyncOlder(accountId: Long) {
-        val from = lastSyncEarliestNewMillis ?: return
-        syncBankTransactions(accountId, from - 7_776_000_000L) // 90 Tage weiter zurück
+        if (!canContinueSync) return
+        syncBankTransactions(accountId, syncLastFromDate - CONTINUE_STEP_MILLIS) // 90 Tage weiter zurück
     }
 
     private suspend fun matchTransactionsAgainstRules(transactions: List<de.mybudgets.app.data.model.Transaction>, accountId: Long) {
@@ -144,18 +148,22 @@ class AccountViewModel @Inject constructor(
             }
 
             val fromDate: java.util.Date?
+            val actualFromMillis: Long // was wurde tatsächlich als fromDate verwendet?
             if (fromDateMillis != NO_FROM_DATE) {
                 fromDate = java.util.Date(fromDateMillis)
+                actualFromMillis = fromDateMillis
             } else {
                 val latestTxDate = txRepo.getLatestDateForAccount(account.id)
-                fromDate = if (latestTxDate != null) {
-                    val buffer = latestTxDate - 86_400_000L
-                    AppLogger.i(TAG, "Inkrementeller Sync ab ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(buffer))} (letzte Buchung: ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(latestTxDate))})")
-                    java.util.Date(buffer)
+                val buffer = if (latestTxDate != null) {
+                    val b = latestTxDate - 86_400_000L
+                    AppLogger.i(TAG, "Inkrementeller Sync ab ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(b))} (letzte Buchung: ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(latestTxDate))})")
+                    b
                 } else {
                     AppLogger.i(TAG, "Voll-Sync (keine bekannten Buchungen)")
                     null
                 }
+                fromDate = if (buffer != null) java.util.Date(buffer) else null
+                actualFromMillis = buffer ?: NO_FROM_DATE
             }
             val syncResult = fintsService.fetchAccountStatement(account, fromDate)
 
@@ -165,8 +173,13 @@ class AccountViewModel @Inject constructor(
                 val newTx = transactions.filter { it.remoteId == null || it.remoteId !in existingRemoteIds }
                 newTx.forEach { tx -> txRepo.save(tx.copy(accountId = account.id)) }
                 matchTransactionsAgainstRules(newTx, account.id)
-                val earliest = newTx.minOfOrNull { it.date }
-                lastSyncEarliestNewMillis = earliest
+                // Anchor für "weiter zurück": bei explizitem fromDate das fromDate selbst,
+                // bei Voll-Sync den earliest neuen TX verwenden.
+                syncLastFromDate = if (actualFromMillis != NO_FROM_DATE) {
+                    actualFromMillis
+                } else {
+                    newTx.minOfOrNull { it.date } ?: NO_FROM_DATE
+                }
                 val camtBalance = fintsService.lastCamtBalance
                 if (camtBalance != null) {
                     repo.save(account.copy(balance = camtBalance))
@@ -195,5 +208,9 @@ class AccountViewModel @Inject constructor(
 
     companion object {
         const val NO_FROM_DATE = -1L
+        private const val CONTINUE_STEP_MILLIS = 7_776_000_000L // 90 Tage
+        private val SYNC_STOP_MILLIS = java.util.Calendar.getInstance().apply {
+            set(2000, 0, 1, 0, 0, 0)
+        }.timeInMillis // 2000-01-01 = untere Grenze für Sync
     }
 }
