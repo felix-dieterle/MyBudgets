@@ -111,14 +111,14 @@
     <string name="error_account_missing_user_id">Das Konto hat keine Nutzerkennung. Bitte zuerst unter Konto bearbeiten eintragen.</string>
 
     <!-- Bank Sync -->
-    <string name="bank_sync_button">Kontoauszug synchronisieren</string>
-    <string name="bank_sync_started">Kontoauszug wird abgerufen…</string>
-    <string name="bank_historical_sync_button">Historischen Verlauf importieren</string>
-    <string name="bank_historical_sync_dialog_title">Zeitraum auswählen</string>
-    <string name="bank_historical_sync_dialog_message">Buchungen ab diesem Datum von der Bank importieren:</string>
-    <string name="bank_historical_sync_started">Historischer Import wird durchgeführt…</string>
+    <string name="bank_sync_button">Jetzt aktualisieren</string>
+    <string name="bank_sync_started">Bankdaten werden abgerufen…</string>
+    <string name="bank_historical_sync_button">Ältere Buchungen importieren</string>
+    <string name="bank_historical_sync_dialog_title">Start-Datum wählen</string>
+    <string name="bank_historical_sync_dialog_message">Buchungen ab diesem Datum von der Bank abrufen:</string>
+    <string name="bank_historical_sync_started">Historische Buchungen werden abgerufen…</string>
     <string name="bank_sync_result">%d neue Buchungen importiert</string>
-    <string name="bank_sync_load_more">Mehr laden</string>
+    <string name="bank_sync_load_more">Weiter zurück</string>
     <string name="bank_sync_failed">Synchronisation fehlgeschlagen</string>
 
     <!-- Backend Sync -->

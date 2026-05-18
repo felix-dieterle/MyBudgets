@@ -19,6 +19,7 @@ import de.mybudgets.app.ui.transactions.RecurringPatternDialog
 import de.mybudgets.app.ui.transfers.pinDialog
 import de.mybudgets.app.ui.transfers.tanDialog
 import de.mybudgets.app.ui.transfers.decoupledConfirmDialog
+import de.mybudgets.app.util.AppLogger
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.util.RecurringPatternDetector
 import de.mybudgets.app.viewmodel.AccountViewModel
@@ -207,20 +208,30 @@ class AccountDetailFragment : Fragment() {
     }
 
     private fun checkForRecurringPatterns(onDismiss: () -> Unit) {
-        val transactions = vm.accountTransactions.value
-        if (transactions.isEmpty()) { onDismiss(); return }
-        val patterns = RecurringPatternDetector.detectPatterns(transactions)
-        if (patterns.isNotEmpty()) {
-            RecurringPatternDialog.newInstance(patterns)
-                .setOnApplyListener { rules ->
-                    rules.forEach { vm.saveRecurringRule(it) }
-                    android.widget.Toast.makeText(requireContext(),
-                        getString(R.string.recurring_patterns_apply, rules.size),
-                        android.widget.Toast.LENGTH_SHORT).show()
-                }
-                .setOnDismissListener(onDismiss)
-                .show(childFragmentManager, RecurringPatternDialog.TAG)
-        } else {
+        try {
+            val transactions = vm.accountTransactions.value
+            if (transactions.isEmpty()) { onDismiss(); return }
+            val patterns = RecurringPatternDetector.detectPatterns(transactions)
+            if (patterns.isNotEmpty()) {
+                val appCtx = requireActivity().applicationContext
+                RecurringPatternDialog.newInstance(patterns)
+                    .setOnApplyListener { rules ->
+                        try {
+                            rules.forEach { vm.saveRecurringRule(it) }
+                            android.widget.Toast.makeText(appCtx,
+                                appCtx.getString(R.string.recurring_patterns_apply, rules.size),
+                                android.widget.Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            AppLogger.e("AccountDetailFragment", "applyRecurringRules failed", e)
+                        }
+                    }
+                    .setOnDismissListener(onDismiss)
+                    .show(childFragmentManager, RecurringPatternDialog.TAG)
+            } else {
+                onDismiss()
+            }
+        } catch (e: Exception) {
+            AppLogger.e("AccountDetailFragment", "checkForRecurringPatterns failed", e)
             onDismiss()
         }
     }

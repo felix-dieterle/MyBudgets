@@ -99,7 +99,11 @@ class AccountViewModel @Inject constructor(
     }
 
     fun saveRecurringRule(rule: RecurringRule) = viewModelScope.launch {
-        ruleRepo.save(rule)
+        try {
+            ruleRepo.save(rule)
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "saveRecurringRule fehlgeschlagen: ${e.message}", e)
+        }
     }
 
     fun save(account: Account) = viewModelScope.launch { repo.save(account) }

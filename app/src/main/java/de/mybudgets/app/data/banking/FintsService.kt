@@ -292,45 +292,42 @@ class FintsService @Inject constructor(
                 )
 
                 AppLogger.i(TAG, "[$syncPhase/3-job] Trying job sequence: ${jobAttempts.map { it.name }.joinToString(" → ")}")
-                syncPhaseUpdateHandler?.invoke("3-job", "Passenden HBCI-Job auswählen (${jobAttempts.map { it.name }.joinToString(" → ")})...")
+                syncPhaseUpdateHandler?.invoke("3-job", "HBCI-Jobs werden vorbereitet...")
                 var lastJobException: Exception? = null
                 var attemptIdx = 0
-                val job: HBCIJob = jobAttempts.firstNotNullOfOrNull { attempt ->
+
+                // Alle unterstützten Jobs sammeln (nicht nur den ersten Erfolg)
+                val allAddedJobs = mutableListOf<HBCIJob>()
+                for (attempt in jobAttempts) {
                     attemptIdx++
-                    val r = runCatching {
+                    runCatching {
                         AppLogger.d(TAG, "[$syncPhase/3-job] Attempt $attemptIdx/${jobAttempts.size}: ${attempt.name}" +
                             (attempt.startDate?.let { " (fromDate=${sdf.format(it)})" } ?: " (no date filter)"))
                         val j = handler.newJob(attempt.name)
                         j.setParam("my", buildKonto(account, bic, passport))
                         attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
-                        // addJob is called here (inside the runCatching) so that constraint
-                        // validation errors (e.g. "Property my.bic/my.number wurde nicht gesetzt"
-                        // when BIC or account number could not be resolved from the passport UPD)
-                        // are caught and trigger a fallback to the next job instead of aborting.
                         handler.addJob(j)
                         AppLogger.d(TAG, "[$syncPhase/3-job] Job ${attempt.name} added successfully")
-                        j
-                    }
-                    if (r.isSuccess) {
-                        r.getOrThrow()
-                    } else {
-                        val ex = r.exceptionOrNull() as? Exception ?: throw r.exceptionOrNull()!!
-                        if (ex.hasCause<JobNotSupportedException> { true } ||
-                            ex.hasCause<InvalidUserDataException> { msg ->
+                        allAddedJobs.add(j)
+                    }.onFailure { ex ->
+                        val actualEx = ex as? Exception ?: throw ex
+                        if (actualEx.hasCause<JobNotSupportedException> { true } ||
+                            actualEx.hasCause<InvalidUserDataException> { msg ->
                                 msg.message?.let {
                                     it.contains(HBCI_NO_HIGHLEVEL_JOB_MSG) ||
                                     it.contains(HBCI_MISSING_BIC_MSG) ||
                                     it.contains(HBCI_MISSING_NUMBER_MSG)
                                 } == true
                             }) {
-                            AppLogger.w(TAG, "[$syncPhase/3-job] Job ${attempt.name} not supported or missing BIC/account: ${ex.message}")
-                            lastJobException = ex
-                            null  // try next
+                            AppLogger.w(TAG, "[$syncPhase/3-job] Job ${attempt.name} nicht unterstützt: ${actualEx.message}")
+                            lastJobException = actualEx
                         } else {
-                            throw ex
+                            throw actualEx
                         }
                     }
-                } ?: run {
+                }
+
+                if (allAddedJobs.isEmpty()) {
                     AppLogger.e(TAG, "[$syncPhase/3-job] ALL job attempts failed. Last error: ${lastJobException?.message}")
                     throw UnsupportedOperationException(
                         "Diese Bank unterstützt keinen HBCI-Kontoauszug-Abruf " +
@@ -339,12 +336,11 @@ class FintsService @Inject constructor(
                     )
                 }
 
-                // PHASE 4: Execute
-                AppLogger.i(TAG, "[$syncPhase/4-exec] Sending request to bank...")
+                // PHASE 4: Execute (alle Jobs in einem Dialog mit einer TAN)
+                AppLogger.i(TAG, "[$syncPhase/4-exec] Sending request to bank with ${allAddedJobs.size} job(s)...")
                 syncPhaseUpdateHandler?.invoke("4-exec", "Anfrage wird an Bankserver gesendet...")
                 val status = handler.execute()
                 
-                // Check if status is non-OK due to CAMT parsing error
                 val statusStr = status.toString()
                 val hasCamtParsingError = statusStr.contains("SAXNotRecognizedException") ||
                                          statusStr.contains("secure-processing")
@@ -360,36 +356,23 @@ class FintsService @Inject constructor(
                     AppLogger.i(TAG, "[$syncPhase/4-exec] Bank response OK")
                 }
 
-                // PHASE 5: Parse Result
-                AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from response...")
+                // PHASE 5: Parse Result (alle Jobs auswerten + mergen)
+                AppLogger.i(TAG, "[$syncPhase/5-parse] Extracting transaction data from ${allAddedJobs.size} job result(s)...")
                 syncPhaseUpdateHandler?.invoke("5-parse", "Transaktionsdaten werden aus Bankantwort extrahiert...")
-                val result = job.jobResult as? GVRKUms
-                    ?: error("Unerwartetes Ergebnis vom Kontoauszug-Job")
-
-                // Extract flatData with CAMT fallback if JAXB parsing fails
-                val flatData = try {
-                    val data = result.flatData
-                    
-                    // If we had a CAMT parsing error AND flatData is empty, trigger fallback
-                    if (hasCamtParsingError && (data == null || data.isEmpty())) {
-                        AppLogger.w(TAG, "[$syncPhase/5-parse] CAMT JAXB parsing failed (flatData empty), using custom parser fallback")
-                        val konto = buildKonto(account, bic, passport)
-                        tryCamtFallbackExtraction(job, result, konto)
-                    } else {
-                        data
-                    }
-                } catch (e: Exception) {
-                    // Check if this is a CAMT parsing error (JAXB/SAX issue)
-                    if (e.isCamtParsingError()) {
-                        AppLogger.w(TAG, "[$syncPhase/5-parse] CAMT JAXB parsing exception caught, using custom parser fallback")
-                        val konto = buildKonto(account, bic, passport)
-                        tryCamtFallbackExtraction(job, result, konto)
-                    } else {
-                        throw e // Re-throw non-CAMT errors
+                
+                val allFlatData = mutableListOf<GVRKUms.UmsLine>()
+                val konto = buildKonto(account, bic, passport)
+                for (j in allAddedJobs) {
+                    val jr = j.jobResult as? GVRKUms ?: continue
+                    val jd = extractFlatData(j, jr, hasCamtParsingError, konto)
+                    if (jd != null && jd.isNotEmpty()) {
+                        AppLogger.i(TAG, "[$syncPhase/5-parse] Job ${j.javaClass.simpleName}: ${jd.size} Buchungen")
+                        allFlatData.addAll(jd)
                     }
                 }
+                AppLogger.i(TAG, "[$syncPhase/5-parse] Total merged: ${allFlatData.size} Buchungen aus ${allAddedJobs.size} Jobs")
 
-                val transactions = flatData.map { entry ->
+                val transactions = allFlatData.map { entry ->
                     val isIncome = entry.value.longValue >= 0
                     Transaction(
                         accountId   = account.id,
@@ -935,6 +918,34 @@ class FintsService @Inject constructor(
         
         AppLogger.i(TAG, "tryCamtFallbackExtraction: ✅ SUCCESS - Extracted ${transactions.size} transactions")
         return transactions
+    }
+
+    /**
+     * Extrahiert flatData aus einem Job-Result, mit CAMT-Fallback falls nötig.
+     */
+    private fun extractFlatData(
+        job: HBCIJob,
+        result: GVRKUms,
+        hasCamtParsingError: Boolean,
+        konto: Konto
+    ): List<GVRKUms.UmsLine>? {
+        return try {
+            val data = result.flatData
+            if (hasCamtParsingError && (data == null || data.isEmpty())) {
+                AppLogger.w(TAG, "extractFlatData: flatData empty, using CAMT fallback")
+                tryCamtFallbackExtraction(job, result, konto)
+            } else {
+                data
+            }
+        } catch (e: Exception) {
+            if (e.isCamtParsingError()) {
+                AppLogger.w(TAG, "extractFlatData: CAMT parsing exception, using fallback")
+                tryCamtFallbackExtraction(job, result, konto)
+            } else {
+                AppLogger.e(TAG, "extractFlatData: Unexpected error", e)
+                null
+            }
+        }
     }
 
     /**
