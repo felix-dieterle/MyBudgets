@@ -76,7 +76,7 @@ class AccountViewModel @Inject constructor(
 
     fun continueSyncOlder(accountId: Long) {
         if (!canContinueSync) return
-        syncBankTransactions(accountId, syncLastFromDate - CONTINUE_STEP_MILLIS) // 90 Tage weiter zurück
+        syncBankTransactions(accountId, NO_FROM_DATE) // Voll-Sync ohne Datumsfilter
     }
 
     private suspend fun matchTransactionsAgainstRules(transactions: List<de.mybudgets.app.data.model.Transaction>, accountId: Long) {
@@ -148,22 +148,14 @@ class AccountViewModel @Inject constructor(
             }
 
             val fromDate: java.util.Date?
-            val actualFromMillis: Long // was wurde tatsächlich als fromDate verwendet?
+            val actualFromMillis: Long
             if (fromDateMillis != NO_FROM_DATE) {
                 fromDate = java.util.Date(fromDateMillis)
                 actualFromMillis = fromDateMillis
             } else {
-                val latestTxDate = txRepo.getLatestDateForAccount(account.id)
-                val buffer = if (latestTxDate != null) {
-                    val b = latestTxDate - 86_400_000L
-                    AppLogger.i(TAG, "Inkrementeller Sync ab ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(b))} (letzte Buchung: ${java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(latestTxDate))})")
-                    b
-                } else {
-                    AppLogger.i(TAG, "Voll-Sync (keine bekannten Buchungen)")
-                    null
-                }
-                fromDate = if (buffer != null) java.util.Date(buffer) else null
-                actualFromMillis = buffer ?: NO_FROM_DATE
+                AppLogger.i(TAG, "Voll-Sync (kein Datumsfilter)")
+                fromDate = null
+                actualFromMillis = NO_FROM_DATE
             }
             val syncResult = fintsService.fetchAccountStatement(account, fromDate)
 
@@ -208,9 +200,8 @@ class AccountViewModel @Inject constructor(
 
     companion object {
         const val NO_FROM_DATE = -1L
-        private const val CONTINUE_STEP_MILLIS = 7_776_000_000L // 90 Tage
         private val SYNC_STOP_MILLIS = java.util.Calendar.getInstance().apply {
             set(2000, 0, 1, 0, 0, 0)
-        }.timeInMillis // 2000-01-01 = untere Grenze für Sync
+        }.timeInMillis
     }
 }
