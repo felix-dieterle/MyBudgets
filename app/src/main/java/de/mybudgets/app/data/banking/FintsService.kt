@@ -282,8 +282,11 @@ class FintsService @Inject constructor(
                     JobAttempt("KUmsAll"),
                     JobAttempt("KUmsNew"),
                 ) else listOf(
-                    JobAttempt("KUmsAllCamt"),
+                    // Voll-Sync: KUmsZeitSEPA zuerst, weil KUmsAllCamt bei BBBank
+                    // auf ~150 Buchungen capped. KUmsZeitSEPA mit Date(0) liefert
+                    // evtl. vollständigen Datensatz plus kein JAXB-Bug.
                     JobAttempt("KUmsZeitSEPA", Date(0)),
+                    JobAttempt("KUmsAllCamt"),
                     JobAttempt("KUmsAll"),
                     JobAttempt("KUmsNew"),
                 )

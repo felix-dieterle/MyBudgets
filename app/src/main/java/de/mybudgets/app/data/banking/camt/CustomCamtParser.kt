@@ -92,6 +92,7 @@ object CustomCamtParser {
         var accountIban: String? = null
         var accountCurrency: String? = null
         var reportId: String? = null
+        var balance: Double? = null
         
         // Navigate to root element (usually <Document> or <BkToCstmrAcctRpt>)
         var eventType = parser.eventType
@@ -110,6 +111,7 @@ object CustomCamtParser {
                             accountIban = reportData.accountIban
                             accountCurrency = reportData.accountCurrency
                             reportId = reportData.reportId
+                            if (reportData.balance != null) balance = reportData.balance
                         }
                         
                         warnings.addAll(reportData.warnings)
@@ -128,6 +130,7 @@ object CustomCamtParser {
             accountIban = accountIban,
             accountCurrency = accountCurrency,
             reportId = reportId,
+            balance = balance,
             warnings = warnings
         )
     }
