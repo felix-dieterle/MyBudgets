@@ -251,12 +251,25 @@ class AccountViewModel @Inject constructor(
                 val camtBalance = fintsService.lastCamtBalance
                 AppLogger.i(TAG, "    camtBalance=$camtBalance")
                 
-                // Balance nur bei Voll-Sync aktualisieren (historischer Sync liefert alten Saldo!)
-                if (camtBalance != null && actualFromMillis == NO_FROM_DATE) {
+                // Balance nur aktualisieren wenn die gelieferten Daten AKTUELL sind
+                // (nicht wenn Bank alte Daten liefert, auch bei Voll-Sync!)
+                val shouldUpdateBalance = if (camtBalance != null && transactions.isNotEmpty()) {
+                    val newestTxDate = transactions.maxOfOrNull { it.date } ?: 0L
+                    val daysSinceNewestTx = (System.currentTimeMillis() - newestTxDate) / (24 * 60 * 60 * 1000)
+                    AppLogger.i(TAG, "    Balance-Check:")
+                    AppLogger.i(TAG, "      newestTxDate=${java.util.Date(newestTxDate)}")
+                    AppLogger.i(TAG, "      daysSinceNewestTx=$daysSinceNewestTx Tage")
+                    daysSinceNewestTx <= 7 // Balance nur aktualisieren wenn neueste TX max 7 Tage alt
+                } else {
+                    false
+                }
+                
+                if (shouldUpdateBalance && camtBalance != null) {
+                    val oldBalance = account.balance
                     repo.save(account.copy(balance = camtBalance))
-                    AppLogger.i(TAG, "    ✅ Saldo ${account.id} aktualisiert: $camtBalance (Voll-Sync)")
+                    AppLogger.i(TAG, "    ✅ Saldo ${account.id} aktualisiert: $oldBalance → $camtBalance")
                 } else if (camtBalance != null) {
-                    AppLogger.i(TAG, "    ⚠️ Saldo NICHT aktualisiert - Historischer Sync (CLBD=$camtBalance ist veraltet)")
+                    AppLogger.i(TAG, "    ⚠️ Saldo NICHT aktualisiert - Daten zu alt oder historischer Sync (CLBD=$camtBalance)")
                 }
                 
                 val updatedAccount = repo.getById(accountId)
