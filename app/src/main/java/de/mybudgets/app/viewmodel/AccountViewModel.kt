@@ -77,14 +77,17 @@ class AccountViewModel @Inject constructor(
     fun continueSyncOlder(accountId: Long) {
         if (!canContinueSync) return
         viewModelScope.launch {
-            val fromDate = if (syncLastFromDate != NO_FROM_DATE) {
-                syncLastFromDate - 1L
-            } else {
-                val earliest = txRepo.getEarliestDateForAccount(accountId)
-                if (earliest == null || earliest <= SYNC_STOP_MILLIS) { syncLastFromDate = NO_FROM_DATE; return@launch }
-                earliest - 1L
+            // Historischer Sync: Springe 365 Tage zurück (nicht 1 Tag) für schnelleres Laden
+            val earliest = txRepo.getEarliestDateForAccount(accountId)
+            if (earliest == null || earliest <= SYNC_STOP_MILLIS) { 
+                syncLastFromDate = NO_FROM_DATE
+                return@launch 
             }
-            if (fromDate <= SYNC_STOP_MILLIS) { syncLastFromDate = NO_FROM_DATE; return@launch }
+            val fromDate = earliest - 365L * 24 * 60 * 60 * 1000 // -365 Tage
+            if (fromDate <= SYNC_STOP_MILLIS) { 
+                syncLastFromDate = NO_FROM_DATE
+                return@launch 
+            }
             syncBankTransactions(accountId, fromDate)
         }
     }
@@ -194,16 +197,19 @@ class AccountViewModel @Inject constructor(
                 newTx.forEach { tx -> txRepo.save(tx.copy(accountId = account.id)) }
                 matchTransactionsAgainstRules(newTx, account.id)
                 // Anchor für "weiter zurück": bei explizitem fromDate das fromDate selbst,
-                // bei Voll-Sync den earliest neuen TX verwenden.
+                // bei Voll-Sync den earliest GELIEFERTEN TX verwenden (nicht earliest neue!).
                 syncLastFromDate = if (actualFromMillis != NO_FROM_DATE) {
                     actualFromMillis
                 } else {
-                    newTx.minOfOrNull { it.date } ?: NO_FROM_DATE
+                    transactions.minOfOrNull { it.date } ?: NO_FROM_DATE
                 }
                 val camtBalance = fintsService.lastCamtBalance
-                if (camtBalance != null) {
+                // Balance nur bei Voll-Sync aktualisieren (historischer Sync liefert alten Saldo!)
+                if (camtBalance != null && actualFromMillis == NO_FROM_DATE) {
                     repo.save(account.copy(balance = camtBalance))
                     AppLogger.i(TAG, "syncBankTransactions: Saldo ${account.id} aktualisiert: $camtBalance")
+                } else if (camtBalance != null) {
+                    AppLogger.i(TAG, "syncBankTransactions: Historischer Sync - Balance NICHT aktualisiert (CLBD=$camtBalance)")
                 }
                 val updatedAccount = repo.getById(accountId)
                 _bankSyncState.value = BankSyncState.Success(newTx.size, updatedAccount?.balance)
