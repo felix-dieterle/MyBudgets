@@ -38,56 +38,83 @@ object RecurringPatternDetector {
         transactions: List<Transaction>,
         minOccurrences: Int = MIN_OCCURRENCES
     ): List<RecurringPattern> {
-        if (transactions.size < minOccurrences) return emptyList()
-        
-        // Group by similar amounts
-        val amountGroups = groupBySimilarAmount(transactions)
-        
-        val patterns = mutableListOf<RecurringPattern>()
-        
-        for (group in amountGroups) {
-            if (group.size < minOccurrences) continue
+        return try {
+            AppLogger.i("RecurringPatternDetector", "detectPatterns: START with ${transactions.size} transactions")
             
-            // Sort by date
-            val sorted = group.sortedBy { it.date }
-            
-            // Calculate intervals between consecutive transactions
-            val intervals = mutableListOf<Long>()
-            for (i in 0 until sorted.size - 1) {
-                val daysDiff = (sorted[i + 1].date - sorted[i].date) / (1000 * 60 * 60 * 24)
-                intervals.add(daysDiff)
+            if (transactions.size < minOccurrences) {
+                AppLogger.i("RecurringPatternDetector", "  → Zu wenig Transaktionen (${transactions.size} < $minOccurrences)")
+                return emptyList()
             }
             
-            if (intervals.isEmpty()) continue
+            // Group by similar amounts
+            AppLogger.i("RecurringPatternDetector", "  → Gruppiere nach ähnlichen Beträgen...")
+            val amountGroups = groupBySimilarAmount(transactions)
+            AppLogger.i("RecurringPatternDetector", "  → ${amountGroups.size} Gruppen gefunden")
             
-            // Check if intervals are regular
-            val avgInterval = intervals.average()
-            val maxDeviation = intervals.maxOfOrNull { abs(it - avgInterval) } ?: Double.MAX_VALUE
+            val patterns = mutableListOf<RecurringPattern>()
             
-            if (maxDeviation <= INTERVAL_TOLERANCE_DAYS) {
-                val confidence = calculateConfidence(
-                    occurrences = sorted.size,
-                    intervalStability = 1.0 - (maxDeviation / avgInterval),
-                    descriptionSimilarity = calculateDescriptionSimilarity(sorted)
-                )
-                val intervalDays = avgInterval.toInt()
-                val label = intervalLabel(intervalDays)
-                val reason = buildReasoning(sorted, intervalDays, label, confidence)
+            for ((groupIdx, group) in amountGroups.withIndex()) {
+                try {
+                    if (group.size < minOccurrences) continue
+                    
+                    AppLogger.i("RecurringPatternDetector", "  Gruppe $groupIdx: ${group.size} TX, Betrag ~${group.firstOrNull()?.amount}")
+                    
+                    // Sort by date
+                    val sorted = group.sortedBy { it.date }
+                    
+                    // Calculate intervals between consecutive transactions
+                    val intervals = mutableListOf<Long>()
+                    for (i in 0 until sorted.size - 1) {
+                        val daysDiff = (sorted[i + 1].date - sorted[i].date) / (1000 * 60 * 60 * 24)
+                        intervals.add(daysDiff)
+                    }
+                    
+                    if (intervals.isEmpty()) {
+                        AppLogger.i("RecurringPatternDetector", "    → Keine Intervalle berechenbar, skip")
+                        continue
+                    }
+                    
+                    // Check if intervals are regular
+                    val avgInterval = intervals.average()
+                    val maxDeviation = intervals.maxOfOrNull { abs(it - avgInterval) } ?: Double.MAX_VALUE
+                    
+                    AppLogger.i("RecurringPatternDetector", "    avgInterval=$avgInterval, maxDeviation=$maxDeviation")
+                    
+                    if (maxDeviation <= INTERVAL_TOLERANCE_DAYS) {
+                        val confidence = calculateConfidence(
+                            occurrences = sorted.size,
+                            intervalStability = 1.0 - (maxDeviation / avgInterval.coerceAtLeast(1.0)),
+                            descriptionSimilarity = calculateDescriptionSimilarity(sorted)
+                        )
+                        val intervalDays = avgInterval.toInt()
+                        val label = intervalLabel(intervalDays)
+                        val reason = buildReasoning(sorted, intervalDays, label, confidence)
 
-                patterns.add(
-                    RecurringPattern(
-                        transactions = sorted,
-                        detectedIntervalDays = intervalDays,
-                        confidence = confidence,
-                        suggestedDescription = extractCommonDescription(sorted),
-                        intervalLabel = label,
-                        reasoning = reason
-                    )
-                )
+                        val pattern = RecurringPattern(
+                            transactions = sorted,
+                            detectedIntervalDays = intervalDays,
+                            confidence = confidence,
+                            suggestedDescription = extractCommonDescription(sorted),
+                            intervalLabel = label,
+                            reasoning = reason
+                        )
+                        patterns.add(pattern)
+                        AppLogger.i("RecurringPatternDetector", "    ✅ Pattern erkannt: ${pattern.suggestedDescription}, ${sorted.size} TX, Intervall=$intervalDays Tage")
+                    } else {
+                        AppLogger.i("RecurringPatternDetector", "    → Intervalle nicht regelmäßig genug, skip")
+                    }
+                } catch (e: Exception) {
+                    AppLogger.e("RecurringPatternDetector", "  ❌ Fehler bei Gruppe $groupIdx", e)
+                }
             }
+            
+            val result = patterns.sortedByDescending { it.confidence }
+            AppLogger.i("RecurringPatternDetector", "detectPatterns: DONE - ${result.size} Patterns gefunden")
+            result
+        } catch (e: Exception) {
+            AppLogger.e("RecurringPatternDetector", "detectPatterns CRASH", e)
+            emptyList()
         }
-        
-        return patterns.sortedByDescending { it.confidence }
     }
     
     /**
