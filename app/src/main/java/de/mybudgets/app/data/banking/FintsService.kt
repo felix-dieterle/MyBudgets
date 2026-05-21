@@ -373,17 +373,15 @@ class FintsService @Inject constructor(
     }
 
     private fun buildJobAttempts(fromDate: Date?): List<JobAttempt> = if (fromDate != null) {
-        // Normal-Sync: CAMT bevorzugt (3.0, date-filtered)
+        // Historischer Sync: KUmsZeitSEPA zuerst (MT940, oft >150 TX), dann CAMT Fallback
         listOf(
-            JobAttempt("KUmsAllCamt", fromDate),
             JobAttempt("KUmsZeitSEPA", fromDate),
+            JobAttempt("KUmsAllCamt", fromDate),
             JobAttempt("KUmsAll"),
             JobAttempt("KUmsNew"),
         )
     } else {
-        // Historischer Sync / Voll-Sync:
-        // KUmsZeitSEPA(Date(0)) zuerst – MT940 2.2 liefert oft ältere Buchungen
-        // die CAMT (150er-Cap) nicht zurückgibt. Fallback auf KUmsAllCamt.
+        // Voll-Sync (kein Datum): KUmsZeitSEPA mit Date(0) für maximale Abdeckung
         listOf(
             JobAttempt("KUmsZeitSEPA", Date(0)),
             JobAttempt("KUmsAllCamt"),

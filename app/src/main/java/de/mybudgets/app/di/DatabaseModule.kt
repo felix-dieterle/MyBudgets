@@ -31,14 +31,15 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_8_9,
                 AppDatabase.MIGRATION_9_10,
                 AppDatabase.MIGRATION_10_11,
-                AppDatabase.MIGRATION_11_12
+                AppDatabase.MIGRATION_11_12,
+                AppDatabase.MIGRATION_12_13
             )
             .build()
-        if (prevVersion != 0 && prevVersion < 12) {
-            val mig = AppDatabase.lastMigrationVersion ?: "v$prevVersion→v12"
+        if (prevVersion != 0 && prevVersion < 13) {
+            val mig = AppDatabase.lastMigrationVersion ?: "v$prevVersion→v13"
             prefs.edit().putString("migration_info", mig).apply()
         }
-        prefs.edit().putInt("db_version", 12).apply()
+        prefs.edit().putInt("db_version", 13).apply()
         return db
     }
 
@@ -51,4 +52,5 @@ object DatabaseModule {
     @Provides fun provideTransferTemplateDao(db: AppDatabase): TransferTemplateDao = db.transferTemplateDao()
     @Provides fun provideCategoryPatternDao(db: AppDatabase): CategoryPatternDao = db.categoryPatternDao()
     @Provides fun provideRecurringRuleDao(db: AppDatabase): RecurringRuleDao = db.recurringRuleDao()
+    @Provides fun provideSyncIntervalDao(db: AppDatabase): SyncIntervalDao = db.syncIntervalDao()
 }

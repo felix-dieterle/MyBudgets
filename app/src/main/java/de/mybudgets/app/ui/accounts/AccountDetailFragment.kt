@@ -97,6 +97,8 @@ class AccountDetailFragment : Fragment() {
                                 binding.tvSyncStatus.visibility = View.GONE
                                 vm.resetBankSyncState()
                                 showSyncResultSnackbar(state)
+                                // Update Button-Status nach Sync
+                                updateHistoricalSyncButtonState()
                                 if (state.importedCount > 0) {
                                     checkForRecurringPatterns {}
                                 }
@@ -143,11 +145,24 @@ class AccountDetailFragment : Fragment() {
                 Snackbar.make(view, getString(R.string.error_account_missing_user_id), Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            showDatePickerForHistoricalSync()
+            registerPinTanProviders()
+            Snackbar.make(view, getString(R.string.bank_sync_started), Snackbar.LENGTH_SHORT).show()
+            vm.continueSyncOlder(accountId)
         }
+        
+        // Initial Button-Status setzen
+        updateHistoricalSyncButtonState()
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
+    
+    private fun updateHistoricalSyncButtonState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val canContinue = vm.canContinueSync(accountId)
+            binding.btnHistoricalSync.isEnabled = canContinue
+            binding.btnHistoricalSync.alpha = if (canContinue) 1.0f else 0.5f
+        }
+    }
 
     private fun registerPinTanProviders() {
         fintsService.pinProvider = { bankName ->
@@ -159,31 +174,6 @@ class AccountDetailFragment : Fragment() {
         fintsService.decoupledConfirmProvider = { challenge ->
             decoupledConfirmDialog(requireActivity(), challenge)
         }
-    }
-
-    private fun showDatePickerForHistoricalSync() {
-        val cal = Calendar.getInstance().apply {
-            // Default start date: 1 year ago
-            add(Calendar.YEAR, -1)
-        }
-        DatePickerDialog(
-            requireContext(),
-            { _, year, month, day ->
-                val fromCal = Calendar.getInstance().apply {
-                    set(year, month, day, 0, 0, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                registerPinTanProviders()
-                Snackbar.make(requireView(), getString(R.string.bank_historical_sync_started), Snackbar.LENGTH_SHORT).show()
-                vm.syncBankTransactions(accountId, fromCal.timeInMillis)
-            },
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH),
-            cal.get(Calendar.DAY_OF_MONTH)
-        ).apply {
-            datePicker.maxDate = System.currentTimeMillis()
-            setTitle(getString(R.string.bank_historical_sync_dialog_title))
-        }.show()
     }
 
     private fun showAccount(acc: Account, allAccounts: List<Account>) {
@@ -281,14 +271,11 @@ class AccountDetailFragment : Fragment() {
         val balanceStr = if (state.balance != null) {
             " · ${CurrencyFormatter.format(state.balance)}"
         } else ""
-        val msg = getString(R.string.bank_sync_result, state.importedCount) + balanceStr
-        if (state.importedCount > 0 && vm.canContinueSync) {
-            Snackbar.make(requireView(), msg, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.bank_sync_load_more) { vm.continueSyncOlder(accountId) }
-                .show()
-        } else {
-            Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT).show()
-        }
+        val dateRangeStr = if (state.dateRangeMessage != null) {
+            " (${ state.dateRangeMessage})"
+        } else ""
+        val msg = getString(R.string.bank_sync_result, state.importedCount) + balanceStr + dateRangeStr
+        Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

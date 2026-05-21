@@ -99,13 +99,29 @@ class DashboardViewModel @Inject constructor(
 
     val monthlyTrend: StateFlow<List<MonthlyTrendPoint>> = transactions
         .map { txs ->
-            groupByMonth(txs).map { (label, monthTxs) ->
+            if (txs.isEmpty()) return@map emptyList()
+            
+            val grouped = groupByMonth(txs)
+            val sorted = grouped.entries.sortedBy { parseMonthLabel(it.key) }
+            if (sorted.isEmpty()) return@map emptyList()
+            
+            val firstMonthKey = parseMonthLabel(sorted.first().key)
+            val lastMonthKey = parseMonthLabel(sorted.last().key)
+            
+            (firstMonthKey..lastMonthKey).map { monthKey ->
+                val cal = Calendar.getInstance().apply {
+                    val year = 2000 + monthKey / 12
+                    val month = monthKey % 12
+                    set(year, month, 1, 0, 0, 0)
+                }
+                val label = monthLabel(cal)
+                val monthTxs = grouped[label] ?: emptyList()
                 MonthlyTrendPoint(
                     label = label,
                     income = monthTxs.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }.toFloat(),
                     expense = monthTxs.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }.toFloat()
                 )
-            }.sortedBy { parseMonthLabel(it.label) }
+            }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val forecast: StateFlow<List<ForecastPoint>> = combine(

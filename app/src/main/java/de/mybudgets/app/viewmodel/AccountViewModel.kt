@@ -30,7 +30,11 @@ sealed class BankSyncState {
     ) : BankSyncState() {
         override fun toString() = "$phase${if (detailMessage.isNotBlank()) ": $detailMessage" else ""}"
     }
-    data class Success(val importedCount: Int, val balance: Double? = null) : BankSyncState()
+    data class Success(
+        val importedCount: Int,
+        val balance: Double? = null,
+        val dateRangeMessage: String? = null
+    ) : BankSyncState()
     data class Error(val message: String, val phase: SyncPhase? = null) : BankSyncState()
 }
 
@@ -48,6 +52,7 @@ class AccountViewModel @Inject constructor(
     private val repo: AccountRepository,
     private val txRepo: TransactionRepository,
     private val ruleRepo: RecurringRuleRepository,
+    private val syncIntervalRepo: de.mybudgets.app.data.repository.SyncIntervalRepository,
     private val fintsService: FintsService
 ) : ViewModel() {
 
@@ -66,48 +71,28 @@ class AccountViewModel @Inject constructor(
     private val _bankSyncState = MutableStateFlow<BankSyncState>(BankSyncState.Idle)
     val bankSyncState: StateFlow<BankSyncState> = _bankSyncState
 
-    // Anchor for "weiter zurück laden": hält fest, welches fromDate zuletzt
-    // an die Bank geschickt wurde. Bei Voll-Sync (fromDate=null) wird der
-    // earliest neue TX als initialer Anchor verwendet.
-    // Wird NIE auf null gesetzt – nur auf NO_FROM_DATE (= kein weiteres Laden möglich).
-    private var syncLastFromDate: Long = NO_FROM_DATE
-
-    val canContinueSync: Boolean get() = syncLastFromDate != NO_FROM_DATE && syncLastFromDate > SYNC_STOP_MILLIS
+    suspend fun canContinueSync(accountId: Long): Boolean {
+        val nextDate = syncIntervalRepo.getNextHistoricalSyncDate(accountId)
+        // null = Lücke geschlossen, Button deaktivieren
+        // 0L oder >0L = Weiterer Sync möglich, Button aktivieren
+        return nextDate != null
+    }
 
     fun continueSyncOlder(accountId: Long) {
         AppLogger.i(TAG, "═══════════════════════════════════════════════════════════")
         AppLogger.i(TAG, "continueSyncOlder: START für Account=$accountId")
-        AppLogger.i(TAG, "  canContinueSync=$canContinueSync")
-        AppLogger.i(TAG, "  syncLastFromDate=$syncLastFromDate (${if (syncLastFromDate == NO_FROM_DATE) "NO_FROM_DATE" else java.util.Date(syncLastFromDate)})")
-        
-        if (!canContinueSync) {
-            AppLogger.w(TAG, "continueSyncOlder: ABBRUCH - canContinueSync=false")
-            return
-        }
         
         viewModelScope.launch {
-            // Historischer Sync: Springe 365 Tage zurück (nicht 1 Tag) für schnelleres Laden
-            val earliest = txRepo.getEarliestDateForAccount(accountId)
-            AppLogger.i(TAG, "  DB: earliest TX date=$earliest (${if (earliest == null) "LEER" else java.util.Date(earliest)})")
-            AppLogger.i(TAG, "  SYNC_STOP_MILLIS=${java.util.Date(SYNC_STOP_MILLIS)} (2000-01-01)")
+            val nextDate = syncIntervalRepo.getNextHistoricalSyncDate(accountId)
+            AppLogger.i(TAG, "  getNextHistoricalSyncDate() = $nextDate")
             
-            if (earliest == null || earliest <= SYNC_STOP_MILLIS) { 
-                syncLastFromDate = NO_FROM_DATE
-                AppLogger.w(TAG, "continueSyncOlder: ABBRUCH - earliest null oder zu alt, syncLastFromDate → NO_FROM_DATE")
-                return@launch 
+            if (nextDate == null) {
+                AppLogger.w(TAG, "continueSyncOlder: ABBRUCH - Alles vollständig geladen")
+                return@launch
             }
             
-            val fromDate = earliest - 365L * 24 * 60 * 60 * 1000 // -365 Tage
-            AppLogger.i(TAG, "  Berechnet: fromDate=$fromDate (${java.util.Date(fromDate)}) = earliest - 365 Tage")
-            
-            if (fromDate <= SYNC_STOP_MILLIS) { 
-                syncLastFromDate = NO_FROM_DATE
-                AppLogger.w(TAG, "continueSyncOlder: ABBRUCH - fromDate <= SYNC_STOP_MILLIS, syncLastFromDate → NO_FROM_DATE")
-                return@launch 
-            }
-            
-            AppLogger.i(TAG, "continueSyncOlder: ✅ Starte Sync mit fromDate=${java.util.Date(fromDate)}")
-            syncBankTransactions(accountId, fromDate)
+            AppLogger.i(TAG, "continueSyncOlder: ✅ Starte historischen Sync")
+            syncBankTransactions(accountId, nextDate, isHistorical = true)
         }
     }
 
@@ -155,11 +140,12 @@ class AccountViewModel @Inject constructor(
     fun save(account: Account) = viewModelScope.launch { repo.save(account) }
     fun delete(account: Account) = viewModelScope.launch { repo.delete(account) }
 
-    fun syncBankTransactions(accountId: Long, fromDateMillis: Long = NO_FROM_DATE) = viewModelScope.launch {
+    fun syncBankTransactions(accountId: Long, fromDateMillis: Long = NO_FROM_DATE, isHistorical: Boolean = false) = viewModelScope.launch {
         AppLogger.i(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         AppLogger.i(TAG, "syncBankTransactions: START")
         AppLogger.i(TAG, "  accountId=$accountId")
-        AppLogger.i(TAG, "  fromDateMillis=$fromDateMillis (${if (fromDateMillis == NO_FROM_DATE) "NO_FROM_DATE = Voll-Sync" else java.util.Date(fromDateMillis)})")
+        AppLogger.i(TAG, "  fromDateMillis=$fromDateMillis (${if (fromDateMillis == NO_FROM_DATE) "NO_FROM_DATE = Auto" else java.util.Date(fromDateMillis)})")
+        AppLogger.i(TAG, "  isHistorical=$isHistorical")
         
         _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.SESSION_SETUP)
         // AtomicReference so the syncPhaseUpdateHandler (called from the IO thread) and the
@@ -203,27 +189,61 @@ class AccountViewModel @Inject constructor(
             }
 
             val fromDate: java.util.Date?
-            val actualFromMillis: Long
-            if (fromDateMillis != NO_FROM_DATE) {
-                fromDate = java.util.Date(fromDateMillis)
-                actualFromMillis = fromDateMillis
-                AppLogger.i(TAG, "  Sync-Typ: HISTORISCH mit fromDate=${fromDate}")
-            } else {
-                AppLogger.i(TAG, "  Sync-Typ: VOLL-SYNC (kein Datumsfilter)")
+            val syncTypeMessage: String
+            
+            // Auto-Mode: fromDateMillis == NO_FROM_DATE
+            // Wenn DB leer → Voll-Sync (fromDate=null)
+            // Wenn DB hat TX → Normal-Sync ab neuester TX - 7 Tage (um Lücken zu schließen)
+            if (fromDateMillis == NO_FROM_DATE && !isHistorical) {
+                val newestTxDate = txRepo.getLatestDateForAccount(accountId)
+                if (newestTxDate != null) {
+                    // Normal-Sync: Lade ab neuester TX - 7 Tage
+                    val fromMillis = newestTxDate - 7L * 24 * 60 * 60 * 1000
+                    fromDate = java.util.Date(fromMillis)
+                    val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY)
+                    syncTypeMessage = "Lade ab ${sdf.format(fromDate)}..."
+                    AppLogger.i(TAG, "  Sync-Typ: NORMAL (DB hat TX, lade ab neueste - 7 Tage)")
+                } else {
+                    // Voll-Sync: DB leer, lade alles
+                    fromDate = null
+                    syncTypeMessage = "Erstmaliger Sync - lade alle Buchungen..."
+                    AppLogger.i(TAG, "  Sync-Typ: VOLL-SYNC (DB leer)")
+                }
+            } else if (isHistorical && fromDateMillis == 0L) {
+                // Historischer Start-Sync: fromDateMillis == 0L bedeutet "ohne fromDate"
                 fromDate = null
-                actualFromMillis = NO_FROM_DATE
+                syncTypeMessage = "Lade älteste Buchungen..."
+                AppLogger.i(TAG, "  Sync-Typ: HISTORISCH-START (ohne fromDate, Bank entscheidet)")
+            } else if (isHistorical) {
+                // Explizites fromDate (continueSyncOlder oder Gap-Closing)
+                fromDate = java.util.Date(fromDateMillis)
+                val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY)
+                syncTypeMessage = "Lade ab ${sdf.format(fromDate)}..."
+                AppLogger.i(TAG, "  Sync-Typ: HISTORISCH-CONTINUE mit fromDate=${fromDate}")
+            } else {
+                // Fallback (sollte nicht vorkommen)
+                fromDate = java.util.Date(fromDateMillis)
+                val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY)
+                syncTypeMessage = "Lade ab ${sdf.format(fromDate)}..."
+                AppLogger.i(TAG, "  Sync-Typ: FALLBACK mit fromDate=${fromDate}")
             }
             
+            _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.EXECUTE, detailMessage = syncTypeMessage)
             AppLogger.i(TAG, "  → Rufe FintsService.fetchAccountStatement auf...")
             val syncResult = fintsService.fetchAccountStatement(account, fromDate)
 
             syncResult.onSuccess { transactions ->
                 AppLogger.i(TAG, "  ✅ Bank-Response erfolgreich:")
                 AppLogger.i(TAG, "    transactions.size=${transactions.size}")
-                if (transactions.isNotEmpty()) {
+                
+                val dateRangeMsg = if (transactions.isNotEmpty()) {
                     val oldest = transactions.minOfOrNull { it.date }
                     val newest = transactions.maxOfOrNull { it.date }
+                    val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY)
                     AppLogger.i(TAG, "    Zeitraum: ${if (oldest != null) java.util.Date(oldest) else "?"} bis ${if (newest != null) java.util.Date(newest) else "?"}")
+                    "${sdf.format(oldest)} - ${sdf.format(newest)}"
+                } else {
+                    null
                 }
                 
                 _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.IMPORT, detailMessage = "${transactions.size} Buchungen werden importiert...")
@@ -236,17 +256,19 @@ class AccountViewModel @Inject constructor(
                 newTx.forEach { tx -> txRepo.save(tx.copy(accountId = account.id)) }
                 matchTransactionsAgainstRules(newTx, account.id)
                 
-                // Anchor für "weiter zurück": bei explizitem fromDate das fromDate selbst,
-                // bei Voll-Sync den earliest GELIEFERTEN TX verwenden (nicht earliest neue!).
-                val oldAnchor = syncLastFromDate
-                syncLastFromDate = if (actualFromMillis != NO_FROM_DATE) {
-                    actualFromMillis
-                } else {
-                    transactions.minOfOrNull { it.date } ?: NO_FROM_DATE
+                // Speichere Sync-Intervall für Gap-Detection
+                if (transactions.isNotEmpty()) {
+                    val startDate = transactions.minOfOrNull { it.date } ?: 0L
+                    val endDate = transactions.maxOfOrNull { it.date } ?: 0L
+                    val interval = de.mybudgets.app.data.model.SyncInterval(
+                        accountId = account.id,
+                        startDate = startDate,
+                        endDate = endDate,
+                        isHistorical = isHistorical
+                    )
+                    syncIntervalRepo.insert(interval)
+                    AppLogger.i(TAG, "    ✅ Sync-Intervall gespeichert: ${java.util.Date(startDate)} bis ${java.util.Date(endDate)}, isHistorical=$isHistorical")
                 }
-                AppLogger.i(TAG, "    Anchor-Update:")
-                AppLogger.i(TAG, "      ALT: syncLastFromDate=$oldAnchor (${if (oldAnchor == NO_FROM_DATE) "NO_FROM_DATE" else java.util.Date(oldAnchor)})")
-                AppLogger.i(TAG, "      NEU: syncLastFromDate=$syncLastFromDate (${if (syncLastFromDate == NO_FROM_DATE) "NO_FROM_DATE" else java.util.Date(syncLastFromDate)})")
                 
                 val camtBalance = fintsService.lastCamtBalance
                 AppLogger.i(TAG, "    camtBalance=$camtBalance")
@@ -273,8 +295,8 @@ class AccountViewModel @Inject constructor(
                 }
                 
                 val updatedAccount = repo.getById(accountId)
-                _bankSyncState.value = BankSyncState.Success(newTx.size, updatedAccount?.balance)
-                AppLogger.i(TAG, "  🎉 SYNC ERFOLG: ${newTx.size} neue Buchungen, Saldo=${updatedAccount?.balance}")
+                _bankSyncState.value = BankSyncState.Success(newTx.size, updatedAccount?.balance, dateRangeMsg)
+                AppLogger.i(TAG, "  🎉 SYNC ERFOLG: ${newTx.size} neue Buchungen, Saldo=${updatedAccount?.balance}, Zeitraum=$dateRangeMsg")
                 AppLogger.i(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             }.onFailure { e ->
                 AppLogger.e(TAG, "  ❌ Bank-Response FEHLER: ${e.message}", e)

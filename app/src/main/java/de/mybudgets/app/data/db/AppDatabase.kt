@@ -19,15 +19,17 @@ import de.mybudgets.app.data.model.*
         StandingOrder::class,
         TransferTemplate::class,
         CategoryPattern::class,
-        RecurringRule::class
+        RecurringRule::class,
+        SyncInterval::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun syncIntervalDao(): SyncIntervalDao
     abstract fun labelDao(): LabelDao
     abstract fun gamificationDao(): GamificationDao
     abstract fun standingOrderDao(): StandingOrderDao
@@ -194,9 +196,27 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE recurring_rules ADD COLUMN matchIban TEXT")
                 database.execSQL("ALTER TABLE recurring_rules ADD COLUMN matchAmountTolerance REAL")
                 lastMigrationVersion = "v11→v12"
+            }
+        }
+
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """CREATE TABLE IF NOT EXISTS sync_intervals (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        accountId INTEGER NOT NULL,
+                        startDate INTEGER NOT NULL,
+                        endDate INTEGER NOT NULL,
+                        isHistorical INTEGER NOT NULL,
+                        timestamp INTEGER NOT NULL
+                    )"""
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_sync_intervals_accountId ON sync_intervals(accountId)"
+                )
+                lastMigrationVersion = "v12→v13"
             }
         }
 
@@ -241,7 +261,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_8_9,
                     MIGRATION_9_10,
                     MIGRATION_10_11,
-                    MIGRATION_11_12
+                    MIGRATION_11_12,
+                    MIGRATION_12_13
                 ).build().also { INSTANCE = it }
             }
     }
