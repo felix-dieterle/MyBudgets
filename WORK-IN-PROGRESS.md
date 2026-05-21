@@ -2,11 +2,45 @@
 
 ## Status Update
 
-**Letzter Stand:** 2026-05-21 21:15
+**Letzter Stand:** 2026-05-21 22:30
 
 ### Abgeschlossene Features (heute)
 
-#### 1. ✅ Interval-Based Sync v4 mit Button-Fix & Balance-Update
+#### 1. ✅ KUmsAllCamt Job-Priority Änderung (BBBank Optimierung)
+
+**Problem:** Historische Syncs holten nur ~150 Transaktionen
+
+**Lösung:** Standalone Java-Test (MultiJobTest.java) zeigte:
+- **Ein einzelner `KUmsAllCamt` Job holt ~1000 Transaktionen** (fast 2 Jahre)
+- **Multi-Job Dialog ist NICHT nötig** für BBBank
+- BBBank ignoriert Startdatum und liefert automatisch die letzten ~1000 TX
+
+**Implementierung:**
+- `FintsService.buildJobAttempts()`: **Job-Reihenfolge geändert**
+  - **Vorher:** `KUmsZeitSEPA` → `KUmsAllCamt` → `KUmsAll` → `KUmsNew`
+  - **Jetzt:** `KUmsAllCamt` → `KUmsZeitSEPA` → `KUmsAll` → `KUmsNew`
+- Minimale Änderung: Nur 2 Zeilen in Job-Liste vertauscht
+- Fallback-Logik bleibt erhalten
+
+**Test-Ergebnis (MultiJobTest v1.0.7):**
+- ✅ 989 Transaktionen mit EINER TAN
+- ✅ TAN-Methode 946 (SecureGo plus Direktfreigabe) funktioniert
+- ✅ HBCI 3.0 mit KUmsAllCamt erfolgreich
+
+**Dateien:**
+- `FintsService.kt`: Zeile 530-546 (buildJobAttempts)
+- `scripts/java-sync/MultiJobTest.java`: v1.0.7 (Standalone Test)
+- `scripts/400-multi-job-test.cmd`: Test-Wrapper
+
+**Commit:** (noch nicht committed)
+
+**Nächster Schritt:** APK bauen und in App testen
+
+---
+
+## Legacy Content (vor 22:00 Uhr)
+
+#### 2. ✅ Interval-Based Sync v4 mit Button-Fix & Balance-Update
 - **Gap-Detection funktioniert:** `getNextHistoricalSyncDate()` returned korrekt nächste Lücke
 - **Button-Problem behoben:** `updateHistoricalSyncButtonState()` wird jetzt initial aufgerufen (nicht nur nach Sync)
 - **Balance-Update verbessert:**
@@ -25,9 +59,33 @@
 
 ---
 
-## Aktuelle Erkenntnisse
+## Erkenntnisse: Multi-Job vs. Single-Job (BBBank)
 
-### Multi-Job-Dialog (BBBank Limitation)
+### ✅ RESOLVED: Multi-Job Dialog ist NICHT nötig!
+
+**Test-Ergebnis (2026-05-21 22:00):**
+- **Ein einzelner `KUmsAllCamt` Job holt ~1000 Transaktionen** (989 TX im Test)
+- **Zeitraum:** Fast 2 Jahre Daten (2024-07 bis 2026-05)
+- **TAN-Aufwand:** Nur EINE SecureGo Plus Bestätigung
+
+**Warum Multi-Job getestet wurde:**
+- Hibiscus nutzt Multi-Job-Dialoge (mehrere Jobs in EINER Session mit EINER TAN)
+- Hypothese: Mehrere date-windowed Jobs könnten mehr als 150 TX holen
+
+**Warum Multi-Job NICHT funktionierte (Commit e2e10e2):**
+- BBBank verlangt für **jeden Job eine separate TAN** (3 Jobs = 3 TANs)
+- Nur der erste Job lieferte Daten, andere wurden abgebrochen (User bestätigte nicht alle TANs)
+
+**Warum Multi-Job NICHT nötig ist:**
+- BBBank's `KUmsAllCamt` ignoriert das Startdatum
+- Liefert automatisch die letzten ~1000 Transaktionen
+- Deutlich mehr als das alte 150-TX-Limit
+
+**Lösung:** Job-Priority geändert - `KUmsAllCamt` erste Wahl statt zweite
+
+---
+
+### ~~Multi-Job-Dialog (BBBank Limitation)~~ [VERALTET]
 
 **Frage heute:** "Warum braucht Hibiscus nicht für jeden Chunk TAN?"
 

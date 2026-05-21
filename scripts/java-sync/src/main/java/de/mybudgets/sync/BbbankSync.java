@@ -356,7 +356,7 @@ public class BbbankSync {
                     retData.replace(0, retData.length(), userId);
                     break;
                 case NEED_HOST:
-                    retData.replace(0, retData.length(), "fints2.atruvia.de");
+                    retData.replace(0, retData.length(), "fints2.atruvia.de/cgi-bin/hbciservlet");
                     break;
                 case NEED_PORT:
                     retData.replace(0, retData.length(), "443");

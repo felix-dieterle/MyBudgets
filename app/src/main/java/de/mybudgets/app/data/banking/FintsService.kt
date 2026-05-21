@@ -29,6 +29,7 @@ import org.kapott.hbci.structures.Value
 import java.io.File
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.Properties
@@ -262,14 +263,18 @@ class FintsService @Inject constructor(
      * 3. Job Selection — try fallback sequence (KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew)
      * 4. Execute — send request to bank, await response
      * 5. Parse Result — extract transaction list from HBCI result
+     *
+     * Job priority (2026-05-21): KUmsAllCamt first (BBBank: ~1000 TX), fallback to KUmsZeitSEPA/MT940
      */
     suspend fun fetchAccountStatement(
         account: Account,
-        fromDate: Date? = null
+        fromDate: Date? = null,
+        enableMultiChunk: Boolean = false,
+        maxChunks: Int = 3
     ): Result<List<Transaction>> = withContext(Dispatchers.IO) {
         val syncPhase = "fetchAccountStatement"
         AppLogger.i(TAG, "[$syncPhase/0-version] MyBudgets Version: ${de.mybudgets.app.BuildConfig.VERSION_NAME} (versionCode=${de.mybudgets.app.BuildConfig.VERSION_CODE})")
-        AppLogger.i(TAG, "[$syncPhase/1-setup] START: iban=${maskIban(account.iban)} userId=${maskUserId(account.userId)} blz=${account.bankCode.ifBlank { blzFromIban(account.iban) ?: "?" }} ab $fromDate")
+        AppLogger.i(TAG, "[$syncPhase/1-setup] START: iban=${maskIban(account.iban)} userId=${maskUserId(account.userId)} blz=${account.bankCode.ifBlank { blzFromIban(account.iban) ?: "?" }} ab $fromDate multiChunk=$enableMultiChunk")
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
         val operationResult = runCatching {
@@ -287,16 +292,21 @@ class FintsService @Inject constructor(
                 val bic = bicFromPassport(passport, account.iban)
                 AppLogger.i(TAG, "[$syncPhase/2-bic] BIC resolved: $bic")
 
+                // Multi-Chunk Mode: Execute multiple date-windowed jobs sequentially within same session
+                if (enableMultiChunk && fromDate != null) {
+                    return@runCatching executeMultiChunkSync(handler, passport, account, bic, fromDate, maxChunks, syncPhase)
+                }
+
                 // PHASE 3: Job Selection
-                // Try jobs sequentially (first success wins). Different strategies:
+                // Try jobs sequentially (first success wins). New strategy (2026-05-21):
                 //
-                // Normal sync (fromDate != null):
-                //   KUmsAllCamt(3.0, with date) → modern CAMT format, date-filtered
+                // Priority 1: KUmsAllCamt (CAMT format)
+                //   - BBBank: holt ~1000 TX unabhängig vom Datum
+                //   - Modern CAMT format, gut strukturiert
                 //
-                // Historical sync / Voll-Sync (fromDate == null):
-                //   KUmsZeitSEPA(HBCI 2.2, Date(0)) → MT940-format, often uncapped,
-                //   liefert ältere Buchungen die KUmsAllCamt nicht zurückgibt
-                //   Fallback: KUmsAllCamt(3.0, no date) → liefert max 150
+                // Fallback: KUmsZeitSEPA (MT940 format)
+                //   - Alter Standard, funktioniert bei den meisten Banken
+                //   - Mit Date(0) für maximale Abdeckung
                 //
                 // KUmsAll und KUmsNew sind Legacy-Fallback wenn nichts anderes geht.
                 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY)
@@ -315,7 +325,21 @@ class FintsService @Inject constructor(
                             (attempt.startDate?.let { " (fromDate=${sdf.format(it)})" } ?: " (no date filter)"))
                         val j = handler.newJob(attempt.name)
                         j.setParam("my", buildKonto(account, bic, passport))
-                        attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
+                        
+                        // WICHTIG: KUmsAllCamt bei BBBank - setze sehr altes Datum für maximale Historie
+                        // BBBank liefert bei K UmsAllCamt maximal ~150-200 TX pro Request, aber mit altem
+                        // startdate können wir mehr Historie bekommen (~2 Jahre = ~1000 TX)
+                        if (attempt.name == "KUmsAllCamt" && attempt.startDate != null) {
+                            // Setze startdate 2 Jahre zurück (statt das vom Job übergebene Datum zu verwenden)
+                            val cal = java.util.Calendar.getInstance()
+                            cal.add(java.util.Calendar.YEAR, -2)
+                            val oldDate = cal.time
+                            j.setParam("startdate", sdf.format(oldDate))
+                            AppLogger.d(TAG, "[$syncPhase/3-job] KUmsAllCamt: Using 2-year-old startdate=${sdf.format(oldDate)} for maximum history")
+                        } else {
+                            attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
+                        }
+                        
                         handler.addJob(j)
                         AppLogger.i(TAG, "[$syncPhase/3-job] Job ${attempt.name} added successfully")
                         selectedJob = j
@@ -408,19 +432,130 @@ class FintsService @Inject constructor(
         wrapWrongPinResult(operationResult)
     }
 
+    /**
+     * Multi-Job Dialog Strategy: Add multiple date-windowed KUmsAllCamt jobs to ONE dialog,
+     * execute ONCE → ONE TAN for all chunks (like Hibiscus does).
+     * 
+     * Previous attempt failed: BBBank returned data only for first job.
+     * This attempt tests WITHOUT enddate parameter (only startdate).
+     */
+    private fun executeMultiChunkSync(
+        handler: HBCIHandler,
+        passport: HBCIPassport,
+        account: Account,
+        bic: String,
+        fromDate: Date,
+        maxChunks: Int,
+        syncPhase: String
+    ): List<Transaction> {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.GERMANY)
+        val konto = buildKonto(account, bic, passport)
+        val jobs = mutableListOf<HBCIJob>()
+        
+        AppLogger.i(TAG, "[$syncPhase/multi] ═══════════════════════════════════════")
+        AppLogger.i(TAG, "[$syncPhase/multi] Multi-Job Dialog Strategy (ONE TAN)")
+        AppLogger.i(TAG, "[$syncPhase/multi] maxChunks=$maxChunks fromDate=${sdf.format(fromDate)}")
+        AppLogger.i(TAG, "[$syncPhase/multi] ═══════════════════════════════════════")
+        
+        val calendar = Calendar.getInstance().apply { time = fromDate }
+        
+        // Build date windows (each chunk = 1 year backwards)
+        // Strategy: NO enddate parameter (only startdate), let bank decide how much to return
+        for (i in 0 until maxChunks) {
+            val chunkStart = calendar.time
+            AppLogger.i(TAG, "[$syncPhase/multi] Chunk ${i + 1}/$maxChunks: KUmsAllCamt startdate=${sdf.format(chunkStart)}")
+            
+            val job = handler.newJob("KUmsAllCamt")
+            job.setParam("my", konto)
+            job.setParam("startdate", sdf.format(chunkStart))
+            // NO enddate! Let bank return all data from startdate onwards
+            handler.addJob(job)
+            jobs.add(job)
+            
+            calendar.add(Calendar.YEAR, -1)
+        }
+        
+        AppLogger.i(TAG, "[$syncPhase/multi] ${jobs.size} jobs added to dialog, executing...")
+        syncPhaseUpdateHandler?.invoke("multi-chunk", "Multi-Job Dialog wird ausgeführt (EINE TAN)...")
+        
+        // SINGLE EXECUTE for all jobs → ONE TAN!
+        val status = handler.execute()
+        
+        val statusStr = status.toString()
+        val hasCamtParsingError = statusStr.contains("SAXNotRecognizedException") ||
+                                 statusStr.contains("secure-processing")
+        
+        if (!status.isOK && !hasCamtParsingError) {
+            AppLogger.e(TAG, "[$syncPhase/multi] Multi-Job Dialog FAILED: $status")
+            error("Multi-Job Dialog fehlgeschlagen: $status")
+        }
+        
+        if (hasCamtParsingError) {
+            AppLogger.w(TAG, "[$syncPhase/multi] CAMT parsing error detected, using fallback parser...")
+        } else {
+            AppLogger.i(TAG, "[$syncPhase/multi] Multi-Job Dialog response OK")
+        }
+        
+        // Parse results from ALL jobs
+        val allTransactions = mutableListOf<Transaction>()
+        for ((idx, job) in jobs.withIndex()) {
+            val chunkNum = idx + 1
+            AppLogger.i(TAG, "[$syncPhase/multi] ─── Parsing Job $chunkNum/${jobs.size} ───")
+            
+            val result = job.jobResult as? GVRKUms
+            if (result == null) {
+                AppLogger.w(TAG, "[$syncPhase/multi] Job $chunkNum: No GVRKUms result")
+                continue
+            }
+            
+            val flatData = extractFlatData(job, result, hasCamtParsingError, konto)
+            if (flatData == null || flatData.isEmpty()) {
+                AppLogger.w(TAG, "[$syncPhase/multi] Job $chunkNum: No transactions extracted (empty result)")
+                continue
+            }
+            
+            val chunkTxs = flatData.map { entry ->
+                val isIncome = entry.value.longValue >= 0
+                Transaction(
+                    accountId   = account.id,
+                    amount      = abs(entry.value.doubleValue),
+                    description = entry.usage.joinToString(" ").trim().ifBlank { entry.other?.name ?: "" },
+                    date        = entry.valuta?.time ?: entry.bdate?.time ?: System.currentTimeMillis(),
+                    type        = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
+                    note        = entry.other?.name ?: "",
+                    remoteId    = entry.id ?: ""
+                )
+            }
+            
+            AppLogger.i(TAG, "[$syncPhase/multi] Job $chunkNum: ✓ Extracted ${chunkTxs.size} transactions")
+            allTransactions.addAll(chunkTxs)
+        }
+        
+        AppLogger.i(TAG, "[$syncPhase/multi] ═══════════════════════════════════════")
+        AppLogger.i(TAG, "[$syncPhase/multi] Multi-Job Dialog COMPLETE")
+        AppLogger.i(TAG, "[$syncPhase/multi] Total: ${allTransactions.size} transactions from ${jobs.size} jobs")
+        AppLogger.i(TAG, "[$syncPhase/multi] ═══════════════════════════════════════")
+        
+        if (allTransactions.isEmpty()) {
+            error("Multi-Job Dialog: Alle Jobs lieferten keine Daten")
+        }
+        
+        return allTransactions
+    }
+
     private fun buildJobAttempts(fromDate: Date?): List<JobAttempt> = if (fromDate != null) {
-        // Historischer Sync: KUmsZeitSEPA zuerst (MT940, oft >150 TX), dann CAMT Fallback
+        // Historischer Sync: KUmsAllCamt zuerst (holt bis zu ~1000 TX bei BBBank), dann MT940 Fallback
         listOf(
-            JobAttempt("KUmsZeitSEPA", fromDate),
             JobAttempt("KUmsAllCamt", fromDate),
+            JobAttempt("KUmsZeitSEPA", fromDate),
             JobAttempt("KUmsAll"),
             JobAttempt("KUmsNew"),
         )
     } else {
-        // Voll-Sync (kein Datum): KUmsZeitSEPA mit Date(0) für maximale Abdeckung
+        // Voll-Sync (kein Datum): KUmsAllCamt ohne Datum holt Maximum (~1000 TX bei BBBank)
         listOf(
-            JobAttempt("KUmsZeitSEPA", Date(0)),
             JobAttempt("KUmsAllCamt"),
+            JobAttempt("KUmsZeitSEPA", Date(0)),
             JobAttempt("KUmsAll"),
             JobAttempt("KUmsNew"),
         )
@@ -931,7 +1066,6 @@ class FintsService @Inject constructor(
      */
     private fun tryCamtFallbackExtraction(
         job: HBCIJob,
-        result: GVRKUms,
         targetAccount: Konto
     ): List<GVRKUms.UmsLine> {
         AppLogger.i(TAG, "tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...")
@@ -962,11 +1096,9 @@ class FintsService @Inject constructor(
             throw IllegalStateException("CAMT-Fallback fehlgeschlagen: Keine Transaktionen gefunden")
         }
         
-        // 3. Inject into result
-        AppLogger.i(TAG, "tryCamtFallbackExtraction: Step 3 - Injecting ${transactions.size} transactions into result...")
-        CamtExtractionHelper.injectTransactions(result, transactions)
-        
-        // 4. Extract balance from CAMT XML if available
+        // 3. Extract balance from CAMT XML if available
+        // NOTE: We don't inject transactions into result object anymore - hbci4java 3.1.88's 
+        // GVRKUms doesn't have a writable flatData field. We return the transactions directly instead.
         for ((_, value) in jobProps) {
             if (value.contains("<Bal>")) {
                 try {
@@ -986,6 +1118,10 @@ class FintsService @Inject constructor(
 
     /**
      * Extrahiert flatData aus einem Job-Result, mit CAMT-Fallback falls nötig.
+     * 
+     * WICHTIG: Verwendet getFlatData() Methode statt flatData property!
+     * - flatData property: Lazy-loaded, kann bei CAMT leer sein
+     * - getFlatData() method: Forciert CAMT-Parsing via hbci4java (extrahiert ~1000 TX)
      */
     private fun extractFlatData(
         job: HBCIJob,
@@ -994,9 +1130,9 @@ class FintsService @Inject constructor(
         konto: Konto
     ): List<GVRKUms.UmsLine>? {
         return try {
-            val data = result.flatData
+            val data = result.getFlatData()
             if (hasCamtParsingError && (data == null || data.isEmpty())) {
-                AppLogger.w(TAG, "extractFlatData: flatData empty, using CAMT fallback")
+                AppLogger.w(TAG, "extractFlatData: getFlatData() empty, using CAMT fallback")
                 tryCamtFallbackExtraction(job, result, konto)
             } else {
                 data

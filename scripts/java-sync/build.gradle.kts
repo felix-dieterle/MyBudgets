@@ -16,12 +16,21 @@ configurations.all {
 }
 
 application {
-    mainClass.set("de.mybudgets.sync.BbbankSyncKt")
+    mainClass.set("de.mybudgets.sync.BbbankSync")
+}
+
+// Custom task for MultiJobTest
+tasks.register<JavaExec>("runMultiJobTest") {
+    group = "application"
+    description = "Run Multi-Job Dialog Test"
+    mainClass.set("de.mybudgets.sync.MultiJobTest")
+    classpath = sourceSets["main"].runtimeClasspath
+    workingDir = projectDir
 }
 
 tasks.jar {
     manifest {
-        attributes("Main-Class" to "de.mybudgets.sync.BbbankSyncKt")
+        attributes("Main-Class" to "de.mybudgets.sync.BbbankSync")
     }
     from(configurations.runtimeClasspath.get().files.map { file ->
         if (file.isDirectory) file else zipTree(file)

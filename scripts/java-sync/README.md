@@ -22,6 +22,11 @@ blz=66090800
 tanMethod=900
 daysBack=30
 debug=false
+
+# Multi-Job Test Config
+multiJob.maxChunks=3
+multiJob.yearsPerChunk=1
+multiJob.useEnddate=false
 ```
 
 ### Umgebungsvariablen
@@ -37,10 +42,22 @@ MYB_DEBUG=false
 
 ## Verwendung
 
+### Standard Sync Test
 **Windows:**
 ```cmd
 scripts\start-java-sync.cmd
 ```
+
+### Multi-Job Dialog Test
+**Windows:**
+```cmd
+scripts\400-multi-job-test.cmd
+```
+
+Testet den Multi-Job-Ansatz (wie Hibiscus):
+- Mehrere KUmsAllCamt-Jobs in EINEM Dialog
+- EINE TAN für alle Jobs
+- Ziel: Mehr als 150 Transaktionen pro TAN
 
 **Manuell:**
 ```bash
@@ -56,6 +73,18 @@ java -jar build\libs\java-sync.jar
 - Fallback-Strategie für verschiedene Job-Typen (KUmsAllCamt → KUmsZeitSEPA → KUmsAll → KUmsNew)
 - PIN/TAN-Eingabe über Konsole
 - Zeigt bis zu 10 Buchungen an
+
+## Test Scripts
+
+### BbbankSync.java
+Standard Sync-Test mit single job (wie aktueller App-Code)
+
+### MultiJobTest.java
+Multi-Job Dialog Test:
+- Erstellt mehrere KUmsAllCamt-Jobs mit unterschiedlichen Date-Windows
+- Führt EINEN Dialog aus (ONE TAN!)
+- Vergleicht Strategie mit/ohne `enddate` Parameter
+- Detailliertes Logging für jeden Job
 
 ## Sicherheit
 

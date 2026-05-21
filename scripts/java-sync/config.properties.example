@@ -13,12 +13,31 @@ PIN=DEINE_PIN
 # BLZ (optional, wird aus IBAN abgeleitet wenn leer)
 blz=66090800
 
+# BIC (Bank Identifier Code, required for CAMT jobs)
+bic=GENODE61BBB
+
 # TAN-Methode (optional, leer für Auto)
-# 900 = Secure Go / BestSign (Decoupled)
-tanMethod=900
+# 946 = SecureGo plus (Direktfreigabe) - BBBank empfohlen
+# 962 = Smart-TAN plus manuell
+# 972 = Smart-TAN plus optisch / USB
+# 982 = Smart-TAN photo
+tanMethod=
 
 # Tage zurück (Default: 30)
 daysBack=30
 
 # Debug-Modus (true/false)
 debug=false
+
+# === Multi-Job Test Config ===
+# Number of jobs to create in ONE dialog (default: 3)
+multiJob.maxChunks=3
+
+# Years per chunk (default: 1)
+# Example: maxChunks=3, yearsPerChunk=1 → 3 jobs covering 3 years total
+multiJob.yearsPerChunk=1
+
+# Use enddate parameter (default: false)
+# false = only startdate (let bank decide how much to return)
+# true = startdate + enddate (explicit date range)
+multiJob.useEnddate=false
