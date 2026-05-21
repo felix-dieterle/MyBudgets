@@ -105,6 +105,42 @@ class FintsService @Inject constructor(
      * Empty string means hbci4j auto-selects the first available method.
      */
     private val currentTanMethod = ThreadLocal<String>()
+    
+    // ─── PIN Cache (2 Minuten RAM-only) ──────────────────────────────────────────
+    
+    private data class CachedPin(
+        val pin: String,
+        val expiryTimeMillis: Long
+    )
+    
+    @Volatile private var cachedPin: CachedPin? = null
+    private val PIN_CACHE_DURATION_MS = 2 * 60 * 1000L // 2 Minuten
+    
+    private fun getCachedPin(): String? {
+        val cached = cachedPin ?: return null
+        return if (System.currentTimeMillis() < cached.expiryTimeMillis) {
+            AppLogger.d(TAG, "PIN-Cache: Verwende gecachte PIN, Timer zurücksetzen")
+            // Timer zurücksetzen bei jedem Zugriff (2 Minuten ab jetzt)
+            val newExpiry = System.currentTimeMillis() + PIN_CACHE_DURATION_MS
+            cachedPin = CachedPin(cached.pin, newExpiry)
+            cached.pin
+        } else {
+            AppLogger.d(TAG, "PIN-Cache: Abgelaufen, invalidiere")
+            cachedPin = null
+            null
+        }
+    }
+    
+    private fun cachePin(pin: String) {
+        val expiry = System.currentTimeMillis() + PIN_CACHE_DURATION_MS
+        cachedPin = CachedPin(pin, expiry)
+        AppLogger.d(TAG, "PIN-Cache: PIN für 2 Minuten gecacht")
+    }
+    
+    fun invalidatePinCache() {
+        cachedPin = null
+        AppLogger.d(TAG, "PIN-Cache: Manuell invalidiert")
+    }
 
     private val passportDir: File by lazy {
         File(context.filesDir, "hbci_passports").also { it.mkdirs() }
@@ -720,7 +756,17 @@ class FintsService @Inject constructor(
                 NEED_PT_PIN -> {
                     val bankName = passport?.blz ?: "Bank"
                     AppLogger.i(TAG, "PIN-Anfrage für BLZ $bankName userId='${maskUserId(currentUserId.get() ?: "")}'")
-                    val pin = requestFromUi { pinProvider?.invoke(bankName) ?: "" }
+                    
+                    // Prüfe Cache erst
+                    val pin = getCachedPin() ?: run {
+                        // Cache miss → User fragen
+                        val newPin = requestFromUi { pinProvider?.invoke(bankName) ?: "" }
+                        if (newPin.isNotBlank()) {
+                            cachePin(newPin)
+                        }
+                        newPin
+                    }
+                    
                     AppLogger.d(TAG, "PIN erhalten: ${maskPin(pin)}")
                     retData?.replace(0, retData.length, pin)
                 }
@@ -801,6 +847,7 @@ class FintsService @Inject constructor(
                 WRONG_PIN -> {
                     AppLogger.w(TAG, "HBCI: PIN ungültig für userId='${maskUserId(currentUserId.get() ?: "")}' (callback reason=$reason)")
                     wrongPinOnThread.set(true)
+                    invalidatePinCache() // Cache bei falscher PIN sofort invalidieren
                 }
                 else -> AppLogger.d(TAG, "HBCI callback reason=$reason msg=$msg")
             }

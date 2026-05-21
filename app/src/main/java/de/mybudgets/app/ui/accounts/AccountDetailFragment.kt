@@ -97,8 +97,11 @@ class AccountDetailFragment : Fragment() {
                                 binding.tvSyncStatus.visibility = View.GONE
                                 vm.resetBankSyncState()
                                 showSyncResultSnackbar(state)
-                                // Update Button-Status nach Sync
-                                updateHistoricalSyncButtonState()
+                                // Update Button-Status nach Sync (mit kleinem Delay für DB-Commit)
+                                viewLifecycleOwner.lifecycleScope.launch {
+                                    kotlinx.coroutines.delay(100) // DB-Insert abwarten
+                                    updateHistoricalSyncButtonState()
+                                }
                                 if (state.importedCount > 0) {
                                     checkForRecurringPatterns {}
                                 }

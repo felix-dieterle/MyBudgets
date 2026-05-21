@@ -268,6 +268,20 @@ class AccountViewModel @Inject constructor(
                     )
                     syncIntervalRepo.insert(interval)
                     AppLogger.i(TAG, "    ✅ Sync-Intervall gespeichert: ${java.util.Date(startDate)} bis ${java.util.Date(endDate)}, isHistorical=$isHistorical")
+                } else if (isHistorical) {
+                    // Historischer Sync ohne neue TX → Trotzdem Intervall speichern mit endDate = fromDate
+                    // Verhindert dass gleicher Zeitraum nochmal abgefragt wird
+                    val fromMillis = if (fromDateMillis == 0L) 0L else fromDateMillis
+                    if (fromMillis > 0L) {
+                        val interval = de.mybudgets.app.data.model.SyncInterval(
+                            accountId = account.id,
+                            startDate = fromMillis,
+                            endDate = fromMillis,
+                            isHistorical = true
+                        )
+                        syncIntervalRepo.insert(interval)
+                        AppLogger.i(TAG, "    ✅ Sync-Intervall (0 TX) gespeichert: ${java.util.Date(fromMillis)}")
+                    }
                 }
                 
                 val camtBalance = fintsService.lastCamtBalance
