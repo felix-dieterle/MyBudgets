@@ -81,11 +81,16 @@ object RecurringPatternDetector {
                     AppLogger.i("RecurringPatternDetector", "    avgInterval=$avgInterval, maxDeviation=$maxDeviation")
                     
                     if (maxDeviation <= INTERVAL_TOLERANCE_DAYS) {
+                        // Check if amounts are exact or just similar
+                        val amountExactness = calculateAmountExactness(sorted)
+                        
                         val confidence = calculateConfidence(
                             occurrences = sorted.size,
                             intervalStability = 1.0 - (maxDeviation / avgInterval.coerceAtLeast(1.0)),
-                            descriptionSimilarity = calculateDescriptionSimilarity(sorted)
+                            descriptionSimilarity = calculateDescriptionSimilarity(sorted),
+                            amountExactness = amountExactness
                         )
+                        
                         val intervalDays = avgInterval.toInt()
                         val label = intervalLabel(intervalDays)
                         val reason = buildReasoning(sorted, intervalDays, label, confidence)
@@ -99,7 +104,7 @@ object RecurringPatternDetector {
                             reasoning = reason
                         )
                         patterns.add(pattern)
-                        AppLogger.i("RecurringPatternDetector", "    ✅ Pattern erkannt: ${pattern.suggestedDescription}, ${sorted.size} TX, Intervall=$intervalDays Tage")
+                        AppLogger.i("RecurringPatternDetector", "    ✅ Pattern erkannt: ${pattern.suggestedDescription}, ${sorted.size} TX, Intervall=$intervalDays Tage, Konfidenz=${"%.2f".format(confidence)} (exactness=${"%.2f".format(amountExactness)})")
                     } else {
                         AppLogger.i("RecurringPatternDetector", "    → Intervalle nicht regelmäßig genug, skip")
                     }
@@ -156,18 +161,65 @@ object RecurringPatternDetector {
     }
     
     /**
+     * Calculates how exact the amounts in a group are.
+     * 
+     * @return 1.0 = All amounts are exactly the same (to the cent)
+     *         0.5 = Amounts vary but within ±5%
+     *         0.0 = Maximum deviation within tolerance
+     */
+    private fun calculateAmountExactness(transactions: List<Transaction>): Double {
+        if (transactions.size < 2) return 1.0
+        
+        val amounts = transactions.map { it.amount }
+        val firstAmount = amounts.first()
+        
+        // Check if all amounts are exactly the same
+        if (amounts.all { abs(it - firstAmount) < 0.01 }) {
+            return 1.0 // Exact match (cent precision)
+        }
+        
+        // Calculate average deviation
+        val avgAmount = amounts.average()
+        val maxDeviation = amounts.maxOfOrNull { abs(it - avgAmount) } ?: 0.0
+        val relativeDeviation = if (avgAmount != 0.0) maxDeviation / abs(avgAmount) else 0.0
+        
+        // Map relative deviation to exactness score
+        // 0% deviation → 1.0
+        // 5% deviation (tolerance limit) → 0.0
+        return 1.0 - (relativeDeviation / AMOUNT_TOLERANCE).coerceIn(0.0, 1.0)
+    }
+    
+    /**
      * Calculates confidence score (0.0 to 1.0) based on:
+     * - Amount exactness (exact amounts = very high, similar amounts = very low)
      * - Number of occurrences (more = higher confidence)
      * - Interval stability (less deviation = higher confidence)
      * - Description similarity (more similar = higher confidence)
+     * 
+     * Priority: Exact amounts >> Occurrences > Interval stability > Description similarity
      */
     private fun calculateConfidence(
         occurrences: Int,
         intervalStability: Double,
-        descriptionSimilarity: Double
+        descriptionSimilarity: Double,
+        amountExactness: Double = 0.5 // 1.0 = exact, 0.0 = only similar within ±5%
     ): Double {
         val occurrenceScore = minOf(occurrences / 10.0, 1.0) // Cap at 10 occurrences
-        return (occurrenceScore * 0.4 + intervalStability * 0.4 + descriptionSimilarity * 0.2)
+        
+        // Amount exactness is by far the most important factor
+        // Exact amounts → 0.8-1.0 confidence
+        // Similar amounts (±5%) → 0.1-0.3 confidence (very low!)
+        val baseConfidence = if (amountExactness >= 0.99) {
+            // Exact amounts: High confidence based on other factors
+            occurrenceScore * 0.4 + intervalStability * 0.4 + descriptionSimilarity * 0.2
+        } else {
+            // Similar amounts: Very low confidence, mostly informational
+            // Cap at 0.3 regardless of other factors
+            val rawScore = occurrenceScore * 0.3 + intervalStability * 0.3 + descriptionSimilarity * 0.2
+            minOf(rawScore, 0.3)
+        }
+        
+        return baseConfidence
     }
     
     /**
