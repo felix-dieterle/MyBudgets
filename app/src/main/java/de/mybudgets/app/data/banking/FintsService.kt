@@ -789,10 +789,16 @@ class FintsService @Inject constructor(
                 }
                 NEED_PT_SECMECH -> {
                     val method = currentTanMethod.get() ?: ""
+                    val stored = retData?.toString() ?: ""
+                    AppLogger.i(TAG, "═══════════════════════════════════════════════════════")
+                    AppLogger.i(TAG, "TAN-Verfahren-Auswahl (NEED_PT_SECMECH):")
+                    AppLogger.i(TAG, "  Verfügbare Methoden von Bank: '$stored'")
+                    AppLogger.i(TAG, "  User-konfiguriert (tanMethod): '${method.ifBlank { "(auto)" }}'")
+                    
                     if (method.isNotBlank()) {
                         // User has explicitly configured a TAN security mechanism code
                         // (e.g. "900" for BBBank Secure Go / BestSign / pushTAN) → override.
-                        AppLogger.i(TAG, "TAN-Verfahren-Auswahl: '$method'")
+                        AppLogger.i(TAG, "  → Verwende explizite Methode: '$method'")
                         retData?.replace(0, retData.length, method)
                     } else {
                         // Auto mode: hbci4j passes the available methods as a pipe-delimited
@@ -800,16 +806,19 @@ class FintsService @Inject constructor(
                         // the full list string is used as the selected method code, which always
                         // fails with "selected pintan method not supported".  Extract the first
                         // method code and set it so hbci4j receives a valid single code.
-                        val stored = retData?.toString() ?: ""
-                        AppLogger.i(TAG, "TAN-Verfahren-Auswahl: 'auto' (gespeichert: '${stored.ifBlank { "(leer)" }}')")
                         if (stored.contains("|")) {
                             val firstCode = stored.split("|").firstOrNull()?.substringBefore(":")?.trim() ?: ""
                             if (firstCode.isNotBlank()) {
-                                AppLogger.i(TAG, "TAN-Verfahren-Auswahl: Auto-Auswahl erste Methode '$firstCode'")
+                                AppLogger.i(TAG, "  → Auto-Auswahl: Erste Methode '$firstCode'")
                                 retData?.replace(0, retData.length, firstCode)
+                            } else {
+                                AppLogger.w(TAG, "  → WARNUNG: Konnte erste Methode nicht extrahieren!")
                             }
+                        } else {
+                            AppLogger.i(TAG, "  → Keine Pipe-Liste, verwende '$stored' direkt")
                         }
                     }
+                    AppLogger.i(TAG, "═══════════════════════════════════════════════════════")
                 }
                 NEED_PT_DECOUPLED, NEED_PT_DECOUPLED_RETRY -> {
                     // Decoupled TAN (Secure Go / BestSign):

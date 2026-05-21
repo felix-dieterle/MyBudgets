@@ -20,9 +20,10 @@ import de.mybudgets.app.data.model.*
         TransferTemplate::class,
         CategoryPattern::class,
         RecurringRule::class,
-        SyncInterval::class
+        SyncInterval::class,
+        RecurrencePattern::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -36,6 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transferTemplateDao(): TransferTemplateDao
     abstract fun categoryPatternDao(): CategoryPatternDao
     abstract fun recurringRuleDao(): RecurringRuleDao
+    abstract fun recurrencePatternDao(): RecurrencePatternDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -219,6 +221,32 @@ abstract class AppDatabase : RoomDatabase() {
                 lastMigrationVersion = "v12→v13"
             }
         }
+        
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add recurrence_patterns table
+                database.execSQL(
+                    """CREATE TABLE IF NOT EXISTS recurrence_patterns (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        keywords TEXT,
+                        targetIban TEXT,
+                        amountMin REAL,
+                        amountMax REAL,
+                        intervalDays INTEGER,
+                        createdAt INTEGER NOT NULL,
+                        lastUsed INTEGER
+                    )"""
+                )
+                
+                // Add recurrencePatternId column to transactions
+                database.execSQL(
+                    "ALTER TABLE transactions ADD COLUMN recurrencePatternId INTEGER"
+                )
+                
+                lastMigrationVersion = "v13→v14"
+            }
+        }
 
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -262,7 +290,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_9_10,
                     MIGRATION_10_11,
                     MIGRATION_11_12,
-                    MIGRATION_12_13
+                    MIGRATION_12_13,
+                    MIGRATION_13_14
                 ).build().also { INSTANCE = it }
             }
     }

@@ -195,6 +195,11 @@ class AccountDetailFragment : Fragment() {
         val hasBankData = acc.bankCode.isNotBlank() || acc.iban.isNotBlank()
         binding.btnBankSync.visibility       = if (hasBankData) View.VISIBLE else View.GONE
         binding.btnHistoricalSync.visibility = if (hasBankData) View.VISIBLE else View.GONE
+        
+        // Update button state based on sync intervals
+        if (hasBankData) {
+            updateHistoricalSyncButtonState()
+        }
 
         if (acc.isVirtual && acc.parentAccountId != null) {
             val parent = allAccounts.find { it.id == acc.parentAccountId }

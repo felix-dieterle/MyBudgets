@@ -1,185 +1,188 @@
-# Work in Progress - 2026-05-19
+# Work in Progress - 2026-05-21
 
-## Aktuelle Aufgaben
+## Status Update
 
-### 1. Big Sync: Multi-KUmsAllCamt mit Date-Windows ⚠️ IN ARBEIT
+**Letzter Stand:** 2026-05-21 21:15
 
-**Problem:** 
-- Früher: KUmsAllCamt (150 TX) + KUmsZeitSEPA (150 TX) = ~300 TX pro Sync (~2 Jahre Daten)
-- Jetzt: HBCI 2.2 broken → nur KUmsAllCamt → 150 TX pro Sync
-- User muss 20× "Ältere Buchungen importieren" klicken → inakzeptabel
+### Abgeschlossene Features (heute)
 
-**Lösung:**
-- Multiple KUmsAllCamt-Jobs mit unterschiedlichen Date-Windows in EINEM Dialog/TAN
-- 5 Jobs → 5×150 = bis zu 750 TX pro Sync
-- 20 Klicks → ~4 Klicks
+#### 1. ✅ Interval-Based Sync v4 mit Button-Fix & Balance-Update
+- **Gap-Detection funktioniert:** `getNextHistoricalSyncDate()` returned korrekt nächste Lücke
+- **Button-Problem behoben:** `updateHistoricalSyncButtonState()` wird jetzt initial aufgerufen (nicht nur nach Sync)
+- **Balance-Update verbessert:**
+  - Normal-Sync: Update wenn TX ≤7 Tage alt
+  - Historischer Sync: Update wenn keine neueren TX in DB existieren
+- **Commit:** a7e3def (recurrence-confidence), 60b811d (PIN-cache), 496350f (interval-sync)
+- **APK:** v1.0.45-309 deployed auf NAS
 
-**Architektur-Überlegungen:**
-- `fetchAccountStatement()` nutzt aktuell "first success wins" Pattern
-- Für Multi-Job: Alle KUmsAllCamt-Jobs parallel adden, execute, merge, dedup
-- WICHTIG: `enddate` Parameter nutzen für non-overlapping windows:
-  ```
-  Job 1: fromDate=earliest-365d, toDate=earliest-1
-  Job 2: fromDate=earliest-730d, toDate=earliest-366d
-  Job 3: fromDate=earliest-1095d, toDate=earliest-731d
-  etc.
-  ```
-- Ohne `enddate`: Overlap-Problem (KUmsAllCamt returnt immer die 150 NEUESTEN ab fromDate)
-
-**TODO:**
-1. ✅ Code-Analyse abgeschlossen
-2. ⏳ `continueSyncOlder()` umbauen: 5 Date-Windows berechnen
-3. ⏳ `fetchAccountStatement()` umbauen: Multiple KUmsAllCamt mit enddate
-4. ⏳ Result-Merging + Dedup nach remoteId
-5. ⏳ Fallback: Wenn Multi-Job fehlschlägt → Single-Job retry
-
-**Dateien betroffen:**
-- `AccountViewModel.kt` (continueSyncOlder)
-- `FintsService.kt` (fetchAccountStatement, buildJobAttempts, extractFlatData)
+#### 2. ✅ Recurrence Pattern Management (Datenmodell)
+- **RecurrencePattern Entity:** name, keywords, targetIban, amountMin/Max, intervalDays
+- **Transaction.recurrencePatternId:** FK zu RecurrencePattern
+- **RecurrencePatternMatcher:** Einheitliche Match-Logik (keywords OR, IBAN exact, amount range)
+- **Migration 13→14:** DB-Schema erweitert
+- **Commit:** Heute (noch nicht committed)
+- **Status:** Datenmodell & Logik fertig, UI fehlt noch
 
 ---
 
-### 2. UX: ± Toggle vor Min/Max-Filter ⏸️ PENDING
+## Aktuelle Erkenntnisse
+
+### Multi-Job-Dialog (BBBank Limitation)
+
+**Frage heute:** "Warum braucht Hibiscus nicht für jeden Chunk TAN?"
+
+**Antwort:** Hibiscus nutzt **Multi-Job-Dialoge** (mehrere Jobs in EINER Session):
+```java
+HBCIDialog dialog = handler.newDialog();
+dialog.addJob(job1);  // Chunk 1
+dialog.addJob(job2);  // Chunk 2
+dialog.execute();     // EINE TAN für alle!
+```
+
+**Unser Problem:** Wir öffnen für jeden Chunk eine neue Session → neue TAN!
+
+**Aber:** Multi-Job wurde bereits versucht und **fehlgeschlagen** (Commit e2e10e2):
+- **Problem:** BBBank liefert nur für **ersten Job** Daten
+- **Root Cause unklar:** Evtl. Bank-Limitation oder falscher `enddate`-Parameter
+- **Dokumentiert in:** `WORK-IN-PROGRESS.md` Zeile 5-39 (alte Version)
+
+**Status:** ⚠️ **UNRESOLVED** - Multi-Job funktioniert nicht bei BBBank
+
+---
+
+## Offene Aufgaben
+
+### 1. ⏳ Recurrence Pattern UI (NEW)
+
+**Anforderung:**
+- Transaction Detail: Recurrence-Section mit Edit/Remove
+- "Als wiederkehrend markieren" Button → Pattern-Dialog
+- Pattern ändern → Auto-Scan + Vorschläge-Dialog
+
+**Implementation Plan:**
+1. **RecurrencePatternEditDialog:** Pattern erstellen/bearbeiten (Keywords, IBAN, Betrag-Range)
+2. **RecurrenceMatchConfirmDialog:** Gefundene Matches mit Checkboxes
+3. **Transaction Detail UI:** Recurrence-Section hinzufügen
+4. **Auto-Scan nach Pattern-Änderung:** DB scannen, Matches vorschlagen
+
+**Dateien betroffen:**
+- `AddEditTransactionFragment.kt` (Recurrence-Section)
+- `RecurrencePatternEditDialog.kt` (neu)
+- `RecurrenceMatchConfirmDialog.kt` (neu)
+- `TransactionViewModel.kt` (Pattern-CRUD)
+
+**Status:** Datenmodell fertig, UI fehlt
+
+---
+
+### 2. ⚠️ Multi-KUmsAllCamt mit Date-Windows (BLOCKED)
+
+**Problem:** 
+- Früher: KUmsAllCamt (150 TX) + KUmsZeitSEPA (150 TX) = ~300 TX pro Sync
+- Jetzt: HBCI 2.2 broken → nur KUmsAllCamt → 150 TX pro Sync
+- User muss 20× "Ältere Buchungen importieren" klicken
+
+**Lösung (geplant):**
+- Multiple KUmsAllCamt-Jobs mit unterschiedlichen Date-Windows in EINEM Dialog
+- 5 Jobs → 5×150 = bis zu 750 TX pro Sync
+
+**Status:** ❌ **FAILED** - Bereits versucht (Commit e2e10e2)
+- BBBank liefert nur für ersten Job Daten
+- Grund unklar (Bank-Limitation? Parameter-Fehler?)
+
+**Alternative Lösungen:**
+1. **enddate Parameter testen:** Evtl. falsch genutzt?
+2. **Andere Job-Typen mischen:** KUmsAllCamt + KUmsAll + KUmsNew parallel?
+3. **Session-Reuse:** Statt neue Session pro Chunk?
+
+**Dateien betroffen:**
+- `AccountViewModel.kt` (continueSyncOlder)
+- `FintsService.kt` (fetchAccountStatement, buildJobAttempts)
+
+---
+
+### 3. ⏸️ UX: ± Toggle vor Min/Max-Filter (PENDING)
 
 **Anforderung:**
 - Vor den Min/Max-Betrags-Feldern: Toggle-Switch für Minus/Plus
 - Default: Minus (Ausgaben)
-- User kann zwischen "Ausgaben anzeigen" / "Einnahmen anzeigen" umschalten
 
 **Implementation:**
-- `TransactionViewModel.kt`: Neue StateFlow `_amountSign: MutableStateFlow<AmountSign>` (enum: NEGATIVE, POSITIVE, ALL)
+- `TransactionViewModel.kt`: `_amountSign: MutableStateFlow<AmountSign>`
 - `fragment_transactions.xml`: ChipGroup/ToggleButton vor `til_amount_min`
 - `TransactionsFragment.kt`: Binding + Filter-Logik
-- Filter-Logik: `tx.amount` Vorzeichen prüfen basierend auf `AmountSign`
 
-**Dateien betroffen:**
-- `TransactionViewModel.kt`
-- `fragment_transactions.xml`
-- `TransactionsFragment.kt`
+**Status:** PENDING
 
 ---
 
-### 3. UX: Last-Sync-Date in Account-Overview ⏸️ PENDING
+### 4. ⏸️ UX: Last-Sync-Date in Account-Overview (PENDING)
 
 **Anforderung:**
-- Kontoübersicht zeigt Saldo, aber nicht wann zuletzt gesynct wurde
-- User sieht nicht ob Saldo aktuell oder 1 Monat alt ist
-- Lösung: `lastSyncAt` Timestamp pro Konto anzeigen
+- Kontoübersicht zeigt wann zuletzt gesynct wurde
+- "Letzter Sync: vor 2 Tagen"
 
 **Implementation:**
+- `Account.lastSyncAt: Long?` (DB-Migration 14→15)
+- `AccountViewModel.syncBankTransactions()` update lastSyncAt
+- `AccountAdapter.kt` + `item_account.xml` Anzeige
 
-#### DB-Migration:
-```kotlin
-// Account.kt
-data class Account(
-    ...
-    val lastSyncAt: Long? = null  // epoch millis
-)
-```
-
-Migration in `AppDatabase.kt`:
-```sql
-ALTER TABLE accounts ADD COLUMN lastSyncAt INTEGER DEFAULT NULL;
-```
-
-#### Sync-Update:
-`AccountViewModel.syncBankTransactions()` nach erfolgreichem Sync:
-```kotlin
-repo.save(account.copy(
-    balance = camtBalance,
-    lastSyncAt = System.currentTimeMillis()
-))
-```
-
-#### UI-Anzeige:
-`item_account.xml`: Neues TextView unter `tv_account_type`:
-```xml
-<TextView
-    android:id="@+id/tv_last_sync"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="2dp"
-    android:textAppearance="?attr/textAppearanceBodySmall"
-    android:alpha="0.6"
-    tools:text="Letzter Sync: vor 2 Tagen" />
-```
-
-`AccountAdapter.kt`:
-```kotlin
-fun bind(acc: Account) {
-    ...
-    binding.tvLastSync.text = if (acc.lastSyncAt != null) {
-        "Letzter Sync: ${formatRelativeTime(acc.lastSyncAt)}"
-    } else {
-        "Noch nicht synchronisiert"
-    }
-    binding.tvLastSync.visibility = if (acc.iban.isNotBlank()) View.VISIBLE else View.GONE
-}
-```
-
-Util-Funktion `DateFormatter.formatRelativeTime(millis: Long)`:
-- "vor 5 Minuten"
-- "vor 2 Stunden"
-- "vor 3 Tagen"
-- "vor 2 Wochen"
-
-**Dateien betroffen:**
-- `Account.kt` (data class)
-- `AppDatabase.kt` (migration)
-- `AccountViewModel.kt` (update lastSyncAt after sync)
-- `item_account.xml` (layout)
-- `AccountAdapter.kt` (binding)
-- `DateFormatter.kt` (neue Util-Funktion)
+**Status:** PENDING
 
 ---
 
-## User-Kontext aus Conversation
+## Debugging-Findings (heute)
 
-**User sagte:**
-1. "was ich nicht verstehe, ich erinnere mich dass früher einmal sehr viel mehr transaktionen geladen wurden, ich meine etwa 2 jahre 2024+2025. das wäre doch wieder sinnvoll oder nicht. was spricht für kleinere syncs wenn ich dann 20 mal syncen muss?"
+### Button erscheint nicht nach historischem Sync
 
-   → **Answer:** Früher gab's 300 TX (KUmsAllCamt + KUmsZeitSEPA). Jetzt HBCI 2.2 broken. Lösung: Multi-KUmsAllCamt mit Date-Windows.
+**Problem:** Button kommt nach erstem historischen Sync nicht (v1.0.45-308)
 
-2. "ausserdem, vor dem min-max filter wäre ein mini schalter zum umschalten von minus zu plus beträgen gut, default auf minus."
+**Root Cause:** `updateHistoricalSyncButtonState()` wurde nur nach Sync aufgerufen, nicht initial beim Fragment-Start
 
-   → **Answer:** Toggle für Ausgaben/Einnahmen Filter.
+**Fix:** `showAccount()` ruft jetzt initial `updateHistoricalSyncButtonState()` auf (Zeile 197-200)
 
-3. "bei der konten übersicht werden konten mit saldo angezeigt, hier wäre noch gut den stand(datum) anzuzeigen bis zu dem zuletzt abgefragt wurde, vielleicht brauchen wir im hintergrund allgemein eine historie der zeiträume die bereits gesynct wurden? verstehst du was ich meine? so sieht man dass zb. der letzte sync vor einem monat war und der saldo also nicht mehr aktuell ist."
-
-   → **Answer:** `lastSyncAt` Timestamp speichern + in Kontoübersicht anzeigen.
-
-4. "siehst du meine letzten 3 kommentare und ihre reihenfolge?"
-
-   → **Answer:** Ja, alle 3 Kommentare sind klar.
+**Deployed in:** v1.0.45-309
 
 ---
 
-## Nächste Schritte (Priorisiert)
+### TAN wird IMMER für CAMT-Jobs benötigt
 
-1. **HIGH:** Multi-KUmsAllCamt implementieren (Aufgabe 1)
-2. **MEDIUM:** ± Toggle implementieren (Aufgabe 2)
-3. **MEDIUM:** Last-Sync-Date implementieren (Aufgabe 3)
-4. **MEDIUM:** Build + APK + Deploy
+**Problem:** BBBank fordert sofort TAN (kein PIN-only Versuch)
+
+**Erkenntnis:** BBBank fordert bei `KUmsAllCamt` IMMER 2FA (PIN+TAN)
+- Bank-Policy, nicht änderbar
+- SecureGo Plus = Push-TAN (absichtlich nicht cachebar)
+
+**Logging verbessert:** TAN-Method-Auswahl jetzt detailliert geloggt (═══-Boxen)
 
 ---
 
-## Offene Architektur-Fragen
+## Technische Details
 
-### Multi-KUmsAllCamt: Bank-Support?
+### PIN-Cache (2026-05-20)
+- **Sliding Window:** 2 Minuten, Timer reset bei jedem Zugriff
+- **RAM-only:** Keine Disk-Persistierung
+- **Auto-Invalidierung:** Bei falschem PIN sofort gelöscht
+- **Manuell löschbar:** `invalidatePinCache()`
 
-**Risiko:** BBBank könnte multiple same-type jobs ablehnen.
+### Recurrence-Confidence-Formel (2026-05-20)
+- **Exakte Beträge:** `conf = occ*0.4 + interval*0.4 + desc*0.2` (conf=0.8-1.0)
+- **Ähnliche Beträge:** `conf = min(rawScore, 0.3)` (gedeckelt bei 0.3)
+- **amountExactness:** Misst Abweichung innerhalb Gruppe (1.0=exakt, 0.0=5% Toleranz)
 
-**Mitigation:**
-- Try-Catch: Wenn Multi-Job Dialog fehlschlägt → Fallback auf Single-Job
-- Log-Analyse: Nach erstem Deploy prüfen ob Multi-Jobs funktionieren
+### Forward-Sync-Prinzip (BBBank KUmsAllCamt)
+- **fromDate=null:** Bank liefert ÄLTESTE 150 TX
+- **fromDate=X:** Bank liefert 150 TX AB X vorwärts
+- **NIE rückwärts gehen!** (war Bug in v3)
 
-### KUmsAllCamt `enddate` Parameter Support?
+---
 
-**hbci4java:** `GVKUmsAllCamt` unterstützt `startdate`, `enddate`, `maxentries`
+## Nächste Session - Prioritäten
 
-**BBBank:** Muss getestet werden. Falls `enddate` nicht supported:
-- Plan B: Nur `startdate` nutzen, aber mit GROSSEN Steps (365d statt 1d)
-- Akzeptieren dass Overlap existiert, Dedup via remoteId
+1. **HIGH:** Recurrence Pattern UI implementieren (Dialog + Transaction Detail)
+2. **HIGH:** Button-Fix testen (v1.0.45-309 auf Device installieren)
+3. **MEDIUM:** Multi-Job-Dialog nochmal analysieren (warum fehlgeschlagen?)
+4. **LOW:** ± Toggle + Last-Sync-Date
 
 ---
 
@@ -187,26 +190,47 @@ Util-Funktion `DateFormatter.formatRelativeTime(millis: Long)`:
 
 ```
 Sync-Logic:
-  AccountViewModel.kt:77-90     → continueSyncOlder()
-  AccountViewModel.kt:136-223   → syncBankTransactions()
-  FintsService.kt:230-373       → fetchAccountStatement()
-  FintsService.kt:375-393       → buildJobAttempts()
+  AccountViewModel.kt:80-96      → continueSyncOlder()
+  AccountViewModel.kt:136-340    → syncBankTransactions()
+  FintsService.kt:230-440        → fetchAccountStatement()
+  SyncIntervalRepository.kt:29-90 → getNextHistoricalSyncDate()
+
+Recurrence-Pattern:
+  RecurrencePattern.kt           → Entity (NEW)
+  RecurrencePatternMatcher.kt    → Match-Logik (NEW)
+  RecurrencePatternRepository.kt → CRUD (NEW)
+  Transaction.kt:21              → recurrencePatternId (NEW)
 
 Transaction-Filter:
   TransactionViewModel.kt:30-31  → _amountMin, _amountMax
   fragment_transactions.xml:167  → Amount filter layout
-  TransactionsFragment.kt        → Filter binding
 
 Account-Display:
   AccountAdapter.kt:18-30        → bind() method
   item_account.xml:20-32         → Account name/type/balance layout
-  Account.kt:9-38               → Data class
+  AccountDetailFragment.kt:197-200 → updateHistoricalSyncButtonState() initial call (NEW)
 
 Database:
-  TransactionDao.kt:39          → getEarliestDateForAccount()
-  AccountDao.kt                 → Account CRUD
+  AppDatabase.kt:25              → version = 14 (NEW)
+  AppDatabase.kt:223-244         → MIGRATION_13_14 (NEW)
 ```
 
 ---
 
-**Status:** Ready for fresh session. Alle Infos dokumentiert.
+## Git Status
+
+**Branch:** main (vermutlich)
+**Letzter Commit:** a7e3def (recurrence-confidence)
+**Uncommitted Changes:** Recurrence Pattern Feature (Datenmodell + Migration)
+
+**Nächster Commit sollte enthalten:**
+- RecurrencePattern.kt
+- RecurrencePatternDao.kt
+- RecurrencePatternRepository.kt
+- RecurrencePatternMatcher.kt
+- Transaction.kt (recurrencePatternId)
+- AppDatabase.kt (Migration 13→14)
+
+---
+
+**Status:** Ready for next session. Kontext vollständig dokumentiert.

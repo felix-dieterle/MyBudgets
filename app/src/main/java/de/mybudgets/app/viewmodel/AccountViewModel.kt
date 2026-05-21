@@ -287,15 +287,42 @@ class AccountViewModel @Inject constructor(
                 val camtBalance = fintsService.lastCamtBalance
                 AppLogger.i(TAG, "    camtBalance=$camtBalance")
                 
-                // Balance nur aktualisieren wenn die gelieferten Daten AKTUELL sind
-                // (nicht wenn Bank alte Daten liefert, auch bei Voll-Sync!)
+                // Balance-Update-Strategie:
+                // 1. Normal-Sync: Update wenn gelieferte TX ≤7 Tage alt (aktuelle Daten)
+                // 2. Historischer Sync: Update wenn keine neueren TX in DB existieren
                 val shouldUpdateBalance = if (camtBalance != null && transactions.isNotEmpty()) {
-                    val newestTxDate = transactions.maxOfOrNull { it.date } ?: 0L
-                    val daysSinceNewestTx = (System.currentTimeMillis() - newestTxDate) / (24 * 60 * 60 * 1000)
+                    val newestSyncedTx = transactions.maxOfOrNull { it.date } ?: 0L
+                    val daysSinceNewestSynced = (System.currentTimeMillis() - newestSyncedTx) / (24 * 60 * 60 * 1000)
+                    
                     AppLogger.i(TAG, "    Balance-Check:")
-                    AppLogger.i(TAG, "      newestTxDate=${java.util.Date(newestTxDate)}")
-                    AppLogger.i(TAG, "      daysSinceNewestTx=$daysSinceNewestTx Tage")
-                    daysSinceNewestTx <= 7 // Balance nur aktualisieren wenn neueste TX max 7 Tage alt
+                    AppLogger.i(TAG, "      newestSyncedTx=${java.util.Date(newestSyncedTx)}")
+                    AppLogger.i(TAG, "      daysSinceNewestSynced=$daysSinceNewestSynced Tage")
+                    AppLogger.i(TAG, "      isHistorical=$isHistorical")
+                    
+                    if (isHistorical) {
+                        // Historischer Sync: Prüfe ob neuere TX in DB existieren
+                        val newestDbTx = txRepo.getLatestDateForAccount(accountId)
+                        AppLogger.i(TAG, "      newestDbTx=${if (newestDbTx != null) java.util.Date(newestDbTx) else "null"}")
+                        
+                        if (newestDbTx == null) {
+                            // DB leer → Historischer Sync liefert neueste verfügbare Daten
+                            AppLogger.i(TAG, "      → DB leer, verwende historischen Balance")
+                            true
+                        } else if (newestSyncedTx >= newestDbTx) {
+                            // Historischer Sync hat bis zum neuesten DB-Stand aufgeholt
+                            AppLogger.i(TAG, "      → Historisch hat neueste DB-TX erreicht/überholt, verwende Balance")
+                            true
+                        } else {
+                            // Es gibt neuere TX in DB → Balance vom historischen Sync ist veraltet
+                            AppLogger.i(TAG, "      → Neuere TX in DB vorhanden, ignoriere historischen Balance")
+                            false
+                        }
+                    } else {
+                        // Normal-Sync: Balance nur wenn Daten aktuell (≤7 Tage)
+                        val isRecent = daysSinceNewestSynced <= 7
+                        AppLogger.i(TAG, "      → Normal-Sync, aktuell genug? $isRecent")
+                        isRecent
+                    }
                 } else {
                     false
                 }
@@ -305,7 +332,7 @@ class AccountViewModel @Inject constructor(
                     repo.save(account.copy(balance = camtBalance))
                     AppLogger.i(TAG, "    ✅ Saldo ${account.id} aktualisiert: $oldBalance → $camtBalance")
                 } else if (camtBalance != null) {
-                    AppLogger.i(TAG, "    ⚠️ Saldo NICHT aktualisiert - Daten zu alt oder historischer Sync (CLBD=$camtBalance)")
+                    AppLogger.i(TAG, "    ⚠️ Saldo NICHT aktualisiert (CLBD=$camtBalance)")
                 }
                 
                 val updatedAccount = repo.getById(accountId)
