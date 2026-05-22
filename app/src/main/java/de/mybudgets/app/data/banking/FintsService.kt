@@ -107,6 +107,13 @@ class FintsService @Inject constructor(
      */
     private val currentTanMethod = ThreadLocal<String>()
     
+    /**
+     * Intercepted raw CAMT XML from HBCI response (captured by log callback).
+     * Volatile since callback runs on HBCI thread, extraction on sync thread.
+     */
+    @Volatile
+    private var interceptedCamtXml: String? = null
+    
     // ─── PIN Cache (2 Minuten RAM-only) ──────────────────────────────────────────
     
     private data class CachedPin(
@@ -866,6 +873,16 @@ class FintsService @Inject constructor(
     inner class HbciCallback : AbstractHBCICallback() {
 
         override fun log(msg: String?, level: Int, date: Date?, trace: StackTraceElement?) {
+            // Intercept CAMT XML from HBCI response logs BEFORE JAXB tries to parse it
+            if (msg != null && msg.contains("<?xml") && (msg.contains("camt.052") || msg.contains("camt.053"))) {
+                val xmlStart = msg.indexOf("<?xml")
+                if (xmlStart >= 0) {
+                    val xmlContent = msg.substring(xmlStart)
+                    interceptedCamtXml = xmlContent
+                    AppLogger.i(TAG, "🎯 CAMT Response Intercepted: ${xmlContent.length} chars (will bypass JAXB)")
+                }
+            }
+            
             // Map hbci4java log levels to appropriate AppLogger levels:
             //   1 = LOG_ERR  → Error   (e.g. "unable to parse camt data", HBCI_Exception)
             //   2 = LOG_WARN → Warning (e.g. product-registration notice)
@@ -1066,12 +1083,43 @@ class FintsService @Inject constructor(
      */
     private fun tryCamtFallbackExtraction(
         job: HBCIJob,
+        result: GVRKUms,
         targetAccount: Konto
     ): List<GVRKUms.UmsLine> {
         AppLogger.i(TAG, "tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...")
         AppLogger.i(TAG, "tryCamtFallbackExtraction: Target account IBAN=${targetAccount.iban}")
         
-        // 1. Get job properties via reflection
+        // 0. Check if we have intercepted CAMT XML (bypassing JAXB failure)
+        val interceptedXml = interceptedCamtXml
+        if (interceptedXml != null) {
+            AppLogger.i(TAG, "🎯 tryCamtFallbackExtraction: Using intercepted CAMT XML (${interceptedXml.length} chars)")
+            try {
+                // Parse and convert CAMT directly (bypasses JAXB)
+                val umsLines = de.mybudgets.app.data.banking.camt.HbciCamtPatcher.parseAndConvert(
+                    interceptedXml, targetAccount
+                )
+                
+                // Extract balance separately
+                val parseResult = de.mybudgets.app.data.banking.camt.CustomCamtParser.parse(interceptedXml)
+                if (parseResult.balance != null) {
+                    lastCamtBalance = parseResult.balance
+                    AppLogger.i(TAG, "🎯 Intercepted CAMT balance=${parseResult.balance}")
+                }
+                
+                AppLogger.i(TAG, "🎯 Intercepted CAMT extracted ${umsLines.size} transactions")
+                this.interceptedCamtXml = null // Cleanup
+                
+                if (umsLines.isNotEmpty()) {
+                    return umsLines
+                } else {
+                    AppLogger.w(TAG, "🎯 Intercepted CAMT had 0 transactions, falling back to reflection")
+                }
+            } catch (e: Exception) {
+                AppLogger.e(TAG, "🎯 Failed to parse intercepted CAMT, falling back to reflection", e)
+            }
+        }
+        
+        // 1. Get job properties via reflection (fallback if interception failed)
         AppLogger.i(TAG, "tryCamtFallbackExtraction: Step 1 - Extracting job properties...")
         val jobProps = extractJobProperties(job)
         
