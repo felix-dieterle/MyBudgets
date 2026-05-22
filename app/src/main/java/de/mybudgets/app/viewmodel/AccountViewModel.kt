@@ -141,21 +141,52 @@ class AccountViewModel @Inject constructor(
                 _bulkSyncProgress.value = Pair(syncCount, -1) // Total unknown
                 AppLogger.i(TAG, "bulkLoadHistory: Sync #$syncCount")
                 
-                syncBankTransactions(accountId, nextDate, isHistorical = true)
+                // Retry logic for intermittent DNS errors
+                var retryCount = 0
+                val maxRetries = 2
+                var syncSuccess = false
                 
-                // Wait for sync to complete
-                bankSyncState.first { it is BankSyncState.Success || it is BankSyncState.Error }
+                while (retryCount <= maxRetries && !syncSuccess) {
+                    if (retryCount > 0) {
+                        AppLogger.w(TAG, "bulkLoadHistory: Retry #$retryCount für Sync #$syncCount (nach DNS-Fehler)")
+                        kotlinx.coroutines.delay(3000) // Wait 3s before retry
+                    }
+                    
+                    syncBankTransactions(accountId, nextDate, isHistorical = true)
+                    
+                    // Wait for sync to complete
+                    bankSyncState.first { it is BankSyncState.Success || it is BankSyncState.Error }
+                    
+                    if (bankSyncState.value is BankSyncState.Success) {
+                        syncSuccess = true
+                    } else {
+                        val errorState = bankSyncState.value as? BankSyncState.Error
+                        val errorMsg = errorState?.message ?: ""
+                        val isDnsError = errorMsg.contains("Unable to resolve host", ignoreCase = true) ||
+                                       errorMsg.contains("EAI_NODATA", ignoreCase = true) ||
+                                       errorMsg.contains("android_getaddrinfo failed", ignoreCase = true)
+                        
+                        if (isDnsError && retryCount < maxRetries) {
+                            AppLogger.w(TAG, "bulkLoadHistory: DNS-Fehler erkannt, versuche erneut...")
+                            retryCount++
+                        } else {
+                            // Non-DNS error or max retries reached
+                            AppLogger.e(TAG, "bulkLoadHistory: FEHLER bei Sync #$syncCount (${if (isDnsError) "DNS nach $maxRetries Versuchen" else "Anderer Fehler"})")
+                            _bulkSyncProgress.value = null
+                            break
+                        }
+                    }
+                }
                 
-                if (bankSyncState.value is BankSyncState.Error) {
-                    AppLogger.e(TAG, "bulkLoadHistory: FEHLER bei Sync #$syncCount")
-                    _bulkSyncProgress.value = null
-                    break
+                if (!syncSuccess) {
+                    break // Exit bulk loop
                 }
                 
                 val successState = bankSyncState.value as? BankSyncState.Success
                 AppLogger.i(TAG, "bulkLoadHistory: Sync #$syncCount erfolgreich (${successState?.importedCount ?: 0} neue TXs)")
                 
-                kotlinx.coroutines.delay(500) // Small delay between syncs
+                // Longer delay to avoid DNS caching issues and bank rate limiting
+                kotlinx.coroutines.delay(2000) // 2s between syncs
             }
         }
     }
