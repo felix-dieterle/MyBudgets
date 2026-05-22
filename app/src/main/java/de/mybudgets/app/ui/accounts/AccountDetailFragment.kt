@@ -92,6 +92,21 @@ class AccountDetailFragment : Fragment() {
                     }
                 }
                 launch {
+                    vm.bulkSyncProgress.collect { progress ->
+                        if (progress != null) {
+                            binding.tvSyncStatus.text = getString(R.string.bank_bulk_load_progress, progress.first)
+                            binding.tvSyncStatus.visibility = View.VISIBLE
+                        } else {
+                            // Bulk load finished → trigger recurrence check
+                            if (pendingRecurrenceCheck) {
+                                kotlinx.coroutines.delay(500)
+                                checkForRecurringPatterns {}
+                                pendingRecurrenceCheck = false
+                            }
+                        }
+                    }
+                }
+                launch {
                     vm.bankSyncState.collect { state ->
                         when (state) {
                             is BankSyncState.Idle -> {
@@ -170,9 +185,7 @@ class AccountDetailFragment : Fragment() {
                 Snackbar.make(view, getString(R.string.error_account_missing_user_id), Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            registerPinTanProviders()
-            Snackbar.make(view, getString(R.string.bank_sync_started), Snackbar.LENGTH_SHORT).show()
-            vm.continueSyncOlder(accountId)
+            showBulkLoadDialog(account)
         }
 
         binding.btnLoadMoreHistory.setOnClickListener {
@@ -214,6 +227,22 @@ class AccountDetailFragment : Fragment() {
         }
         fintsService.decoupledConfirmProvider = { challenge ->
             decoupledConfirmDialog(requireActivity(), challenge)
+        }
+    }
+
+    private fun showBulkLoadDialog(account: Account) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val estimatedTans = vm.estimateTanCount(accountId)
+            
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.bank_bulk_load_title))
+                .setMessage(getString(R.string.bank_bulk_load_message, estimatedTans))
+                .setPositiveButton("Laden") { _, _ ->
+                    registerPinTanProviders()
+                    vm.bulkLoadHistory(accountId)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
     }
 

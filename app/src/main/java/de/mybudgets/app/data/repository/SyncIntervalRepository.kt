@@ -95,4 +95,36 @@ class SyncIntervalRepository @Inject constructor(
             return null
         }
     }
+
+    /**
+     * Schätzt wie viele TAN-Eingaben für vollständigen historischen Sync nötig sind.
+     * BBBank: 1 TAN ≈ 1 Sync ≈ 150 TX
+     * 
+     * @return Anzahl geschätzter TAN-Anfragen (Gap-basiert, nicht zeitbasiert)
+     */
+    suspend fun estimateTanCount(accountId: Long): Int {
+        val historicalIntervals = getHistoricalForAccount(accountId)
+        val allIntervals = getAllForAccount(accountId)
+        val normalIntervals = allIntervals.filter { !it.isHistorical }
+        
+        if (historicalIntervals.isEmpty()) {
+            // Kein historischer Sync → mindestens 1 TAN für ersten Sync
+            return 1
+        }
+        
+        // Finde ältestes Normal + neuestes Historical
+        val newestHistorical = historicalIntervals.maxByOrNull { it.endDate } ?: return 1
+        val oldestNormal = normalIntervals.minByOrNull { it.startDate }
+        
+        val gapStart = newestHistorical.endDate + 24 * 60 * 60 * 1000
+        val gapEnd = oldestNormal?.startDate ?: System.currentTimeMillis()
+        
+        if (gapStart >= gapEnd) return 0 // Keine Lücke
+        
+        // BBBank: ~150 TX pro Request, konservativ: 120 Tage pro Sync (bei 1-2 TX/Tag)
+        val gapDays = (gapEnd - gapStart) / (24 * 60 * 60 * 1000)
+        val estimatedSyncs = kotlin.math.ceil(gapDays / 120.0).toInt()
+        
+        return kotlin.math.max(1, estimatedSyncs)
+    }
 }

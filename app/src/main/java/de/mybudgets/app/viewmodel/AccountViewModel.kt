@@ -77,6 +77,11 @@ class AccountViewModel @Inject constructor(
     private val _nextGapDate = MutableStateFlow<String?>(null)
     val nextGapDate: StateFlow<String?> = _nextGapDate
 
+    private val _bulkSyncProgress = MutableStateFlow<Pair<Int, Int>?>(null) // (current, total)
+    val bulkSyncProgress: StateFlow<Pair<Int, Int>?> = _bulkSyncProgress
+
+    private var bulkSyncCancelled = false
+
     fun updateGapState(accountId: Long) {
         viewModelScope.launch {
             val nextDate = syncIntervalRepo.getNextHistoricalSyncDate(accountId)
@@ -112,6 +117,54 @@ class AccountViewModel @Inject constructor(
             AppLogger.i(TAG, "continueSyncOlder: ✅ Starte historischen Sync")
             syncBankTransactions(accountId, nextDate, isHistorical = true)
         }
+    }
+
+    suspend fun estimateTanCount(accountId: Long): Int =
+        syncIntervalRepo.estimateTanCount(accountId)
+
+    fun bulkLoadHistory(accountId: Long) {
+        AppLogger.i(TAG, "bulkLoadHistory: START für Account=$accountId")
+        bulkSyncCancelled = false
+        
+        viewModelScope.launch {
+            var syncCount = 0
+            
+            while (true) {
+                if (bulkSyncCancelled) {
+                    AppLogger.i(TAG, "bulkLoadHistory: ABBRUCH durch User")
+                    _bulkSyncProgress.value = null
+                    break
+                }
+                
+                val nextDate = syncIntervalRepo.getNextHistoricalSyncDate(accountId)
+                if (nextDate == null) {
+                    AppLogger.i(TAG, "bulkLoadHistory: ✅ FERTIG - Keine Lücken mehr")
+                    _bulkSyncProgress.value = null
+                    break
+                }
+                
+                syncCount++
+                _bulkSyncProgress.value = Pair(syncCount, -1) // Total unknown
+                AppLogger.i(TAG, "bulkLoadHistory: Sync #$syncCount")
+                
+                syncBankTransactions(accountId, nextDate, isHistorical = true)
+                
+                // Wait for sync to complete
+                bankSyncState.first { it is BankSyncState.Success || it is BankSyncState.Error }
+                
+                if (bankSyncState.value is BankSyncState.Error) {
+                    AppLogger.e(TAG, "bulkLoadHistory: FEHLER bei Sync #$syncCount")
+                    _bulkSyncProgress.value = null
+                    break
+                }
+                
+                kotlinx.coroutines.delay(500) // Small delay between syncs
+            }
+        }
+    }
+
+    fun cancelBulkLoad() {
+        bulkSyncCancelled = true
     }
 
     private suspend fun matchTransactionsAgainstRules(transactions: List<de.mybudgets.app.data.model.Transaction>, accountId: Long) {
