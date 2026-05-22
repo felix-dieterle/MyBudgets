@@ -153,7 +153,7 @@ class AccountViewModel @Inject constructor(
                 }
                 
                 val successState = bankSyncState.value as? BankSyncState.Success
-                AppLogger.i(TAG, "bulkLoadHistory: Sync #$syncCount erfolgreich (${successState?.newTransactionCount ?: 0} neue TXs)")
+                AppLogger.i(TAG, "bulkLoadHistory: Sync #$syncCount erfolgreich (${successState?.importedCount ?: 0} neue TXs)")
                 
                 kotlinx.coroutines.delay(500) // Small delay between syncs
             }
