@@ -72,28 +72,10 @@ class AccountViewModel @Inject constructor(
     private val _bankSyncState = MutableStateFlow<BankSyncState>(BankSyncState.Idle)
     val bankSyncState: StateFlow<BankSyncState> = _bankSyncState
 
-    private val _hasHistoricalGaps = MutableStateFlow(false)
-    val hasHistoricalGaps: StateFlow<Boolean> = _hasHistoricalGaps
-
-    private val _nextGapDate = MutableStateFlow<String?>(null)
-    val nextGapDate: StateFlow<String?> = _nextGapDate
-
     private val _bulkSyncProgress = MutableStateFlow<Pair<Int, Int>?>(null) // (current, total)
     val bulkSyncProgress: StateFlow<Pair<Int, Int>?> = _bulkSyncProgress
 
     private var bulkSyncCancelled = false
-
-    fun updateGapState(accountId: Long) {
-        viewModelScope.launch {
-            val nextDate = syncIntervalRepo.getNextHistoricalSyncDate(accountId)
-            _hasHistoricalGaps.value = nextDate != null
-            _nextGapDate.value = nextDate?.let {
-                val cal = java.util.Calendar.getInstance().apply { timeInMillis = it }
-                "%02d.%02d.%04d".format(cal.get(java.util.Calendar.DAY_OF_MONTH), 
-                    cal.get(java.util.Calendar.MONTH) + 1, cal.get(java.util.Calendar.YEAR))
-            }
-        }
-    }
 
     suspend fun canContinueSync(accountId: Long): Boolean {
         val nextDate = syncIntervalRepo.getNextHistoricalSyncDate(accountId)
@@ -129,6 +111,7 @@ class AccountViewModel @Inject constructor(
         
         viewModelScope.launch {
             var syncCount = 0
+            var lastGapDate: Long? = null
             
             while (true) {
                 if (bulkSyncCancelled) {
@@ -143,6 +126,14 @@ class AccountViewModel @Inject constructor(
                     _bulkSyncProgress.value = null
                     break
                 }
+                
+                // Check if gap moved forward
+                if (lastGapDate != null && nextDate == lastGapDate) {
+                    AppLogger.w(TAG, "bulkLoadHistory: ⚠️ ABBRUCH - Gap hat sich nicht verändert (0 neue TX oder Duplikate)")
+                    _bulkSyncProgress.value = null
+                    break
+                }
+                lastGapDate = nextDate
                 
                 syncCount++
                 _bulkSyncProgress.value = Pair(syncCount, -1) // Total unknown

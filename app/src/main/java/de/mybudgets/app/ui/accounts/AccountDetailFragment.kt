@@ -80,18 +80,6 @@ class AccountDetailFragment : Fragment() {
                     }
                 }
                 launch {
-                    vm.hasHistoricalGaps.collect { hasGaps ->
-                        binding.btnLoadMoreHistory.visibility = if (hasGaps) View.VISIBLE else View.GONE
-                    }
-                }
-                launch {
-                    vm.nextGapDate.collect { date ->
-                        if (date != null) {
-                            binding.btnLoadMoreHistory.text = getString(R.string.bank_load_more_history, date)
-                        }
-                    }
-                }
-                launch {
                     vm.bulkSyncProgress.collect { progress ->
                         if (progress != null) {
                             binding.tvSyncStatus.text = getString(R.string.bank_bulk_load_progress, progress.first)
@@ -187,21 +175,6 @@ class AccountDetailFragment : Fragment() {
             }
             showBulkLoadDialog(account)
         }
-
-        binding.btnLoadMoreHistory.setOnClickListener {
-            val account = vm.accounts.value.find { it.id == accountId } ?: return@setOnClickListener
-            if (account.iban.isBlank()) {
-                Snackbar.make(view, getString(R.string.error_account_missing_iban), Snackbar.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-            if (account.userId.isBlank()) {
-                Snackbar.make(view, getString(R.string.error_account_missing_user_id), Snackbar.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-            registerPinTanProviders()
-            Snackbar.make(view, getString(R.string.bank_historical_sync_started), Snackbar.LENGTH_SHORT).show()
-            vm.continueSyncOlder(accountId)
-        }
         
         // Initial Button-Status setzen
         updateHistoricalSyncButtonState()
@@ -214,7 +187,6 @@ class AccountDetailFragment : Fragment() {
             val canContinue = vm.canContinueSync(accountId)
             binding.btnHistoricalSync.isEnabled = canContinue
             binding.btnHistoricalSync.alpha = if (canContinue) 1.0f else 0.5f
-            vm.updateGapState(accountId)
         }
     }
 
