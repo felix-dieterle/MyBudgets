@@ -162,9 +162,12 @@ class AccountViewModel @Inject constructor(
                     } else {
                         val errorState = bankSyncState.value as? BankSyncState.Error
                         val errorMsg = errorState?.message ?: ""
+                        AppLogger.d(TAG, "bulkLoadHistory: Error message für DNS-Check: ${errorMsg.take(200)}")
                         val isDnsError = errorMsg.contains("Unable to resolve host", ignoreCase = true) ||
                                        errorMsg.contains("EAI_NODATA", ignoreCase = true) ||
-                                       errorMsg.contains("android_getaddrinfo failed", ignoreCase = true)
+                                       errorMsg.contains("android_getaddrinfo failed", ignoreCase = true) ||
+                                       errorMsg.contains("SocketException", ignoreCase = true) ||
+                                       errorMsg.contains("GaiException", ignoreCase = true)
                         
                         if (isDnsError && retryCount < maxRetries) {
                             AppLogger.w(TAG, "bulkLoadHistory: DNS-Fehler erkannt, versuche erneut...")
