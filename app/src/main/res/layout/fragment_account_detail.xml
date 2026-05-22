@@ -80,6 +80,16 @@
             android:text="@string/bank_historical_sync_button"
             android:visibility="gone" />
 
+        <!-- Load More History Button – loads next historical gap -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_load_more_history"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/bank_load_more_history"
+            android:visibility="gone" />
+
         <!-- Sync Loading Indicator -->
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progress_sync"

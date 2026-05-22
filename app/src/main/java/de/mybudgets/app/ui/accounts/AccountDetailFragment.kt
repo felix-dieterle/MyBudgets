@@ -37,6 +37,7 @@ class AccountDetailFragment : Fragment() {
     private val vm: AccountViewModel by viewModels()
     private var accountId: Long = 0L
     private lateinit var txAdapter: TransactionAdapter
+    private var pendingRecurrenceCheck = false
 
     @Inject lateinit var fintsService: FintsService
 
@@ -79,6 +80,18 @@ class AccountDetailFragment : Fragment() {
                     }
                 }
                 launch {
+                    vm.hasHistoricalGaps.collect { hasGaps ->
+                        binding.btnLoadMoreHistory.visibility = if (hasGaps) View.VISIBLE else View.GONE
+                    }
+                }
+                launch {
+                    vm.nextGapDate.collect { date ->
+                        if (date != null) {
+                            binding.btnLoadMoreHistory.text = getString(R.string.bank_load_more_history, date)
+                        }
+                    }
+                }
+                launch {
                     vm.bankSyncState.collect { state ->
                         when (state) {
                             is BankSyncState.Idle -> {
@@ -101,9 +114,18 @@ class AccountDetailFragment : Fragment() {
                                 viewLifecycleOwner.lifecycleScope.launch {
                                     kotlinx.coroutines.delay(100) // DB-Insert abwarten
                                     updateHistoricalSyncButtonState()
-                                }
-                                if (state.importedCount > 0) {
-                                    checkForRecurringPatterns {}
+                                    
+                                    // Recurrence check nur wenn keine weiteren Gaps
+                                    if (state.importedCount > 0) {
+                                        val hasMoreGaps = vm.canContinueSync(accountId)
+                                        if (hasMoreGaps) {
+                                            // Noch Lücken → defer check
+                                            pendingRecurrenceCheck = true
+                                        } else {
+                                            // Keine Lücken mehr → jetzt checken
+                                            checkForRecurringPatterns {}
+                                        }
+                                    }
                                 }
                             }
                             is BankSyncState.Error -> {
@@ -152,6 +174,21 @@ class AccountDetailFragment : Fragment() {
             Snackbar.make(view, getString(R.string.bank_sync_started), Snackbar.LENGTH_SHORT).show()
             vm.continueSyncOlder(accountId)
         }
+
+        binding.btnLoadMoreHistory.setOnClickListener {
+            val account = vm.accounts.value.find { it.id == accountId } ?: return@setOnClickListener
+            if (account.iban.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_account_missing_iban), Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            if (account.userId.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_account_missing_user_id), Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            registerPinTanProviders()
+            Snackbar.make(view, getString(R.string.bank_historical_sync_started), Snackbar.LENGTH_SHORT).show()
+            vm.continueSyncOlder(accountId)
+        }
         
         // Initial Button-Status setzen
         updateHistoricalSyncButtonState()
@@ -164,6 +201,7 @@ class AccountDetailFragment : Fragment() {
             val canContinue = vm.canContinueSync(accountId)
             binding.btnHistoricalSync.isEnabled = canContinue
             binding.btnHistoricalSync.alpha = if (canContinue) 1.0f else 0.5f
+            vm.updateGapState(accountId)
         }
     }
 
@@ -287,6 +325,11 @@ class AccountDetailFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        // Trigger pending recurrence check if user leaves screen with gaps
+        if (pendingRecurrenceCheck) {
+            checkForRecurringPatterns {}
+        }
+        
         fintsService.pinProvider = null
         fintsService.tanProvider = null
         fintsService.decoupledConfirmProvider = null

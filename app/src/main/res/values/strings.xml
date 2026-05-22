@@ -119,6 +119,7 @@
     <string name="bank_historical_sync_started">Historische Buchungen werden abgerufen…</string>
     <string name="bank_sync_result">%d neue Buchungen importiert</string>
     <string name="bank_sync_load_more">Weiter zurück</string>
+    <string name="bank_load_more_history">Ältere Buchungen laden (bis %s)</string>
     <string name="bank_sync_failed">Synchronisation fehlgeschlagen</string>
 
     <!-- Backend Sync -->
