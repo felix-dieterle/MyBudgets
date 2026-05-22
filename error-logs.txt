@@ -1,98 +1,61 @@
-MyBudgets Fehlerprotokoll  –  exportiert 2026-05-22 21:24:01.306
+MyBudgets Fehlerprotokoll  –  exportiert 2026-05-22 21:36:07.638
 ========================================================================
-2026-05-22 21:23:55.968  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:23:55.968  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:23:55.968  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:23:55.968  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:23:55.967  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:23:55.967  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
-2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:    historicalIntervals.size=6
-2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:15:19.574  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:15:19.574  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:15:19.574  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:15:19.574  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:15:19.570  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:15:19.570  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
-2026-05-22 21:15:19.569  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:15:19.569  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:15:19.568  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:15:19.567  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:15:19.567  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:15:19.565  [I]  SyncIntervalRepo:    historicalIntervals.size=6
-2026-05-22 21:15:19.565  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:15:19.459  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
-2026-05-22 21:15:19.459  [I]  AccountViewModel:    ?? SYNC ERFOLG: 0 neue Buchungen, Saldo=1257.4, Zeitraum=23.05.2024 - 15.07.2024
-2026-05-22 21:15:19.417  [I]  AccountViewModel:      ? Saldo 1 aktualisiert: 1257.4 ? 1257.4
-2026-05-22 21:15:19.410  [I]  AccountViewModel:        ? Historisch hat neueste DB-TX erreicht/überholt, verwende Balance
-2026-05-22 21:15:19.410  [I]  AccountViewModel:        newestDbTx=Mon Jul 15 00:00:00 GMT+02:00 2024
-2026-05-22 21:15:19.405  [I]  AccountViewModel:        isHistorical=true
-2026-05-22 21:15:19.405  [I]  AccountViewModel:        daysSinceNewestSynced=676 Tage
-2026-05-22 21:15:19.405  [I]  AccountViewModel:        newestSyncedTx=Mon Jul 15 00:00:00 GMT+02:00 2024
-2026-05-22 21:15:19.405  [I]  AccountViewModel:      Balance-Check:
-2026-05-22 21:15:19.405  [I]  AccountViewModel:      camtBalance=1257.4
-2026-05-22 21:15:19.405  [I]  AccountViewModel:      ? Sync-Intervall gespeichert: Thu May 23 00:00:00 GMT+02:00 2024 bis Mon Jul 15 00:00:00 GMT+02:00 2024, isHistorical=true
-2026-05-22 21:15:19.389  [I]  AccountViewModel:      newTx.size=0 (nach Deduplizierung)
-2026-05-22 21:15:19.388  [I]  AccountViewModel:      existingRemoteIds.size=174 (bereits in DB)
-2026-05-22 21:15:19.374  [I]  AccountViewModel:      Zeitraum: Thu May 23 00:00:00 GMT+02:00 2024 bis Mon Jul 15 00:00:00 GMT+02:00 2024
-2026-05-22 21:15:19.370  [I]  AccountViewModel:      transactions.size=150
-2026-05-22 21:15:19.370  [I]  AccountViewModel:    ? Bank-Response erfolgreich:
-2026-05-22 21:15:19.369  [I]  FintsService:  [fetchAccountStatement/5-parse] SUCCESS: Extracted 150 transactions
-2026-05-22 21:15:19.368  [I]  FintsService:  tryCamtFallbackExtraction: ? SUCCESS - Extracted 150 transactions
-2026-05-22 21:15:19.368  [I]  FintsService:  tryCamtFallbackExtraction: Extracted balance=1257.4 from CAMT
-2026-05-22 21:15:19.368  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
-2026-05-22 21:15:19.340  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (171472 bytes)
-2026-05-22 21:15:19.340  [I]  FintsService:  tryCamtFallbackExtraction: CamtExtractionHelper returned 150 transactions
-2026-05-22 21:15:19.340  [I]  HbciCamtPatcher:  parseAndConvert: Converted 150 UmsLines
-2026-05-22 21:15:19.339  [I]  HbciCamtPatcher:  parseAndConvert: Parsed 150 transactions
-2026-05-22 21:15:19.339  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
-2026-05-22 21:15:19.301  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (171472 bytes)
-2026-05-22 21:15:19.301  [I]  HbciCamtPatcher:  parseAndConvert: Parsing CAMT XML (171472 bytes)
-2026-05-22 21:15:19.301  [I]  CamtExtractionHelper:  extractFromJobResult: Found CAMT XML (171472 bytes)
-2026-05-22 21:15:19.301  [D]  CamtExtractionHelper:  findCamtXml: Found CAMT XML at key 'content.booked.message'
-2026-05-22 21:15:19.301  [D]  CamtExtractionHelper:  extractFromJobResult: Job result has 14 properties
-2026-05-22 21:15:19.301  [I]  CamtExtractionHelper:  extractFromJobResult: Attempting custom CAMT extraction
-2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...
-2026-05-22 21:15:19.300  [D]  FintsService:  tryCamtFallbackExtraction: Job properties keys: content.SegHead.seq, content.KTV.KIK.country, content.KTV.bic, basic.dialogid, content.SegHead.code, basic.msgnum, content.booked.message, content.KTV.KIK.blz, content.SegHead.ref, basic.segnum, content.KTV.number, content.SegHead.version, content.format, content.KTV.iban
-2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: Found 14 job properties
-2026-05-22 21:15:19.300  [I]  FintsService:  extractJobProperties: Found 14 properties via getResultData()
-2026-05-22 21:15:19.300  [D]  FintsService:  extractJobProperties: JobResult has 9 fields
-2026-05-22 21:15:19.300  [D]  FintsService:  extractJobProperties: Searching all fields in jobResult...
-2026-05-22 21:15:19.300  [D]  FintsService:  extractJobProperties: JobResult class: GVRKUms
-2026-05-22 21:15:19.300  [D]  FintsService:  extractJobProperties: Extracting from job class GVKUmsAllCamt
-2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: Step 1 - Extracting job properties...
-2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: Target account IBAN=DE91660908000007690118
-2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...
-2026-05-22 21:15:19.300  [W]  FintsService:  extractFlatData: getFlatData() empty, using CAMT fallback
-2026-05-22 21:15:19.299  [I]  FintsService:  [fetchAccountStatement/5-parse] Extracting transaction data from job GVKUmsAllCamt...
-2026-05-22 21:15:19.299  [W]  FintsService:  [fetchAccountStatement/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...
-2026-05-22 21:15:19.299  [D]  FintsService:  HBCI callback reason=25 msg=Sie k?nnen die Internetverbindung jetzt beenden
-2026-05-22 21:15:19.299  [D]  FintsService:  HBCI status tag=20
-2026-05-22 21:15:19.296  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:15:19.288  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:15:19.274  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:15:19.274  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:15:19.267  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:15:19.267  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:15:19.221  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:15:19.219  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:15:19.219  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:15:19.211  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:15:18.984  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:15:18.979  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:15:18.979  [D]  FintsService:  HBCI status tag=19
-2026-05-22 21:15:18.979  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
-2026-05-22 21:15:18.979  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Speichern der Ergebnisdaten f?r Job TAN2Step7 im JobResult-Objekt
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:937)
-at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:311)
-at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:467)
-at org.kapott.hbci.manager.HBCIHandler.execute(HBCIHandler.java:545)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:388)
+2026-05-22 21:35:17.987  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:35:17.987  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:35:17.987  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:35:17.987  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:35:17.984  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:35:17.984  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 21:35:17.984  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:35:17.984  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:35:17.984  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:35:17.983  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:35:17.983  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:35:17.983  [I]  SyncIntervalRepo:    historicalIntervals.size=6
+2026-05-22 21:35:17.983  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:35:15.602  [E]  AccountViewModel:  bulkLoadHistory: FEHLER bei Sync #1
+2026-05-22 21:35:15.600  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
+2026-05-22 21:35:15.600  [E]  AccountViewModel:    ? Bank-Response FEHLER: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
+DIALOG-INITIALISIERUNG:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3920:Zugelassene TAN-Verfahren für den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
+3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
+0901:*PIN gültig. (4: DialogInit.ProcPrep)
+0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
+DIALOG-NACHRICHT #1:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3955:Sicherheitsfreigabe erfolgt über anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
+DIALOG-NACHRICHT #2:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #3:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #4:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+DIALOG-ENDE:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+java.lang.IllegalStateException: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
+DIALOG-INITIALISIERUNG:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3920:Zugelassene TAN-Verfahren für den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
+3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
+0901:*PIN gültig. (4: DialogInit.ProcPrep)
+0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
+DIALOG-NACHRICHT #1:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3955:Sicherheitsfreigabe erfolgt über anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
+DIALOG-NACHRICHT #2:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #3:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #4:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+DIALOG-ENDE:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:385)
 at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
 at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
 at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
@@ -101,100 +64,257 @@ at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-Caused by: org.kapott.hbci.exceptions.HBCI_Exception: Error parsing CAMT document
-at org.kapott.hbci.GV.GVKUmsAllCamt.extractResults(GVKUmsAllCamt.java:188)
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResultFromTanJob(HBCIJobImpl.java:873)
-at org.kapott.hbci.GV.GVTAN2Step.extractResults(GVTAN2Step.java:242)
-at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:929)
-... 12 more
-Caused by: java.lang.IllegalStateException: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:143)
-at com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.getXMLReader(UnmarshallerImpl.java:154)
-at com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.unmarshal(UnmarshallerImpl.java:291)
-at javax.xml.bind.JAXB.unmarshal(JAXB.java:238)
-at org.kapott.hbci.GV.parsers.ParseCamt05200108.parse(ParseCamt05200108.java:77)
-at org.kapott.hbci.GV.parsers.ParseCamt05200108.parse(ParseCamt05200108.java:68)
-at org.kapott.hbci.GV.GVKUmsAllCamt.extractResults(GVKUmsAllCamt.java:182)
+
+2026-05-22 21:35:15.597  [E]  FintsService:  [fetchAccountStatement] FAILED: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
+DIALOG-INITIALISIERUNG:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3920:Zugelassene TAN-Verfahren für den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
+3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
+0901:*PIN gültig. (4: DialogInit.ProcPrep)
+0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
+DIALOG-NACHRICHT #1:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3955:Sicherheitsfreigabe erfolgt über anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
+DIALOG-NACHRICHT #2:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #3:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #4:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+DIALOG-ENDE:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+java.lang.IllegalStateException: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
+DIALOG-INITIALISIERUNG:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3920:Zugelassene TAN-Verfahren für den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
+3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
+0901:*PIN gültig. (4: DialogInit.ProcPrep)
+0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
+DIALOG-NACHRICHT #1:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3955:Sicherheitsfreigabe erfolgt über anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
+DIALOG-NACHRICHT #2:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #3:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #4:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+DIALOG-ENDE:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:385)
+at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
+at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
+at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
+at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
+
+2026-05-22 21:35:15.591  [E]  FintsService:  [fetchAccountStatement/4-exec] Bank returned non-OK status: Dialog for '7690118a':
+DIALOG-INITIALISIERUNG:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3920:Zugelassene TAN-Verfahren für den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
+3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
+0901:*PIN gültig. (4: DialogInit.ProcPrep)
+0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
+DIALOG-NACHRICHT #1:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3955:Sicherheitsfreigabe erfolgt über anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
+DIALOG-NACHRICHT #2:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #3:
+3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
+3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
+DIALOG-NACHRICHT #4:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+DIALOG-ENDE:
+android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+2026-05-22 21:35:15.585  [D]  FintsService:  HBCI callback reason=25 msg=Sie k?nnen die Internetverbindung jetzt beenden
+2026-05-22 21:35:15.584  [D]  FintsService:  HBCI status tag=20
+2026-05-22 21:35:15.579  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Senden der HBCI-Nachricht zum Server
+at org.kapott.hbci.comm.CommPinTan.ping(CommPinTan.java:157)
+at org.kapott.hbci.comm.Comm.pingpong(Comm.java:72)
+at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:348)
+at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:176)
+at org.kapott.hbci.manager.HBCIDialog.doDialogEnd(HBCIDialog.java:438)
+at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:468)
+at org.kapott.hbci.manager.HBCIHandler.execute(HBCIHandler.java:545)
+at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:377)
+at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
+at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
+at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
+at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
+Caused by: java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
+at java.net.Inet6AddressImpl.lookupHostByName(Inet6AddressImpl.java:156)
+at java.net.Inet6AddressImpl.lookupAllHostAddr(Inet6AddressImpl.java:103)
+at java.net.InetAddress.getAllByName(InetAddress.java:1152)
+at com.android.okhttp.Dns$1.lookup(Dns.java:41)
+at com.android.okhttp.internal.http.RouteSelector.resetNextInetSocketAddress(RouteSelector.java:178)
+at com.android.okhttp.internal.http.RouteSelector.nextProxy(RouteSelector.java:144)
+at com.android.okhttp.internal.http.RouteSelector.next(RouteSelector.java:86)
+at com.android.okhttp.internal.http.StreamAllocation.findConnection(StreamAllocation.java:176)
+at com.android.okhttp.internal.http.StreamAllocation.findHealthyConnection(StreamAllocation.java:128)
+at com.android.okhttp.internal.http.StreamAllocation.newStream(StreamAllocation.java:97)
+at com.android.okhttp.internal.http.HttpEngine.connect(HttpEngine.java:289)
+at com.android.okhttp.internal.http.HttpEngine.sendRequest(HttpEngine.java:232)
+at com.android.okhttp.internal.huc.HttpURLConnectionImpl.execute(HttpURLConnectionImpl.java:465)
+at com.android.okhttp.internal.huc.HttpURLConnectionImpl.connect(HttpURLConnectionImpl.java:131)
+at com.android.okhttp.internal.huc.DelegatingHttpsURLConnection.connect(DelegatingHttpsURLConnection.java:90)
+at com.android.okhttp.internal.huc.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:30)
+at org.kapott.hbci.comm.CommPinTan.ping(CommPinTan.java:147)
 ... 15 more
-Caused by: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-at org.apache.harmony.xml.parsers.SAXParserFactoryImpl.setFeature(SAXParserFactoryImpl.java:93)
-at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:136)
-... 21 more
-2026-05-22 21:15:18.978  [E]  FintsService:  HBCI log level=1 msg=  unable to parse camt data: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-2026-05-22 21:15:18.792  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:15:18.683  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:15:18.456  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:15:18.452  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:15:18.416  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:15:18.415  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:15:17.303  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:15:17.164  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:15:17.164  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:15:17.150  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:    historicalIntervals.size=5
-2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:14:58.859  [I]  FintsService:  Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
+Caused by: android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+at libcore.io.Linux.android_getaddrinfo(Native Method)
+at libcore.io.ForwardingOs.android_getaddrinfo(ForwardingOs.java:134)
+at libcore.io.BlockGuardOs.android_getaddrinfo(BlockGuardOs.java:222)
+at libcore.io.ForwardingOs.android_getaddrinfo(ForwardingOs.java:134)
+at java.net.Inet6AddressImpl.lookupHostByName(Inet6AddressImpl.java:135)
+... 31 more
+2026-05-22 21:35:15.569  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:35:15.568  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:35:15.471  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:35:12.654  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:35:12.490  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:35:12.488  [D]  FintsService:  HBCI status tag=19
+2026-05-22 21:35:12.487  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
+2026-05-22 21:35:12.486  [D]  FintsService:  HBCI status tag=2
+2026-05-22 21:35:12.480  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Senden der HBCI-Nachricht zum Server
+at org.kapott.hbci.comm.CommPinTan.ping(CommPinTan.java:157)
+at org.kapott.hbci.comm.Comm.pingpong(Comm.java:72)
+at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:348)
+at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:287)
+at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:467)
+at org.kapott.hbci.manager.HBCIHandler.execute(HBCIHandler.java:545)
+at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:377)
+at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
+at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
+at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
+at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
+Caused by: java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
+at java.net.Inet6AddressImpl.lookupHostByName(Inet6AddressImpl.java:156)
+at java.net.Inet6AddressImpl.lookupAllHostAddr(Inet6AddressImpl.java:103)
+at java.net.InetAddress.getAllByName(InetAddress.java:1152)
+at com.android.okhttp.Dns$1.lookup(Dns.java:41)
+at com.android.okhttp.internal.http.RouteSelector.resetNextInetSocketAddress(RouteSelector.java:178)
+at com.android.okhttp.internal.http.RouteSelector.nextProxy(RouteSelector.java:144)
+at com.android.okhttp.internal.http.RouteSelector.next(RouteSelector.java:86)
+at com.android.okhttp.internal.http.StreamAllocation.findConnection(StreamAllocation.java:176)
+at com.android.okhttp.internal.http.StreamAllocation.findHealthyConnection(StreamAllocation.java:128)
+at com.android.okhttp.internal.http.StreamAllocation.newStream(StreamAllocation.java:97)
+at com.android.okhttp.internal.http.HttpEngine.connect(HttpEngine.java:289)
+at com.android.okhttp.internal.http.HttpEngine.sendRequest(HttpEngine.java:232)
+at com.android.okhttp.internal.huc.HttpURLConnectionImpl.execute(HttpURLConnectionImpl.java:465)
+at com.android.okhttp.internal.huc.HttpURLConnectionImpl.connect(HttpURLConnectionImpl.java:131)
+at com.android.okhttp.internal.huc.DelegatingHttpsURLConnection.connect(DelegatingHttpsURLConnection.java:90)
+at com.android.okhttp.internal.huc.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:30)
+at org.kapott.hbci.comm.CommPinTan.ping(CommPinTan.java:147)
+... 14 more
+Caused by: android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
+at libcore.io.Linux.android_getaddrinfo(Native Method)
+at libcore.io.ForwardingOs.android_getaddrinfo(ForwardingOs.java:134)
+at libcore.io.BlockGuardOs.android_getaddrinfo(BlockGuardOs.java:222)
+at libcore.io.ForwardingOs.android_getaddrinfo(ForwardingOs.java:134)
+at java.net.Inet6AddressImpl.lookupHostByName(Inet6AddressImpl.java:135)
+... 30 more
+2026-05-22 21:35:12.454  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:35:12.449  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:35:12.272  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:35:09.621  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:35:09.441  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:35:09.440  [D]  FintsService:  HBCI status tag=1
+2026-05-22 21:35:09.437  [D]  FintsService:  HBCI status tag=2
+2026-05-22 21:35:07.382  [D]  FintsService:  Decoupled Status-Retry angefordert: kurzer Wait 2000ms (ohne erneuten UI-Dialog)
+2026-05-22 21:35:07.342  [D]  FintsService:  HBCI status tag=26
+2026-05-22 21:35:07.316  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:35:07.266  [D]  FintsService:  HBCI status tag=31
+2026-05-22 21:35:07.265  [D]  FintsService:  HBCI status tag=25
+2026-05-22 21:35:07.256  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:35:07.256  [D]  FintsService:  HBCI status tag=32
+2026-05-22 21:35:06.758  [D]  FintsService:  HBCI status tag=27
+2026-05-22 21:35:06.756  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:35:06.756  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:35:06.748  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:35:06.518  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:35:06.507  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:35:06.507  [D]  FintsService:  HBCI status tag=1
+2026-05-22 21:35:06.507  [D]  FintsService:  HBCI status tag=2
+2026-05-22 21:35:04.502  [D]  FintsService:  Decoupled Status-Retry angefordert: kurzer Wait 2000ms (ohne erneuten UI-Dialog)
+2026-05-22 21:35:04.463  [D]  FintsService:  HBCI status tag=26
+2026-05-22 21:35:04.447  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:35:04.398  [D]  FintsService:  HBCI status tag=31
+2026-05-22 21:35:04.398  [D]  FintsService:  HBCI status tag=25
+2026-05-22 21:35:04.390  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:35:04.389  [D]  FintsService:  HBCI status tag=32
+2026-05-22 21:35:03.949  [D]  FintsService:  HBCI status tag=27
+2026-05-22 21:35:03.947  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:35:03.947  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:35:03.939  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:35:03.936  [I]  PinTanDialogs:  decoupledConfirmDialog: Auto-confirming (no user interaction needed)
+2026-05-22 21:35:03.931  [I]  FintsService:  Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
 TAN
 
 Bitte bestätigen Sie den Vorgang in Ihrer SecureGo plus App
-2026-05-22 21:14:58.633  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:14:58.624  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:14:58.624  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:14:58.624  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:14:58.624  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:14:58.621  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:14:58.604  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:14:58.463  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:14:58.463  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:14:58.454  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:14:58.453  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:14:57.553  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:14:57.548  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:14:57.548  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:14:57.540  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:14:57.300  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:14:57.286  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:14:57.286  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:14:57.286  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:14:57.274  [D]  FintsService:  HBCI status tag=18
-2026-05-22 21:14:57.052  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:14:57.013  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:14:56.773  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:14:56.773  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:14:56.759  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:14:56.758  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:14:56.507  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:14:56.274  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:14:56.273  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:14:56.268  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
-2026-05-22 21:14:56.257  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:14:56.250  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
-2026-05-22 21:14:56.250  [D]  FintsService:  PIN-Cache: PIN für 2 Minuten gecacht
-2026-05-22 21:14:50.459  [I]  FintsService:  PIN-Anfrage für BLZ 66090800 userId='76****a'
-2026-05-22 21:14:50.231  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:14:50.218  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:14:50.212  [D]  FintsService:  HBCI status tag=17
-2026-05-22 21:14:50.211  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank with job KUmsAllCamt...
-2026-05-22 21:14:50.211  [I]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
-2026-05-22 21:14:50.203  [D]  FintsService:  [fetchAccountStatement/3-job] KUmsAllCamt: Using 2-year-old startdate=2024-05-22 for maximum history
-2026-05-22 21:14:50.160  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2024-07-16)
-2026-05-22 21:14:50.160  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt ? KUmsZeitSEPA ? KUmsAll ? KUmsNew
-2026-05-22 21:14:50.160  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
-2026-05-22 21:14:50.159  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
-2026-05-22 21:14:50.159  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geöffnet – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
-2026-05-22 21:14:50.159  [I]  FintsService:  openSession: HBCI-Handler bereit – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
-2026-05-22 21:14:50.095  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
-2026-05-22 21:14:50.095  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: ?berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m?glich
+2026-05-22 21:35:03.712  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:35:03.703  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:35:03.703  [D]  FintsService:  HBCI status tag=1
+2026-05-22 21:35:03.703  [D]  FintsService:  HBCI status tag=2
+2026-05-22 21:35:03.703  [D]  FintsService:  HBCI status tag=2
+2026-05-22 21:35:03.700  [D]  FintsService:  HBCI status tag=26
+2026-05-22 21:35:03.682  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:35:03.527  [D]  FintsService:  HBCI status tag=31
+2026-05-22 21:35:03.526  [D]  FintsService:  HBCI status tag=25
+2026-05-22 21:35:03.517  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:35:03.517  [D]  FintsService:  HBCI status tag=32
+2026-05-22 21:35:02.866  [D]  FintsService:  HBCI status tag=27
+2026-05-22 21:35:02.864  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:35:02.864  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:35:02.855  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:35:02.628  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:35:02.614  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:35:02.614  [D]  FintsService:  HBCI status tag=1
+2026-05-22 21:35:02.614  [D]  FintsService:  HBCI status tag=1
+2026-05-22 21:35:02.602  [D]  FintsService:  HBCI status tag=18
+2026-05-22 21:35:02.374  [D]  FintsService:  HBCI status tag=26
+2026-05-22 21:35:02.333  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:35:02.064  [D]  FintsService:  HBCI status tag=31
+2026-05-22 21:35:02.063  [D]  FintsService:  HBCI status tag=25
+2026-05-22 21:35:02.041  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:35:02.040  [D]  FintsService:  HBCI status tag=32
+2026-05-22 21:35:01.769  [D]  FintsService:  HBCI status tag=27
+2026-05-22 21:35:01.533  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:35:01.533  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:35:01.532  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
+2026-05-22 21:35:01.519  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:35:01.510  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
+2026-05-22 21:35:01.510  [D]  FintsService:  PIN-Cache: PIN für 2 Minuten gecacht
+2026-05-22 21:34:55.358  [I]  FintsService:  PIN-Anfrage für BLZ 66090800 userId='76****a'
+2026-05-22 21:34:55.132  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:34:55.119  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:34:55.114  [D]  FintsService:  HBCI status tag=17
+2026-05-22 21:34:55.113  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank with job KUmsAllCamt...
+2026-05-22 21:34:55.113  [I]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
+2026-05-22 21:34:55.067  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2024-07-16)
+2026-05-22 21:34:55.066  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt ? KUmsZeitSEPA ? KUmsAll ? KUmsNew
+2026-05-22 21:34:55.066  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
+2026-05-22 21:34:55.065  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
+2026-05-22 21:34:55.065  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geöffnet – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
+2026-05-22 21:34:55.065  [I]  FintsService:  openSession: HBCI-Handler bereit – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
+2026-05-22 21:34:55.005  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
+2026-05-22 21:34:55.005  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: ?berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m?glich
 at org.kapott.hbci.protocol.DE.propagateValue(DE.java:72)
 at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
 at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
@@ -215,7 +335,7 @@ at org.kapott.hbci.manager.HBCIUser.register(HBCIUser.java:721)
 at org.kapott.hbci.manager.HBCIHandler.registerUser(HBCIHandler.java:296)
 at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:166)
 at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:116)
-at de.mybudgets.app.data.banking.FintsService.openSession(FintsService.kt:677)
+at de.mybudgets.app.data.banking.FintsService.openSession(FintsService.kt:666)
 at de.mybudgets.app.data.banking.FintsService.access$openSession(FintsService.kt:61)
 at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:290)
 at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
@@ -226,71 +346,76 @@ at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-2026-05-22 21:14:50.086  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:14:49.859  [D]  FintsService:  HBCI status tag=11
-2026-05-22 21:14:49.289  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
-2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
-2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=** This test registration can be invalidated at any time!!             **
-2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=** HBCIUtils.setParam("client.product.name","<your registration>");    **
-2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=** After receiving your registration, add this line to your code:      **
-2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** and create your own registration (it's free)                        **
-2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** Please go to https://www.hbci-zka.de/register/prod_register.htm     **
-2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** ONLY be used for internal testing, not for production purpose!!     **
-2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** HBCI4Java is currently using a product registration that should     **
-2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** WARNING                                                             **
-2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
-2026-05-22 21:14:49.194  [D]  FintsService:  initHbciOnce: Locale normalisiert von 'de-DE-u-fw-mon-mu-celsius' zu 'de-DE' (Unicode-Erweiterungen entfernt)
-2026-05-22 21:14:49.194  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
-2026-05-22 21:14:49.193  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
-2026-05-22 21:14:49.193  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Tue Jul 16 00:00:00 GMT+02:00 2024 multiChunk=false
-2026-05-22 21:14:49.192  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=316)
-2026-05-22 21:14:49.190  [I]  AccountViewModel:    ? Rufe FintsService.fetchAccountStatement auf...
-2026-05-22 21:14:49.190  [I]  AccountViewModel:    Sync-Typ: HISTORISCH-CONTINUE mit fromDate=Tue Jul 16 00:00:00 GMT+02:00 2024
-2026-05-22 21:14:49.184  [I]  AccountViewModel:    isHistorical=true
-2026-05-22 21:14:49.184  [I]  AccountViewModel:    fromDateMillis=1721080800000 (Tue Jul 16 00:00:00 GMT+02:00 2024)
-2026-05-22 21:14:49.169  [I]  AccountViewModel:    accountId=1
-2026-05-22 21:14:49.169  [I]  AccountViewModel:  syncBankTransactions: START
-2026-05-22 21:14:49.169  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
-2026-05-22 21:14:49.167  [I]  AccountViewModel:  bulkLoadHistory: Sync #1
-2026-05-22 21:14:49.166  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:14:49.166  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:14:49.166  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:14:49.166  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:14:49.164  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:14:49.164  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:14:49.164  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:14:49.163  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:14:49.163  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:14:49.163  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:14:49.162  [I]  SyncIntervalRepo:    historicalIntervals.size=5
-2026-05-22 21:14:49.162  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:14:49.152  [I]  AccountViewModel:  bulkLoadHistory: START für Account=1
-2026-05-22 21:14:44.441  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:14:44.441  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:14:44.441  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:14:44.441  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    historicalIntervals.size=5
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:14:44.438  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:14:44.431  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:14:44.431  [I]  SyncIntervalRepo:    historicalIntervals.size=5
-2026-05-22 21:14:44.431  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:34:54.995  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:34:54.760  [D]  FintsService:  HBCI status tag=11
+2026-05-22 21:34:54.167  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=** This test registration can be invalidated at any time!!             **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=** HBCIUtils.setParam("client.product.name","<your registration>");    **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=** After receiving your registration, add this line to your code:      **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=** and create your own registration (it's free)                        **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=** Please go to https://www.hbci-zka.de/register/prod_register.htm     **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=** ONLY be used for internal testing, not for production purpose!!     **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=** HBCI4Java is currently using a product registration that should     **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:34:54.075  [W]  FintsService:  HBCI log level=2 msg=** WARNING                                                             **
+2026-05-22 21:34:54.074  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
+2026-05-22 21:34:54.006  [D]  FintsService:  initHbciOnce: Locale normalisiert von 'de-DE-u-fw-mon-mu-celsius' zu 'de-DE' (Unicode-Erweiterungen entfernt)
+2026-05-22 21:34:54.006  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
+2026-05-22 21:34:54.005  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
+2026-05-22 21:34:54.005  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Tue Jul 16 00:00:00 GMT+02:00 2024 multiChunk=false
+2026-05-22 21:34:53.996  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=317)
+2026-05-22 21:34:53.994  [I]  AccountViewModel:    ? Rufe FintsService.fetchAccountStatement auf...
+2026-05-22 21:34:53.994  [I]  AccountViewModel:    Sync-Typ: HISTORISCH-CONTINUE mit fromDate=Tue Jul 16 00:00:00 GMT+02:00 2024
+2026-05-22 21:34:53.987  [I]  AccountViewModel:    isHistorical=true
+2026-05-22 21:34:53.987  [I]  AccountViewModel:    fromDateMillis=1721080800000 (Tue Jul 16 00:00:00 GMT+02:00 2024)
+2026-05-22 21:34:53.972  [I]  AccountViewModel:    accountId=1
+2026-05-22 21:34:53.972  [I]  AccountViewModel:  syncBankTransactions: START
+2026-05-22 21:34:53.972  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
+2026-05-22 21:34:53.969  [I]  AccountViewModel:  bulkLoadHistory: Sync #1
+2026-05-22 21:34:53.968  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:34:53.968  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:34:53.968  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:34:53.968  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:34:53.967  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:34:53.967  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:53.966  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:53.965  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:53.965  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:34:53.965  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:34:53.965  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:34:53.964  [I]  SyncIntervalRepo:    historicalIntervals.size=6
+2026-05-22 21:34:53.964  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:34:53.955  [I]  AccountViewModel:  bulkLoadHistory: START für Account=1
+2026-05-22 21:34:49.203  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:34:49.203  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:34:49.203  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:34:49.203  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:49.202  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:34:49.201  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:34:49.201  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:34:49.201  [I]  SyncIntervalRepo:    historicalIntervals.size=6
+2026-05-22 21:34:49.201  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:34:49.192  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:34:49.192  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:49.192  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:49.192  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:34:49.192  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:34:49.192  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:34:49.192  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:34:49.191  [I]  SyncIntervalRepo:    historicalIntervals.size=6
+2026-05-22 21:34:49.191  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+
+ 

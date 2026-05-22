@@ -121,6 +121,8 @@ class AccountViewModel @Inject constructor(
                 }
                 
                 val nextDate = syncIntervalRepo.getNextHistoricalSyncDate(accountId)
+                AppLogger.i(TAG, "bulkLoadHistory: Loop iteration #${syncCount + 1}: nextDate=${if (nextDate != null) java.util.Date(nextDate) else "null"} lastGapDate=${if (lastGapDate != null) java.util.Date(lastGapDate) else "null"}")
+                
                 if (nextDate == null) {
                     AppLogger.i(TAG, "bulkLoadHistory: ✅ FERTIG - Keine Lücken mehr")
                     _bulkSyncProgress.value = null
@@ -149,6 +151,9 @@ class AccountViewModel @Inject constructor(
                     _bulkSyncProgress.value = null
                     break
                 }
+                
+                val successState = bankSyncState.value as? BankSyncState.Success
+                AppLogger.i(TAG, "bulkLoadHistory: Sync #$syncCount erfolgreich (${successState?.newTransactionCount ?: 0} neue TXs)")
                 
                 kotlinx.coroutines.delay(500) // Small delay between syncs
             }
@@ -292,8 +297,12 @@ class AccountViewModel @Inject constructor(
             }
             
             _bankSyncState.value = BankSyncState.Loading(phase = SyncPhase.EXECUTE, detailMessage = syncTypeMessage)
-            AppLogger.i(TAG, "  → Rufe FintsService.fetchAccountStatement auf...")
-            val syncResult = fintsService.fetchAccountStatement(account, fromDate)
+            AppLogger.i(TAG, "   Rufe FintsService.fetchAccountStatement auf...")
+            
+            // TAN-free mode: Try without TAN first if historical sync (most banks don't require TAN for account statements)
+            // Fallback to TAN if bank rejects PIN-only mode
+            val useTanFree = isHistorical && account.tanMethod.isNotBlank()
+            val syncResult = fintsService.fetchAccountStatement(account, fromDate, useTanFreeMode = useTanFree)
 
             syncResult.onSuccess { transactions ->
                 AppLogger.i(TAG, "  ✅ Bank-Response erfolgreich:")

@@ -277,17 +277,27 @@ class FintsService @Inject constructor(
         account: Account,
         fromDate: Date? = null,
         enableMultiChunk: Boolean = false,
-        maxChunks: Int = 3
+        maxChunks: Int = 3,
+        useTanFreeMode: Boolean = false
     ): Result<List<Transaction>> = withContext(Dispatchers.IO) {
         val syncPhase = "fetchAccountStatement"
         AppLogger.i(TAG, "[$syncPhase/0-version] MyBudgets Version: ${de.mybudgets.app.BuildConfig.VERSION_NAME} (versionCode=${de.mybudgets.app.BuildConfig.VERSION_CODE})")
-        AppLogger.i(TAG, "[$syncPhase/1-setup] START: iban=${maskIban(account.iban)} userId=${maskUserId(account.userId)} blz=${account.bankCode.ifBlank { blzFromIban(account.iban) ?: "?" }} ab $fromDate multiChunk=$enableMultiChunk")
+        AppLogger.i(TAG, "[$syncPhase/1-setup] START: iban=${maskIban(account.iban)} userId=${maskUserId(account.userId)} blz=${account.bankCode.ifBlank { blzFromIban(account.iban) ?: "?" }} ab $fromDate multiChunk=$enableMultiChunk tanFree=$useTanFreeMode")
         // Clear any stale wrong-PIN flag from a previous operation on this thread.
         wrongPinOnThread.remove()
         val operationResult = runCatching {
             AppLogger.i(TAG, "[$syncPhase/1-setup] Initiate HBCI session...")
             syncPhaseUpdateHandler?.invoke("1-setup", "HBCI-Session wird initialisiert...")
-            val (handler, passport) = openSession(account)
+            
+            // TAN-free mode: Temporarily override tanMethod to let bank use PIN-only
+            val actualAccount = if (useTanFreeMode && account.tanMethod.isNotBlank()) {
+                AppLogger.i(TAG, "[$syncPhase/1-setup] TAN-free mode: Temporarily clearing tanMethod (was '${account.tanMethod}')")
+                account.copy(tanMethod = "")
+            } else {
+                account
+            }
+            
+            val (handler, passport) = openSession(actualAccount)
             AppLogger.i(TAG, "[$syncPhase/1-setup] Session geöffnet – Server=${passport.host}:${passport.port}")
             try {
                 // PHASE 2: BIC Lookup
