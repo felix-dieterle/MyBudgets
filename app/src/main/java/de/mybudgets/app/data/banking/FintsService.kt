@@ -333,19 +333,8 @@ class FintsService @Inject constructor(
                         val j = handler.newJob(attempt.name)
                         j.setParam("my", buildKonto(account, bic, passport))
                         
-                        // WICHTIG: KUmsAllCamt bei BBBank - setze sehr altes Datum für maximale Historie
-                        // BBBank liefert bei K UmsAllCamt maximal ~150-200 TX pro Request, aber mit altem
-                        // startdate können wir mehr Historie bekommen (~2 Jahre = ~1000 TX)
-                        if (attempt.name == "KUmsAllCamt" && attempt.startDate != null) {
-                            // Setze startdate 2 Jahre zurück (statt das vom Job übergebene Datum zu verwenden)
-                            val cal = java.util.Calendar.getInstance()
-                            cal.add(java.util.Calendar.YEAR, -2)
-                            val oldDate = cal.time
-                            j.setParam("startdate", sdf.format(oldDate))
-                            AppLogger.d(TAG, "[$syncPhase/3-job] KUmsAllCamt: Using 2-year-old startdate=${sdf.format(oldDate)} for maximum history")
-                        } else {
-                            attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
-                        }
+                        // Setze startdate wenn vorhanden
+                        attempt.startDate?.let { j.setParam("startdate", sdf.format(it)) }
                         
                         handler.addJob(j)
                         AppLogger.i(TAG, "[$syncPhase/3-job] Job ${attempt.name} added successfully")

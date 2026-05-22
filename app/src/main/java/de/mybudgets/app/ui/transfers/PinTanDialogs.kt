@@ -89,31 +89,6 @@ suspend fun tanDialog(activity: Activity, challenge: String): String =
  */
 suspend fun decoupledConfirmDialog(activity: Activity, challenge: String): Unit =
     suspendCancellableCoroutine { cont ->
-        if (activity.isFinishing || activity.isDestroyed) {
-            AppLogger.w(TAG, "decoupledConfirmDialog: Activity nicht verfügbar")
-            if (cont.isActive) cont.resume(Unit)
-            return@suspendCancellableCoroutine
-        }
-        activity.runOnUiThread {
-            if (activity.isFinishing || activity.isDestroyed) {
-                AppLogger.w(TAG, "decoupledConfirmDialog: Activity nach runOnUiThread nicht mehr verfügbar")
-                if (cont.isActive) cont.resume(Unit)
-                return@runOnUiThread
-            }
-            try {
-                val message = if (challenge.isNotBlank()) challenge
-                    else activity.getString(R.string.decoupled_confirm_message)
-                AlertDialog.Builder(activity)
-                    .setTitle(R.string.decoupled_confirm_title)
-                    .setMessage(message)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        if (cont.isActive) cont.resume(Unit)
-                    }
-                    .setCancelable(false)
-                    .show()
-            } catch (e: Exception) {
-                AppLogger.e(TAG, "decoupledConfirmDialog: Dialog konnte nicht angezeigt werden: ${e.message}", e)
-                if (cont.isActive) cont.resume(Unit)
-            }
-        }
+        AppLogger.i(TAG, "decoupledConfirmDialog: Auto-confirming (no user interaction needed)")
+        if (cont.isActive) cont.resume(Unit)
     }

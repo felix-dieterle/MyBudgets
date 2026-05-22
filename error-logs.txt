@@ -1,115 +1,93 @@
-MyBudgets Fehlerprotokoll  –  exportiert 2026-05-22 21:08:07.334
+MyBudgets Fehlerprotokoll  –  exportiert 2026-05-22 21:24:01.306
 ========================================================================
-2026-05-22 21:07:59.604  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:07:59.604  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:07:59.604  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:07:59.604  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:07:59.603  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:07:59.603  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:07:59.603  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:07:59.603  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:07:59.602  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:07:59.602  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:07:59.602  [I]  SyncIntervalRepo:    historicalIntervals.size=5
-2026-05-22 21:07:59.602  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:07:59.601  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:07:59.601  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:07:59.601  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:07:59.600  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:07:59.576  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:07:59.576  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:07:59.575  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:07:59.575  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:07:59.575  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:07:59.575  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:07:59.575  [I]  SyncIntervalRepo:    historicalIntervals.size=5
-2026-05-22 21:07:59.575  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:05:46.887  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:05:46.887  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:05:46.887  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:05:46.887  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:05:46.884  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:05:46.884  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:05:46.884  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:05:46.883  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:05:46.883  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:46.883  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:46.882  [I]  SyncIntervalRepo:    historicalIntervals.size=5
-2026-05-22 21:05:46.882  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:05:46.877  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:05:46.876  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:05:46.876  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:05:46.876  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:05:46.871  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:05:46.871  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:05:46.871  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:05:46.870  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:05:46.870  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:46.870  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:46.869  [I]  SyncIntervalRepo:    historicalIntervals.size=5
-2026-05-22 21:05:46.869  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:05:46.761  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
-2026-05-22 21:05:46.761  [I]  AccountViewModel:    ?? SYNC ERFOLG: 0 neue Buchungen, Saldo=1257.4, Zeitraum=23.05.2024 - 15.07.2024
-2026-05-22 21:05:46.740  [I]  AccountViewModel:      ? Saldo 1 aktualisiert: 1257.4 ? 1257.4
-2026-05-22 21:05:46.733  [I]  AccountViewModel:        ? Historisch hat neueste DB-TX erreicht/überholt, verwende Balance
-2026-05-22 21:05:46.733  [I]  AccountViewModel:        newestDbTx=Mon Jul 15 00:00:00 GMT+02:00 2024
-2026-05-22 21:05:46.728  [I]  AccountViewModel:        isHistorical=true
-2026-05-22 21:05:46.728  [I]  AccountViewModel:        daysSinceNewestSynced=676 Tage
-2026-05-22 21:05:46.728  [I]  AccountViewModel:        newestSyncedTx=Mon Jul 15 00:00:00 GMT+02:00 2024
-2026-05-22 21:05:46.728  [I]  AccountViewModel:      Balance-Check:
-2026-05-22 21:05:46.728  [I]  AccountViewModel:      camtBalance=1257.4
-2026-05-22 21:05:46.728  [I]  AccountViewModel:      ? Sync-Intervall gespeichert: Thu May 23 00:00:00 GMT+02:00 2024 bis Mon Jul 15 00:00:00 GMT+02:00 2024, isHistorical=true
-2026-05-22 21:05:46.716  [I]  AccountViewModel:      newTx.size=0 (nach Deduplizierung)
-2026-05-22 21:05:46.715  [I]  AccountViewModel:      existingRemoteIds.size=174 (bereits in DB)
-2026-05-22 21:05:46.707  [I]  AccountViewModel:      Zeitraum: Thu May 23 00:00:00 GMT+02:00 2024 bis Mon Jul 15 00:00:00 GMT+02:00 2024
-2026-05-22 21:05:46.704  [I]  AccountViewModel:      transactions.size=150
-2026-05-22 21:05:46.704  [I]  AccountViewModel:    ? Bank-Response erfolgreich:
-2026-05-22 21:05:46.703  [I]  FintsService:  [fetchAccountStatement/5-parse] SUCCESS: Extracted 150 transactions
-2026-05-22 21:05:46.702  [I]  FintsService:  tryCamtFallbackExtraction: ? SUCCESS - Extracted 150 transactions
-2026-05-22 21:05:46.702  [I]  FintsService:  tryCamtFallbackExtraction: Extracted balance=1257.4 from CAMT
-2026-05-22 21:05:46.701  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
-2026-05-22 21:05:46.674  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (171472 bytes)
-2026-05-22 21:05:46.674  [I]  FintsService:  tryCamtFallbackExtraction: CamtExtractionHelper returned 150 transactions
-2026-05-22 21:05:46.674  [I]  HbciCamtPatcher:  parseAndConvert: Converted 150 UmsLines
-2026-05-22 21:05:46.673  [I]  HbciCamtPatcher:  parseAndConvert: Parsed 150 transactions
-2026-05-22 21:05:46.673  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
-2026-05-22 21:05:46.638  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (171472 bytes)
-2026-05-22 21:05:46.637  [I]  HbciCamtPatcher:  parseAndConvert: Parsing CAMT XML (171472 bytes)
-2026-05-22 21:05:46.637  [I]  CamtExtractionHelper:  extractFromJobResult: Found CAMT XML (171472 bytes)
-2026-05-22 21:05:46.637  [D]  CamtExtractionHelper:  findCamtXml: Found CAMT XML at key 'content.booked.message'
-2026-05-22 21:05:46.637  [D]  CamtExtractionHelper:  extractFromJobResult: Job result has 14 properties
-2026-05-22 21:05:46.637  [I]  CamtExtractionHelper:  extractFromJobResult: Attempting custom CAMT extraction
-2026-05-22 21:05:46.637  [I]  FintsService:  tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...
-2026-05-22 21:05:46.637  [D]  FintsService:  tryCamtFallbackExtraction: Job properties keys: content.SegHead.seq, content.KTV.KIK.country, content.KTV.bic, basic.dialogid, content.SegHead.code, basic.msgnum, content.booked.message, content.KTV.KIK.blz, content.SegHead.ref, basic.segnum, content.KTV.number, content.SegHead.version, content.format, content.KTV.iban
-2026-05-22 21:05:46.637  [I]  FintsService:  tryCamtFallbackExtraction: Found 14 job properties
-2026-05-22 21:05:46.637  [I]  FintsService:  extractJobProperties: Found 14 properties via getResultData()
-2026-05-22 21:05:46.637  [D]  FintsService:  extractJobProperties: JobResult has 9 fields
-2026-05-22 21:05:46.637  [D]  FintsService:  extractJobProperties: Searching all fields in jobResult...
-2026-05-22 21:05:46.636  [D]  FintsService:  extractJobProperties: JobResult class: GVRKUms
-2026-05-22 21:05:46.636  [D]  FintsService:  extractJobProperties: Extracting from job class GVKUmsAllCamt
-2026-05-22 21:05:46.636  [I]  FintsService:  tryCamtFallbackExtraction: Step 1 - Extracting job properties...
-2026-05-22 21:05:46.636  [I]  FintsService:  tryCamtFallbackExtraction: Target account IBAN=DE91660908000007690118
-2026-05-22 21:05:46.636  [I]  FintsService:  tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...
-2026-05-22 21:05:46.636  [W]  FintsService:  extractFlatData: getFlatData() empty, using CAMT fallback
-2026-05-22 21:05:46.636  [I]  FintsService:  [fetchAccountStatement/5-parse] Extracting transaction data from job GVKUmsAllCamt...
-2026-05-22 21:05:46.636  [W]  FintsService:  [fetchAccountStatement/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...
-2026-05-22 21:05:46.635  [D]  FintsService:  HBCI callback reason=25 msg=Sie k?nnen die Internetverbindung jetzt beenden
-2026-05-22 21:05:46.635  [D]  FintsService:  HBCI status tag=20
-2026-05-22 21:05:46.633  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:05:46.625  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:05:46.610  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:05:46.609  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:05:46.601  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:05:46.601  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:05:46.541  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:05:46.539  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:05:46.539  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:05:46.531  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:05:46.305  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:05:46.299  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:05:46.299  [D]  FintsService:  HBCI status tag=19
-2026-05-22 21:05:46.299  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
-2026-05-22 21:05:46.299  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Speichern der Ergebnisdaten f?r Job TAN2Step7 im JobResult-Objekt
+2026-05-22 21:23:55.968  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:23:55.968  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:23:55.968  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:23:55.968  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:23:55.967  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:23:55.967  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:    historicalIntervals.size=6
+2026-05-22 21:23:55.966  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:15:19.574  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:15:19.574  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:15:19.574  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:15:19.574  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:15:19.570  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:15:19.570  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 21:15:19.569  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:15:19.569  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:15:19.568  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:15:19.567  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:15:19.567  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:15:19.565  [I]  SyncIntervalRepo:    historicalIntervals.size=6
+2026-05-22 21:15:19.565  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:15:19.459  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
+2026-05-22 21:15:19.459  [I]  AccountViewModel:    ?? SYNC ERFOLG: 0 neue Buchungen, Saldo=1257.4, Zeitraum=23.05.2024 - 15.07.2024
+2026-05-22 21:15:19.417  [I]  AccountViewModel:      ? Saldo 1 aktualisiert: 1257.4 ? 1257.4
+2026-05-22 21:15:19.410  [I]  AccountViewModel:        ? Historisch hat neueste DB-TX erreicht/überholt, verwende Balance
+2026-05-22 21:15:19.410  [I]  AccountViewModel:        newestDbTx=Mon Jul 15 00:00:00 GMT+02:00 2024
+2026-05-22 21:15:19.405  [I]  AccountViewModel:        isHistorical=true
+2026-05-22 21:15:19.405  [I]  AccountViewModel:        daysSinceNewestSynced=676 Tage
+2026-05-22 21:15:19.405  [I]  AccountViewModel:        newestSyncedTx=Mon Jul 15 00:00:00 GMT+02:00 2024
+2026-05-22 21:15:19.405  [I]  AccountViewModel:      Balance-Check:
+2026-05-22 21:15:19.405  [I]  AccountViewModel:      camtBalance=1257.4
+2026-05-22 21:15:19.405  [I]  AccountViewModel:      ? Sync-Intervall gespeichert: Thu May 23 00:00:00 GMT+02:00 2024 bis Mon Jul 15 00:00:00 GMT+02:00 2024, isHistorical=true
+2026-05-22 21:15:19.389  [I]  AccountViewModel:      newTx.size=0 (nach Deduplizierung)
+2026-05-22 21:15:19.388  [I]  AccountViewModel:      existingRemoteIds.size=174 (bereits in DB)
+2026-05-22 21:15:19.374  [I]  AccountViewModel:      Zeitraum: Thu May 23 00:00:00 GMT+02:00 2024 bis Mon Jul 15 00:00:00 GMT+02:00 2024
+2026-05-22 21:15:19.370  [I]  AccountViewModel:      transactions.size=150
+2026-05-22 21:15:19.370  [I]  AccountViewModel:    ? Bank-Response erfolgreich:
+2026-05-22 21:15:19.369  [I]  FintsService:  [fetchAccountStatement/5-parse] SUCCESS: Extracted 150 transactions
+2026-05-22 21:15:19.368  [I]  FintsService:  tryCamtFallbackExtraction: ? SUCCESS - Extracted 150 transactions
+2026-05-22 21:15:19.368  [I]  FintsService:  tryCamtFallbackExtraction: Extracted balance=1257.4 from CAMT
+2026-05-22 21:15:19.368  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
+2026-05-22 21:15:19.340  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (171472 bytes)
+2026-05-22 21:15:19.340  [I]  FintsService:  tryCamtFallbackExtraction: CamtExtractionHelper returned 150 transactions
+2026-05-22 21:15:19.340  [I]  HbciCamtPatcher:  parseAndConvert: Converted 150 UmsLines
+2026-05-22 21:15:19.339  [I]  HbciCamtPatcher:  parseAndConvert: Parsed 150 transactions
+2026-05-22 21:15:19.339  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
+2026-05-22 21:15:19.301  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (171472 bytes)
+2026-05-22 21:15:19.301  [I]  HbciCamtPatcher:  parseAndConvert: Parsing CAMT XML (171472 bytes)
+2026-05-22 21:15:19.301  [I]  CamtExtractionHelper:  extractFromJobResult: Found CAMT XML (171472 bytes)
+2026-05-22 21:15:19.301  [D]  CamtExtractionHelper:  findCamtXml: Found CAMT XML at key 'content.booked.message'
+2026-05-22 21:15:19.301  [D]  CamtExtractionHelper:  extractFromJobResult: Job result has 14 properties
+2026-05-22 21:15:19.301  [I]  CamtExtractionHelper:  extractFromJobResult: Attempting custom CAMT extraction
+2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...
+2026-05-22 21:15:19.300  [D]  FintsService:  tryCamtFallbackExtraction: Job properties keys: content.SegHead.seq, content.KTV.KIK.country, content.KTV.bic, basic.dialogid, content.SegHead.code, basic.msgnum, content.booked.message, content.KTV.KIK.blz, content.SegHead.ref, basic.segnum, content.KTV.number, content.SegHead.version, content.format, content.KTV.iban
+2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: Found 14 job properties
+2026-05-22 21:15:19.300  [I]  FintsService:  extractJobProperties: Found 14 properties via getResultData()
+2026-05-22 21:15:19.300  [D]  FintsService:  extractJobProperties: JobResult has 9 fields
+2026-05-22 21:15:19.300  [D]  FintsService:  extractJobProperties: Searching all fields in jobResult...
+2026-05-22 21:15:19.300  [D]  FintsService:  extractJobProperties: JobResult class: GVRKUms
+2026-05-22 21:15:19.300  [D]  FintsService:  extractJobProperties: Extracting from job class GVKUmsAllCamt
+2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: Step 1 - Extracting job properties...
+2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: Target account IBAN=DE91660908000007690118
+2026-05-22 21:15:19.300  [I]  FintsService:  tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...
+2026-05-22 21:15:19.300  [W]  FintsService:  extractFlatData: getFlatData() empty, using CAMT fallback
+2026-05-22 21:15:19.299  [I]  FintsService:  [fetchAccountStatement/5-parse] Extracting transaction data from job GVKUmsAllCamt...
+2026-05-22 21:15:19.299  [W]  FintsService:  [fetchAccountStatement/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...
+2026-05-22 21:15:19.299  [D]  FintsService:  HBCI callback reason=25 msg=Sie k?nnen die Internetverbindung jetzt beenden
+2026-05-22 21:15:19.299  [D]  FintsService:  HBCI status tag=20
+2026-05-22 21:15:19.296  [D]  FintsService:  HBCI status tag=26
+2026-05-22 21:15:19.288  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:15:19.274  [D]  FintsService:  HBCI status tag=31
+2026-05-22 21:15:19.274  [D]  FintsService:  HBCI status tag=25
+2026-05-22 21:15:19.267  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:15:19.267  [D]  FintsService:  HBCI status tag=32
+2026-05-22 21:15:19.221  [D]  FintsService:  HBCI status tag=27
+2026-05-22 21:15:19.219  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:15:19.219  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:15:19.211  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:15:18.984  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:15:18.979  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:15:18.979  [D]  FintsService:  HBCI status tag=19
+2026-05-22 21:15:18.979  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
+2026-05-22 21:15:18.979  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Speichern der Ergebnisdaten f?r Job TAN2Step7 im JobResult-Objekt
 at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:937)
 at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:311)
 at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:467)
@@ -142,91 +120,81 @@ Caused by: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/
 at org.apache.harmony.xml.parsers.SAXParserFactoryImpl.setFeature(SAXParserFactoryImpl.java:93)
 at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:136)
 ... 21 more
-2026-05-22 21:05:46.299  [E]  FintsService:  HBCI log level=1 msg=  unable to parse camt data: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
-2026-05-22 21:05:46.112  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:05:46.000  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:05:45.759  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:05:45.755  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:05:45.720  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:05:45.719  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:05:44.406  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:05:44.321  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:05:44.321  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:05:44.311  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:05:38.807  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:05:38.807  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:05:38.807  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:05:38.807  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:05:38.804  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:05:38.804  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:05:38.804  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:05:38.804  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:38.804  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:38.803  [I]  SyncIntervalRepo:    historicalIntervals.size=4
-2026-05-22 21:05:38.803  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:05:38.782  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:05:38.782  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:05:38.782  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:05:38.782  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:05:38.781  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:05:38.781  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:05:38.781  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:05:38.781  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:38.781  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:38.781  [I]  SyncIntervalRepo:    historicalIntervals.size=4
-2026-05-22 21:05:38.781  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:05:21.626  [I]  FintsService:  Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
+2026-05-22 21:15:18.978  [E]  FintsService:  HBCI log level=1 msg=  unable to parse camt data: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
+2026-05-22 21:15:18.792  [D]  FintsService:  HBCI status tag=26
+2026-05-22 21:15:18.683  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:15:18.456  [D]  FintsService:  HBCI status tag=31
+2026-05-22 21:15:18.452  [D]  FintsService:  HBCI status tag=25
+2026-05-22 21:15:18.416  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:15:18.415  [D]  FintsService:  HBCI status tag=32
+2026-05-22 21:15:17.303  [D]  FintsService:  HBCI status tag=27
+2026-05-22 21:15:17.164  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:15:17.164  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:15:17.150  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:15:16.227  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:    historicalIntervals.size=5
+2026-05-22 21:15:16.226  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:14:58.859  [I]  FintsService:  Decoupled TAN-Bestätigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
 TAN
 
 Bitte bestätigen Sie den Vorgang in Ihrer SecureGo plus App
-2026-05-22 21:05:21.407  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:05:21.397  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:05:21.397  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:05:21.397  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:05:21.396  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:05:21.393  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:05:21.376  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:05:21.209  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:05:21.208  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:05:21.197  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:05:21.197  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:05:20.529  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:05:20.527  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:05:20.527  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:05:20.517  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:05:20.278  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:05:20.264  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:05:20.264  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:05:20.264  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:05:20.252  [D]  FintsService:  HBCI status tag=18
-2026-05-22 21:05:20.031  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:05:19.993  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:05:19.733  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:05:19.732  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:05:19.719  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:05:19.718  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:05:19.353  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:05:19.211  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:05:19.210  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:05:19.205  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
-2026-05-22 21:05:19.192  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:05:19.186  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
-2026-05-22 21:05:19.186  [D]  FintsService:  PIN-Cache: PIN für 2 Minuten gecacht
-2026-05-22 21:05:12.944  [I]  FintsService:  PIN-Anfrage für BLZ 66090800 userId='76****a'
-2026-05-22 21:05:12.715  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:05:12.702  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:05:12.697  [D]  FintsService:  HBCI status tag=17
-2026-05-22 21:05:12.697  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank with job KUmsAllCamt...
-2026-05-22 21:05:12.697  [I]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
-2026-05-22 21:05:12.691  [D]  FintsService:  [fetchAccountStatement/3-job] KUmsAllCamt: Using 2-year-old startdate=2024-05-22 for maximum history
-2026-05-22 21:05:12.651  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2024-07-16)
-2026-05-22 21:05:12.651  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt ? KUmsZeitSEPA ? KUmsAll ? KUmsNew
-2026-05-22 21:05:12.650  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
-2026-05-22 21:05:12.649  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
-2026-05-22 21:05:12.649  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geöffnet – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
-2026-05-22 21:05:12.649  [I]  FintsService:  openSession: HBCI-Handler bereit – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
-2026-05-22 21:05:12.590  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
-2026-05-22 21:05:12.589  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: ?berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m?glich
+2026-05-22 21:14:58.633  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:14:58.624  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:14:58.624  [D]  FintsService:  HBCI status tag=1
+2026-05-22 21:14:58.624  [D]  FintsService:  HBCI status tag=2
+2026-05-22 21:14:58.624  [D]  FintsService:  HBCI status tag=2
+2026-05-22 21:14:58.621  [D]  FintsService:  HBCI status tag=26
+2026-05-22 21:14:58.604  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:14:58.463  [D]  FintsService:  HBCI status tag=31
+2026-05-22 21:14:58.463  [D]  FintsService:  HBCI status tag=25
+2026-05-22 21:14:58.454  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:14:58.453  [D]  FintsService:  HBCI status tag=32
+2026-05-22 21:14:57.553  [D]  FintsService:  HBCI status tag=27
+2026-05-22 21:14:57.548  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:14:57.548  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:14:57.540  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:14:57.300  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:14:57.286  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:14:57.286  [D]  FintsService:  HBCI status tag=1
+2026-05-22 21:14:57.286  [D]  FintsService:  HBCI status tag=1
+2026-05-22 21:14:57.274  [D]  FintsService:  HBCI status tag=18
+2026-05-22 21:14:57.052  [D]  FintsService:  HBCI status tag=26
+2026-05-22 21:14:57.013  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:14:56.773  [D]  FintsService:  HBCI status tag=31
+2026-05-22 21:14:56.773  [D]  FintsService:  HBCI status tag=25
+2026-05-22 21:14:56.759  [D]  FintsService:  HBCI status tag=28
+2026-05-22 21:14:56.758  [D]  FintsService:  HBCI status tag=32
+2026-05-22 21:14:56.507  [D]  FintsService:  HBCI status tag=27
+2026-05-22 21:14:56.274  [D]  FintsService:  HBCI status tag=30
+2026-05-22 21:14:56.273  [D]  FintsService:  HBCI status tag=24
+2026-05-22 21:14:56.268  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
+2026-05-22 21:14:56.257  [D]  FintsService:  HBCI status tag=23
+2026-05-22 21:14:56.250  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
+2026-05-22 21:14:56.250  [D]  FintsService:  PIN-Cache: PIN für 2 Minuten gecacht
+2026-05-22 21:14:50.459  [I]  FintsService:  PIN-Anfrage für BLZ 66090800 userId='76****a'
+2026-05-22 21:14:50.231  [D]  FintsService:  HBCI status tag=22
+2026-05-22 21:14:50.218  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:14:50.212  [D]  FintsService:  HBCI status tag=17
+2026-05-22 21:14:50.211  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank with job KUmsAllCamt...
+2026-05-22 21:14:50.211  [I]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
+2026-05-22 21:14:50.203  [D]  FintsService:  [fetchAccountStatement/3-job] KUmsAllCamt: Using 2-year-old startdate=2024-05-22 for maximum history
+2026-05-22 21:14:50.160  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2024-07-16)
+2026-05-22 21:14:50.160  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt ? KUmsZeitSEPA ? KUmsAll ? KUmsNew
+2026-05-22 21:14:50.160  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
+2026-05-22 21:14:50.159  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
+2026-05-22 21:14:50.159  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geöffnet – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
+2026-05-22 21:14:50.159  [I]  FintsService:  openSession: HBCI-Handler bereit – Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
+2026-05-22 21:14:50.095  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
+2026-05-22 21:14:50.095  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: ?berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m?glich
 at org.kapott.hbci.protocol.DE.propagateValue(DE.java:72)
 at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
 at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
@@ -258,92 +226,71 @@ at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-2026-05-22 21:05:12.579  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:05:12.342  [D]  FintsService:  HBCI status tag=11
-2026-05-22 21:05:11.750  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=** This test registration can be invalidated at any time!!             **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=** HBCIUtils.setParam("client.product.name","<your registration>");    **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=** After receiving your registration, add this line to your code:      **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=** and create your own registration (it's free)                        **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=** Please go to https://www.hbci-zka.de/register/prod_register.htm     **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=** ONLY be used for internal testing, not for production purpose!!     **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=** HBCI4Java is currently using a product registration that should     **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=** WARNING                                                             **
-2026-05-22 21:05:11.568  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
-2026-05-22 21:05:11.508  [D]  FintsService:  initHbciOnce: Locale normalisiert von 'de-DE-u-fw-mon-mu-celsius' zu 'de-DE' (Unicode-Erweiterungen entfernt)
-2026-05-22 21:05:11.508  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
-2026-05-22 21:05:11.508  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
-2026-05-22 21:05:11.508  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Tue Jul 16 00:00:00 GMT+02:00 2024 multiChunk=false
-2026-05-22 21:05:11.506  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=314)
-2026-05-22 21:05:11.504  [I]  AccountViewModel:    ? Rufe FintsService.fetchAccountStatement auf...
-2026-05-22 21:05:11.504  [I]  AccountViewModel:    Sync-Typ: HISTORISCH-CONTINUE mit fromDate=Tue Jul 16 00:00:00 GMT+02:00 2024
-2026-05-22 21:05:11.502  [I]  AccountViewModel:    isHistorical=true
-2026-05-22 21:05:11.502  [I]  AccountViewModel:    fromDateMillis=1721080800000 (Tue Jul 16 00:00:00 GMT+02:00 2024)
-2026-05-22 21:05:11.493  [I]  AccountViewModel:    accountId=1
-2026-05-22 21:05:11.493  [I]  AccountViewModel:  syncBankTransactions: START
-2026-05-22 21:05:11.493  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
-2026-05-22 21:05:11.491  [I]  AccountViewModel:  bulkLoadHistory: Sync #1
-2026-05-22 21:05:11.490  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:05:11.490  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:05:11.490  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:05:11.490  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:05:11.487  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:05:11.487  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:05:11.487  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:05:11.487  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:11.486  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:05:11.486  [I]  SyncIntervalRepo:    historicalIntervals.size=4
-2026-05-22 21:05:11.486  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:05:11.475  [I]  AccountViewModel:  bulkLoadHistory: START für Account=1
-2026-05-22 21:04:29.028  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:04:29.028  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:04:29.028  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:04:29.028  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:04:29.024  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:04:29.024  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:04:29.024  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:04:29.023  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:04:29.023  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:04:29.023  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:04:29.023  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:04:29.023  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:04:29.023  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:04:29.023  [I]  SyncIntervalRepo:    historicalIntervals.size=4
-2026-05-22 21:04:29.023  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:04:29.022  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:04:29.022  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:04:29.022  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:04:29.022  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:04:29.022  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:    historicalIntervals.size=4
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:04:29.021  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:04:29.020  [I]  SyncIntervalRepo:    historicalIntervals.size=4
-2026-05-22 21:04:29.020  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:04:29.020  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
-2026-05-22 21:04:29.020  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
-2026-05-22 21:04:29.020  [I]  SyncIntervalRepo:    gapStart=16.07.2024
-2026-05-22 21:04:29.020  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:04:29.011  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
-2026-05-22 21:04:29.011  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:04:29.010  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:04:29.010  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:04:29.010  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:04:29.010  [I]  SyncIntervalRepo:    historicalIntervals.size=4
-2026-05-22 21:04:29.010  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-
- 
+2026-05-22 21:14:50.086  [D]  FintsService:  HBCI status tag=21
+2026-05-22 21:14:49.859  [D]  FintsService:  HBCI status tag=11
+2026-05-22 21:14:49.289  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
+2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
+2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=** This test registration can be invalidated at any time!!             **
+2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=** HBCIUtils.setParam("client.product.name","<your registration>");    **
+2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=** After receiving your registration, add this line to your code:      **
+2026-05-22 21:14:49.247  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** and create your own registration (it's free)                        **
+2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** Please go to https://www.hbci-zka.de/register/prod_register.htm     **
+2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** ONLY be used for internal testing, not for production purpose!!     **
+2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** HBCI4Java is currently using a product registration that should     **
+2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=** WARNING                                                             **
+2026-05-22 21:14:49.246  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
+2026-05-22 21:14:49.194  [D]  FintsService:  initHbciOnce: Locale normalisiert von 'de-DE-u-fw-mon-mu-celsius' zu 'de-DE' (Unicode-Erweiterungen entfernt)
+2026-05-22 21:14:49.194  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
+2026-05-22 21:14:49.193  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
+2026-05-22 21:14:49.193  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Tue Jul 16 00:00:00 GMT+02:00 2024 multiChunk=false
+2026-05-22 21:14:49.192  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=316)
+2026-05-22 21:14:49.190  [I]  AccountViewModel:    ? Rufe FintsService.fetchAccountStatement auf...
+2026-05-22 21:14:49.190  [I]  AccountViewModel:    Sync-Typ: HISTORISCH-CONTINUE mit fromDate=Tue Jul 16 00:00:00 GMT+02:00 2024
+2026-05-22 21:14:49.184  [I]  AccountViewModel:    isHistorical=true
+2026-05-22 21:14:49.184  [I]  AccountViewModel:    fromDateMillis=1721080800000 (Tue Jul 16 00:00:00 GMT+02:00 2024)
+2026-05-22 21:14:49.169  [I]  AccountViewModel:    accountId=1
+2026-05-22 21:14:49.169  [I]  AccountViewModel:  syncBankTransactions: START
+2026-05-22 21:14:49.169  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
+2026-05-22 21:14:49.167  [I]  AccountViewModel:  bulkLoadHistory: Sync #1
+2026-05-22 21:14:49.166  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:14:49.166  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:14:49.166  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:14:49.166  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:14:49.164  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:14:49.164  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:14:49.164  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:14:49.163  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:14:49.163  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:14:49.163  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:14:49.162  [I]  SyncIntervalRepo:    historicalIntervals.size=5
+2026-05-22 21:14:49.162  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:14:49.152  [I]  AccountViewModel:  bulkLoadHistory: START für Account=1
+2026-05-22 21:14:44.441  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:14:44.441  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:14:44.441  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:14:44.441  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    historicalIntervals.size=5
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    ? RETURN 16.07.2024 (Noch nicht bei heute)
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=676 Tage
+2026-05-22 21:14:44.439  [I]  SyncIntervalRepo:    gapStart=16.07.2024
+2026-05-22 21:14:44.438  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.07.2024
+2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 21:14:44.432  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 21:14:44.431  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 21:14:44.431  [I]  SyncIntervalRepo:    historicalIntervals.size=5
+2026-05-22 21:14:44.431  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
