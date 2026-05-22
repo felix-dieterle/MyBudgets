@@ -86,6 +86,8 @@
             app:destination="@id/recurringRulesFragment" />
         <action android:id="@+id/action_settingsFragment_to_logConsoleFragment"
             app:destination="@id/logConsoleFragment" />
+        <action android:id="@+id/action_settingsFragment_to_syncSettingsFragment"
+            app:destination="@id/syncSettingsFragment" />
     </fragment>
 
     <fragment android:id="@+id/legalFragment"
@@ -117,5 +119,9 @@
     <fragment android:id="@+id/recurringRulesFragment"
         android:name="de.mybudgets.app.ui.recurringrules.RecurringRulesFragment"
         android:label="@string/nav_recurring_rules" />
+
+    <fragment android:id="@+id/syncSettingsFragment"
+        android:name="de.mybudgets.app.ui.settings.SyncSettingsFragment"
+        android:label="Sync-Einstellungen" />
 
 </navigation>

@@ -60,7 +60,8 @@ private const val DEFAULT_HBCI_LOG_LEVEL = "2"
  */
 @Singleton
 class FintsService @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val syncSettings: de.mybudgets.app.data.repository.SyncSettingsRepository
 ) {
 
     /** Set by the active UI fragment before banking operations. Cleared on fragment destroy. */

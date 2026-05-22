@@ -1,511 +1,446 @@
-MyBudgets Fehlerprotokoll  ñ  exportiert 2026-05-22 21:59:19.431
+Erstes laden geht jetzt. Countdown wird aber nicht angezeigt und Wartefenster l‰sst sich nicht manuell schlieﬂen. Folgeladen startet nicht automatisch an.
+
+
+
+MyBudgets Fehlerprotokoll  ñ  exportiert 2026-05-22 22:48:11.993
 ========================================================================
-2026-05-22 21:59:13.192  [I]  SyncIntervalRepo:    ? RETURN 16.11.2024 (Noch nicht bei heute)
-2026-05-22 21:59:13.192  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=553 Tage
-2026-05-22 21:59:13.192  [I]  SyncIntervalRepo:    gapStart=16.11.2024
-2026-05-22 21:59:13.192  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:59:13.190  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.11.2024
-2026-05-22 21:59:13.190  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
-2026-05-22 21:59:13.190  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
-2026-05-22 21:59:13.190  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
-2026-05-22 21:59:13.190  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:59:13.190  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:59:13.190  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:59:13.189  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:59:13.189  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:59:13.188  [I]  SyncIntervalRepo:    historicalIntervals.size=8
-2026-05-22 21:59:13.188  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:55:08.859  [I]  RecurringPatternDialog:  applySelected: 0 Rules erstellt
-2026-05-22 21:55:08.859  [I]  RecurringPatternDialog:    Pattern 3 nicht ausgew‰hlt, skip
-2026-05-22 21:55:08.859  [I]  RecurringPatternDialog:    Pattern 2 nicht ausgew‰hlt, skip
-2026-05-22 21:55:08.859  [I]  RecurringPatternDialog:    Pattern 1 nicht ausgew‰hlt, skip
-2026-05-22 21:55:08.859  [I]  RecurringPatternDialog:    Pattern 0 nicht ausgew‰hlt, skip
-2026-05-22 21:55:08.859  [I]  RecurringPatternDialog:  applySelected: START
-2026-05-22 21:55:08.859  [I]  RecurringPatternDialog:  btnApply clicked
-2026-05-22 21:54:58.093  [I]  RecurringPatternDialog:  buildPatternCards: DONE
-2026-05-22 21:54:58.054  [I]  RecurringPatternDialog:    Pattern 3: 66090800/0007690118/, 4 TX
-2026-05-22 21:54:58.021  [I]  RecurringPatternDialog:    Pattern 2: 66090800/0007690118/, 3 TX
-2026-05-22 21:54:57.983  [I]  RecurringPatternDialog:    Pattern 1: h, 3 TX
-2026-05-22 21:54:57.916  [I]  RecurringPatternDialog:    Pattern 0: 66090800/0007690118/0/1224 REF, 3 TX
-2026-05-22 21:54:57.916  [I]  RecurringPatternDialog:  buildPatternCards: START
-2026-05-22 21:54:57.916  [I]  RecurringPatternDialog:  onViewCreated: patterns.size=4
-2026-05-22 21:54:57.896  [I]  AccountDetailFragment:    ? Zeige RecurringPatternDialog
-2026-05-22 21:54:57.896  [I]  AccountDetailFragment:    ? patterns.size=4
-2026-05-22 21:54:57.896  [I]  RecurringPatternDetector:  detectPatterns: DONE - 4 Patterns gefunden
-2026-05-22 21:54:57.896  [I]  RecurringPatternDetector:      ? Pattern erkannt: 66090800/0007690118/, 4 TX, Intervall=7 Tage, Konfidenz=0,30 (exactness=0,97)
-2026-05-22 21:54:57.891  [I]  RecurringPatternDetector:      avgInterval=7.0, maxDeviation=0.0
-2026-05-22 21:54:57.891  [I]  RecurringPatternDetector:    Gruppe 75: 4 TX, Betrag ~42.0
-2026-05-22 21:54:57.891  [I]  RecurringPatternDetector:      ? Pattern erkannt: 66090800/0007690118/, 3 TX, Intervall=3 Tage, Konfidenz=0,30 (exactness=0,77)
-2026-05-22 21:54:57.889  [I]  RecurringPatternDetector:      avgInterval=3.5, maxDeviation=0.5
-2026-05-22 21:54:57.889  [I]  RecurringPatternDetector:    Gruppe 70: 3 TX, Betrag ~15.84
-2026-05-22 21:54:57.889  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.889  [I]  RecurringPatternDetector:      avgInterval=31.5, maxDeviation=30.5
-2026-05-22 21:54:57.889  [I]  RecurringPatternDetector:    Gruppe 67: 3 TX, Betrag ~6.75
-2026-05-22 21:54:57.889  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.889  [I]  RecurringPatternDetector:      avgInterval=19.25, maxDeviation=8.75
-2026-05-22 21:54:57.888  [I]  RecurringPatternDetector:    Gruppe 66: 5 TX, Betrag ~7.17
-2026-05-22 21:54:57.888  [I]  RecurringPatternDetector:      ? Pattern erkannt: h, 3 TX, Intervall=32 Tage, Konfidenz=0,30 (exactness=0,85)
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:      avgInterval=32.0, maxDeviation=0.0
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:    Gruppe 65: 3 TX, Betrag ~87.98
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:      avgInterval=24.5, maxDeviation=46.5
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:    Gruppe 63: 5 TX, Betrag ~1001.02
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:      avgInterval=15.8, maxDeviation=35.2
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:    Gruppe 62: 6 TX, Betrag ~71.58
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.884  [I]  RecurringPatternDetector:      avgInterval=5.25, maxDeviation=3.25
-2026-05-22 21:54:57.883  [I]  RecurringPatternDetector:    Gruppe 60: 5 TX, Betrag ~27.8
-2026-05-22 21:54:57.883  [I]  RecurringPatternDetector:      ? Pattern erkannt: 66090800/0007690118/0/1224 REF, 3 TX, Intervall=27 Tage, Konfidenz=0,30 (exactness=0,87)
-2026-05-22 21:54:57.846  [I]  RecurringPatternDetector:      avgInterval=27.0, maxDeviation=2.0
-2026-05-22 21:54:57.846  [I]  RecurringPatternDetector:    Gruppe 59: 3 TX, Betrag ~8.9
-2026-05-22 21:54:57.846  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.846  [I]  RecurringPatternDetector:      avgInterval=41.5, maxDeviation=7.5
-2026-05-22 21:54:57.846  [I]  RecurringPatternDetector:    Gruppe 58: 3 TX, Betrag ~132.8
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:      avgInterval=8.0, maxDeviation=7.0
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:    Gruppe 57: 3 TX, Betrag ~32.97
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:      avgInterval=14.428571428571429, maxDeviation=25.57142857142857
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:    Gruppe 56: 8 TX, Betrag ~12.47
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:      avgInterval=17.571428571428573, maxDeviation=16.428571428571427
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:    Gruppe 55: 8 TX, Betrag ~110.0
-2026-05-22 21:54:57.845  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:      avgInterval=18.666666666666668, maxDeviation=14.333333333333332
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:    Gruppe 53: 7 TX, Betrag ~18.5
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:      avgInterval=27.4, maxDeviation=43.6
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:    Gruppe 52: 6 TX, Betrag ~92.86
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:      avgInterval=30.666666666666668, maxDeviation=23.666666666666668
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:    Gruppe 50: 4 TX, Betrag ~3.75
-2026-05-22 21:54:57.844  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:      avgInterval=69.5, maxDeviation=69.5
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:    Gruppe 49: 3 TX, Betrag ~503.99
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:      avgInterval=22.8, maxDeviation=16.2
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:    Gruppe 48: 6 TX, Betrag ~4263.79
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:      avgInterval=35.0, maxDeviation=21.0
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:    Gruppe 47: 3 TX, Betrag ~76.43
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.843  [I]  RecurringPatternDetector:      avgInterval=36.5, maxDeviation=36.5
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:    Gruppe 46: 5 TX, Betrag ~5.81
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:      avgInterval=36.75, maxDeviation=26.25
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:    Gruppe 43: 5 TX, Betrag ~7.58
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:      avgInterval=14.777777777777779, maxDeviation=19.22222222222222
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:    Gruppe 41: 10 TX, Betrag ~99.98
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:      avgInterval=51.0, maxDeviation=70.0
-2026-05-22 21:54:57.842  [I]  RecurringPatternDetector:    Gruppe 40: 4 TX, Betrag ~11.2
-2026-05-22 21:54:57.841  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.841  [I]  RecurringPatternDetector:      avgInterval=67.5, maxDeviation=8.5
-2026-05-22 21:54:57.841  [I]  RecurringPatternDetector:    Gruppe 38: 3 TX, Betrag ~4.3
-2026-05-22 21:54:57.841  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.841  [I]  RecurringPatternDetector:      avgInterval=12.166666666666666, maxDeviation=19.833333333333336
-2026-05-22 21:54:57.841  [I]  RecurringPatternDetector:    Gruppe 37: 13 TX, Betrag ~30.74
-2026-05-22 21:54:57.841  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.841  [I]  RecurringPatternDetector:      avgInterval=13.727272727272727, maxDeviation=19.272727272727273
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:    Gruppe 36: 12 TX, Betrag ~44.95
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:      avgInterval=24.166666666666668, maxDeviation=19.166666666666668
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:    Gruppe 34: 7 TX, Betrag ~10.61
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:      avgInterval=22.8, maxDeviation=46.2
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:    Gruppe 33: 6 TX, Betrag ~22.0
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:      avgInterval=27.333333333333332, maxDeviation=41.66666666666667
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:    Gruppe 32: 7 TX, Betrag ~60.3
-2026-05-22 21:54:57.840  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:      avgInterval=70.5, maxDeviation=23.5
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:    Gruppe 29: 3 TX, Betrag ~3.99
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:      avgInterval=21.142857142857142, maxDeviation=28.857142857142858
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:    Gruppe 28: 8 TX, Betrag ~6.4
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:      avgInterval=33.6, maxDeviation=27.4
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:    Gruppe 27: 6 TX, Betrag ~2.95
-2026-05-22 21:54:57.839  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.838  [I]  RecurringPatternDetector:      avgInterval=17.0, maxDeviation=36.0
-2026-05-22 21:54:57.838  [I]  RecurringPatternDetector:    Gruppe 26: 9 TX, Betrag ~17.4
-2026-05-22 21:54:57.838  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.838  [I]  RecurringPatternDetector:      avgInterval=12.166666666666666, maxDeviation=23.833333333333336
-2026-05-22 21:54:57.838  [I]  RecurringPatternDetector:    Gruppe 25: 13 TX, Betrag ~20.0
-2026-05-22 21:54:57.838  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.837  [I]  RecurringPatternDetector:      avgInterval=26.833333333333332, maxDeviation=19.833333333333332
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:    Gruppe 24: 7 TX, Betrag ~455.0
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      avgInterval=8.333333333333334, maxDeviation=23.666666666666664
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:    Gruppe 23: 22 TX, Betrag ~15.0
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      avgInterval=30.8, maxDeviation=3.1999999999999993
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:    Gruppe 22: 6 TX, Betrag ~1160.0
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      avgInterval=25.0, maxDeviation=49.0
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:    Gruppe 21: 8 TX, Betrag ~173.0
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      avgInterval=30.8, maxDeviation=3.1999999999999993
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:    Gruppe 20: 6 TX, Betrag ~332.26
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      avgInterval=12.833333333333334, maxDeviation=19.166666666666664
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:    Gruppe 19: 13 TX, Betrag ~160.42
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      avgInterval=15.4, maxDeviation=20.6
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:    Gruppe 18: 11 TX, Betrag ~4.95
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.836  [I]  RecurringPatternDetector:      avgInterval=84.5, maxDeviation=22.5
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 17: 3 TX, Betrag ~37.0
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      avgInterval=22.5, maxDeviation=31.5
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 16: 7 TX, Betrag ~39.35
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      avgInterval=10.352941176470589, maxDeviation=9.647058823529411
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 15: 18 TX, Betrag ~226.74
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      avgInterval=61.0, maxDeviation=17.0
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 14: 3 TX, Betrag ~3.49
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      avgInterval=25.571428571428573, maxDeviation=54.42857142857143
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 11: 8 TX, Betrag ~81.71
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      avgInterval=21.0, maxDeviation=48.0
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 10: 8 TX, Betrag ~26.37
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      avgInterval=30.6, maxDeviation=39.4
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 9: 6 TX, Betrag ~34.99
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      avgInterval=13.0, maxDeviation=22.0
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 7: 15 TX, Betrag ~23.85
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:      avgInterval=34.666666666666664, maxDeviation=45.333333333333336
-2026-05-22 21:54:57.835  [I]  RecurringPatternDetector:    Gruppe 5: 4 TX, Betrag ~2131.57
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      avgInterval=7.041666666666667, maxDeviation=9.958333333333332
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:    Gruppe 4: 25 TX, Betrag ~49.96
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      avgInterval=14.076923076923077, maxDeviation=13.923076923076923
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:    Gruppe 3: 14 TX, Betrag ~65.58
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      avgInterval=14.0, maxDeviation=14.0
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:    Gruppe 2: 14 TX, Betrag ~55.92
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      avgInterval=8.714285714285714, maxDeviation=20.285714285714285
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:    Gruppe 1: 22 TX, Betrag ~9.99
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
-2026-05-22 21:54:57.834  [I]  RecurringPatternDetector:      avgInterval=9.68421052631579, maxDeviation=21.315789473684212
-2026-05-22 21:54:57.833  [I]  RecurringPatternDetector:    Gruppe 0: 20 TX, Betrag ~8.4
-2026-05-22 21:54:57.833  [I]  RecurringPatternDetector:    ? 80 Gruppen gefunden
-2026-05-22 21:54:57.804  [I]  RecurringPatternDetector:    ? Gruppiere nach ‰hnlichen Betr‰gen...
-2026-05-22 21:54:57.804  [I]  RecurringPatternDetector:  detectPatterns: START with 474 transactions
-2026-05-22 21:54:57.802  [I]  AccountDetailFragment:    ? Rufe RecurringPatternDetector auf...
-2026-05-22 21:54:57.802  [I]  AccountDetailFragment:    transactions.size=474
-2026-05-22 21:54:57.801  [I]  AccountDetailFragment:  checkForRecurringPatterns: START
-2026-05-22 21:54:57.602  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
-2026-05-22 21:54:57.602  [E]  AccountViewModel:    ? Bank-Response FEHLER: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-java.lang.IllegalStateException: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:395)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
+2026-05-22 22:48:02.110  [E]  AccountDetailFragment:  checkForRecurringPatterns CRASH
+java.lang.IllegalStateException: Can not perform this action after onSaveInstanceState
+at androidx.fragment.app.FragmentManager.checkStateLoss(FragmentManager.java:1632)
+at androidx.fragment.app.FragmentManager.enqueueAction(FragmentManager.java:1672)
+at androidx.fragment.app.BackStackRecord.commitInternal(BackStackRecord.java:341)
+at androidx.fragment.app.BackStackRecord.commit(BackStackRecord.java:306)
+at androidx.fragment.app.DialogFragment.show(DialogFragment.java:507)
+at de.mybudgets.app.ui.accounts.AccountDetailFragment.checkForRecurringPatterns(AccountDetailFragment.kt:307)
+at de.mybudgets.app.ui.accounts.AccountDetailFragment.onDestroyView(AccountDetailFragment.kt:337)
+at androidx.fragment.app.Fragment.performDestroyView(Fragment.java:3357)
+at androidx.fragment.app.FragmentStateManager.destroyFragmentView(FragmentStateManager.java:776)
+at androidx.fragment.app.FragmentStateManager.moveToExpectedState(FragmentStateManager.java:338)
+at androidx.fragment.app.SpecialEffectsController$FragmentStateManagerOperation.complete(SpecialEffectsController.kt:664)
+at androidx.fragment.app.SpecialEffectsController$Operation.completeSpecialEffect(SpecialEffectsController.kt:587)
+at androidx.fragment.app.DefaultSpecialEffectsController$SpecialEffectsInfo.completeSpecialEffect(DefaultSpecialEffectsController.kt:774)
+at androidx.fragment.app.DefaultSpecialEffectsController$startAnimations$1.onAnimationEnd(DefaultSpecialEffectsController.kt:193)
+at android.animation.Animator$AnimatorListener.onAnimationEnd(Animator.java:784)
+at android.animation.Animator$AnimatorCaller$$ExternalSyntheticLambda1.call(D8$$SyntheticClass:0)
+at android.animation.Animator.callOnList(Animator.java:742)
+at android.animation.Animator.notifyListeners(Animator.java:640)
+at android.animation.Animator.notifyEndListeners(Animator.java:665)
+at android.animation.Animator.completeEndAnimation(Animator.java:708)
+at android.animation.ValueAnimator.completeEndAnimation(ValueAnimator.java:1336)
+at android.animation.Animator.notifyEndListenersFromEndAnimation(Animator.java:697)
+at android.animation.ValueAnimator.endAnimation(ValueAnimator.java:1322)
+at android.animation.ValueAnimator.doAnimationFrame(ValueAnimator.java:1592)
+at android.animation.AnimationHandler.doAnimationFrame(AnimationHandler.java:404)
+at android.animation.AnimationHandler.-$$Nest$mdoAnimationFrame(Unknown Source:0)
+at android.animation.AnimationHandler$1.doFrame(AnimationHandler.java:106)
+at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1645)
+at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1656)
+at android.view.Choreographer.doCallbacks(Choreographer.java:1252)
+at android.view.Choreographer.doFrame(Choreographer.java:1177)
+at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:1630)
+at android.os.Handler.handleCallback(Handler.java:1095)
+at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+at android.os.Handler.dispatchMessage(Handler.java:125)
+at android.os.Looper.loopOnce(Looper.java:269)
+at android.os.Looper.loop(Looper.java:367)
+at android.app.ActivityThread.main(ActivityThread.java:9333)
+at java.lang.reflect.Method.invoke(Native Method)
+at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:566)
+at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
 
-2026-05-22 21:54:57.356  [E]  FintsService:  [fetchAccountStatement] FAILED: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-java.lang.IllegalStateException: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:395)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-
-2026-05-22 21:54:57.355  [E]  FintsService:  [fetchAccountStatement/4-exec] Bank returned non-OK status: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-2026-05-22 21:54:57.354  [D]  FintsService:  HBCI callback reason=25 msg=Sie k?nnen die Internetverbindung jetzt beenden
-2026-05-22 21:54:57.354  [D]  FintsService:  HBCI status tag=20
-2026-05-22 21:54:57.350  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:57.328  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:57.307  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:57.306  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:57.299  [E]  AccountViewModel:  bulkLoadHistory: FEHLER bei Sync #2
-2026-05-22 21:54:57.299  [E]  AccountViewModel:  bulkLoadHistory: FEHLER bei Sync #2
-2026-05-22 21:54:57.299  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
-2026-05-22 21:54:57.299  [E]  AccountViewModel:    ? Bank-Response FEHLER: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-java.lang.IllegalStateException: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:395)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-
-2026-05-22 21:54:57.298  [E]  FintsService:  [fetchAccountStatement] FAILED: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-java.lang.IllegalStateException: Kontoauszug fehlgeschlagen: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:395)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-
-2026-05-22 21:54:57.297  [E]  FintsService:  [fetchAccountStatement/4-exec] Bank returned non-OK status: Dialog for '7690118a':
-DIALOG-INITIALISIERUNG:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3920:Zugelassene TAN-Verfahren f¸r den Benutzer p:946 p:962 p:972 p:982 (4: DialogInit.ProcPrep)
-3076:Starke Kundenauthentifizierung nicht notwendig. (5: DialogInit.TAN2Step7)
-0901:*PIN g¸ltig. (4: DialogInit.ProcPrep)
-0020:*Dialoginitialisierung erfolgreich (4: DialogInit.ProcPrep)
-DIALOG-NACHRICHT #1:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3955:Sicherheitsfreigabe erfolgt ¸ber anderen Kanal. (4: CustomMsg.GV_2.TAN2Step7)
-DIALOG-NACHRICHT #2:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #3:
-3060:Bitte beachten Sie die enthaltenen Warnungen/Hinweise.
-3956:Starke Kundenauthentifizierung noch ausstehend. (3: CustomMsg.GV.TAN2Step7)
-DIALOG-NACHRICHT #4:
-android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
-DIALOG-ENDE:
-0010:Nachricht entgegengenommen.
-0100:Dialog beendet.
-2026-05-22 21:54:57.296  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:57.296  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:57.296  [D]  FintsService:  HBCI callback reason=25 msg=Sie k?nnen die Internetverbindung jetzt beenden
-2026-05-22 21:54:57.295  [D]  FintsService:  HBCI status tag=20
-2026-05-22 21:54:57.287  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:57.278  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:57.258  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:57.258  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:57.249  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:57.249  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:57.238  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:57.186  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:57.165  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:57.165  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:57.155  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:57.104  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:57.104  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:57.091  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:56.981  [I]  SyncIntervalRepo:    ? RETURN 16.11.2024 (Noch nicht bei heute)
-2026-05-22 21:54:56.981  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=553 Tage
-2026-05-22 21:54:56.981  [I]  SyncIntervalRepo:    gapStart=16.11.2024
-2026-05-22 21:54:56.981  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.11.2024
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:54:56.980  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:54:56.979  [I]  SyncIntervalRepo:    historicalIntervals.size=8
-2026-05-22 21:54:56.979  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:54:55.845  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:55.774  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:55.774  [D]  FintsService:  HBCI status tag=19
-2026-05-22 21:54:55.773  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
-2026-05-22 21:54:55.773  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:55.769  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Senden der HBCI-Nachricht zum Server
-at org.kapott.hbci.comm.CommPinTan.ping(CommPinTan.java:157)
-at org.kapott.hbci.comm.Comm.pingpong(Comm.java:72)
-at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:348)
-at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:287)
+2026-05-22 22:48:02.107  [I]  AccountDetailFragment:    ? Zeige RecurringPatternDialog
+2026-05-22 22:48:02.107  [I]  AccountDetailFragment:    ? patterns.size=1
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:  detectPatterns: DONE - 1 Patterns gefunden
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      avgInterval=24.5, maxDeviation=46.5
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:    Gruppe 98: 5 TX, Betrag ~1001.02
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      avgInterval=34.666666666666664, maxDeviation=45.333333333333336
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:    Gruppe 95: 4 TX, Betrag ~2131.57
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      avgInterval=41.0, maxDeviation=28.0
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:    Gruppe 94: 4 TX, Betrag ~8.9
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      avgInterval=26.333333333333332, maxDeviation=42.66666666666667
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:    Gruppe 92: 4 TX, Betrag ~27.6
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      avgInterval=27.571428571428573, maxDeviation=41.42857142857143
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:    Gruppe 90: 8 TX, Betrag ~4287.29
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      avgInterval=35.0, maxDeviation=27.0
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:    Gruppe 88: 8 TX, Betrag ~216.23
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      avgInterval=121.0, maxDeviation=113.0
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:    Gruppe 87: 3 TX, Betrag ~5310.76
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.107  [I]  RecurringPatternDetector:      avgInterval=30.625, maxDeviation=3.375
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 86: 9 TX, Betrag ~332.26
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=66.5, maxDeviation=44.5
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 83: 3 TX, Betrag ~201.9
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=22.692307692307693, maxDeviation=31.307692307692307
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 82: 14 TX, Betrag ~11.43
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=50.25, maxDeviation=21.75
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 78: 5 TX, Betrag ~386.19
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=64.0, maxDeviation=15.0
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 76: 3 TX, Betrag ~6305.71
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=34.857142857142854, maxDeviation=36.142857142857146
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 74: 8 TX, Betrag ~47.71
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=56.833333333333336, maxDeviation=56.166666666666664
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 73: 7 TX, Betrag ~80.0
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=114.66666666666667, maxDeviation=87.66666666666667
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 72: 4 TX, Betrag ~5875.19
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=129.0, maxDeviation=129.0
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 71: 3 TX, Betrag ~150.0
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=37.25, maxDeviation=94.75
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 70: 9 TX, Betrag ~8.0
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      avgInterval=24.928571428571427, maxDeviation=148.07142857142858
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:    Gruppe 69: 15 TX, Betrag ~229.98
+2026-05-22 22:48:02.106  [I]  RecurringPatternDetector:      ? Pattern erkannt: 66090800/0007690118/1/1225 REF, 3 TX, Intervall=0 Tage, Konfidenz=0,64 (exactness=1,00)
+2026-05-22 22:48:02.078  [I]  RecurringPatternDetector:      avgInterval=0.0, maxDeviation=0.0
+2026-05-22 22:48:02.078  [I]  RecurringPatternDetector:    Gruppe 68: 3 TX, Betrag ~1.0
+2026-05-22 22:48:02.078  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.078  [I]  RecurringPatternDetector:      avgInterval=112.0, maxDeviation=71.0
+2026-05-22 22:48:02.078  [I]  RecurringPatternDetector:    Gruppe 67: 4 TX, Betrag ~862.93
+2026-05-22 22:48:02.078  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.078  [I]  RecurringPatternDetector:      avgInterval=116.66666666666667, maxDeviation=79.33333333333333
+2026-05-22 22:48:02.078  [I]  RecurringPatternDetector:    Gruppe 66: 4 TX, Betrag ~1.46
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=73.0, maxDeviation=44.0
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 65: 5 TX, Betrag ~130.0
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=105.0, maxDeviation=14.0
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 62: 3 TX, Betrag ~3848.0
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=49.57142857142857, maxDeviation=101.42857142857143
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 60: 8 TX, Betrag ~17.7
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=80.5, maxDeviation=65.5
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 59: 5 TX, Betrag ~58.46
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=88.66666666666667, maxDeviation=76.33333333333333
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 58: 4 TX, Betrag ~74.79
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=26.928571428571427, maxDeviation=89.07142857142857
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 53: 15 TX, Betrag ~26.2
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=10.868421052631579, maxDeviation=23.13157894736842
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 52: 39 TX, Betrag ~70.56
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=82.0, maxDeviation=69.0
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 51: 4 TX, Betrag ~5.35
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=78.4, maxDeviation=57.400000000000006
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 50: 6 TX, Betrag ~4.2
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=33.75, maxDeviation=65.25
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:    Gruppe 49: 13 TX, Betrag ~110.0
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.077  [I]  RecurringPatternDetector:      avgInterval=13.916666666666666, maxDeviation=31.083333333333336
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:    Gruppe 48: 25 TX, Betrag ~20.0
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      avgInterval=83.8, maxDeviation=87.2
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:    Gruppe 47: 6 TX, Betrag ~7.0
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      avgInterval=70.0, maxDeviation=184.0
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:    Gruppe 46: 6 TX, Betrag ~3209.3
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      avgInterval=21.105263157894736, maxDeviation=60.89473684210526
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:    Gruppe 45: 20 TX, Betrag ~22.0
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      avgInterval=160.5, maxDeviation=83.5
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:    Gruppe 44: 3 TX, Betrag ~1091.48
+2026-05-22 22:48:02.076  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:      avgInterval=95.25, maxDeviation=232.75
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:    Gruppe 43: 5 TX, Betrag ~2.49
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:      avgInterval=10.6, maxDeviation=22.4
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:    Gruppe 42: 41 TX, Betrag ~43.74
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:      avgInterval=39.45454545454545, maxDeviation=79.54545454545455
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:    Gruppe 41: 12 TX, Betrag ~90.0
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.075  [I]  RecurringPatternDetector:      avgInterval=20.11764705882353, maxDeviation=60.88235294117647
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 40: 18 TX, Betrag ~9.5
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      avgInterval=94.5, maxDeviation=72.5
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 39: 3 TX, Betrag ~2.72
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      avgInterval=12.083333333333334, maxDeviation=36.916666666666664
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 38: 37 TX, Betrag ~24.5
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      avgInterval=68.66666666666667, maxDeviation=127.33333333333333
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 37: 7 TX, Betrag ~3.9
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      avgInterval=17.565217391304348, maxDeviation=46.434782608695656
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 36: 24 TX, Betrag ~16.58
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      avgInterval=18.25, maxDeviation=29.75
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 35: 25 TX, Betrag ~54.0
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      avgInterval=13.09375, maxDeviation=43.90625
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 34: 33 TX, Betrag ~18.74
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      avgInterval=9.733333333333333, maxDeviation=19.266666666666666
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 33: 46 TX, Betrag ~10.21
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:      avgInterval=26.6875, maxDeviation=89.3125
+2026-05-22 22:48:02.074  [I]  RecurringPatternDetector:    Gruppe 32: 17 TX, Betrag ~40.0
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=34.416666666666664, maxDeviation=101.58333333333334
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 31: 13 TX, Betrag ~13.0
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=12.941176470588236, maxDeviation=18.058823529411764
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 30: 35 TX, Betrag ~8.45
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=46.0, maxDeviation=9.0
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 29: 3 TX, Betrag ~2.25
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=53.857142857142854, maxDeviation=57.142857142857146
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 28: 8 TX, Betrag ~37.84
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=24.444444444444443, maxDeviation=36.55555555555556
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 27: 19 TX, Betrag ~2.95
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=27.4375, maxDeviation=61.5625
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 26: 17 TX, Betrag ~7.47
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=28.285714285714285, maxDeviation=63.714285714285715
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 25: 15 TX, Betrag ~3.7
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=78.8, maxDeviation=209.2
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 24: 6 TX, Betrag ~5.7
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=28.2, maxDeviation=58.8
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 23: 16 TX, Betrag ~100.0
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=22.63157894736842, maxDeviation=19.63157894736842
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:    Gruppe 22: 20 TX, Betrag ~455.0
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.073  [I]  RecurringPatternDetector:      avgInterval=13.363636363636363, maxDeviation=18.636363636363637
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:    Gruppe 21: 34 TX, Betrag ~15.0
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      avgInterval=30.214285714285715, maxDeviation=3.7857142857142847
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:    Gruppe 20: 15 TX, Betrag ~1160.0
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      avgInterval=19.157894736842106, maxDeviation=51.84210526315789
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:    Gruppe 19: 20 TX, Betrag ~253.33
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      avgInterval=17.333333333333332, maxDeviation=54.66666666666667
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:    Gruppe 18: 25 TX, Betrag ~85.0
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      avgInterval=12.8125, maxDeviation=18.1875
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:    Gruppe 17: 17 TX, Betrag ~186.0
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      avgInterval=25.0, maxDeviation=23.0
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:    Gruppe 16: 7 TX, Betrag ~365.49
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      avgInterval=14.1, maxDeviation=19.9
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:    Gruppe 15: 31 TX, Betrag ~160.42
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      avgInterval=134.66666666666666, maxDeviation=124.66666666666666
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:    Gruppe 14: 4 TX, Betrag ~140.0
+2026-05-22 22:48:02.072  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      avgInterval=15.74074074074074, maxDeviation=25.25925925925926
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:    Gruppe 13: 28 TX, Betrag ~4.95
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      avgInterval=22.0, maxDeviation=51.0
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:    Gruppe 12: 21 TX, Betrag ~35.57
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      avgInterval=31.3, maxDeviation=52.7
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:    Gruppe 11: 11 TX, Betrag ~3.4
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      avgInterval=7.872727272727273, maxDeviation=21.127272727272725
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:    Gruppe 10: 56 TX, Betrag ~51.12
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:      avgInterval=26.352941176470587, maxDeviation=53.64705882352941
+2026-05-22 22:48:02.071  [I]  RecurringPatternDetector:    Gruppe 9: 18 TX, Betrag ~6.05
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      avgInterval=13.272727272727273, maxDeviation=42.72727272727273
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:    Gruppe 8: 34 TX, Betrag ~30.0
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      avgInterval=64.14285714285714, maxDeviation=151.85714285714286
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:    Gruppe 7: 8 TX, Betrag ~503.99
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      avgInterval=20.94736842105263, maxDeviation=46.05263157894737
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:    Gruppe 6: 20 TX, Betrag ~4.7
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      avgInterval=16.214285714285715, maxDeviation=53.785714285714285
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:    Gruppe 5: 29 TX, Betrag ~62.91
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      avgInterval=18.16, maxDeviation=89.84
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:    Gruppe 4: 26 TX, Betrag ~14.0
+2026-05-22 22:48:02.070  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.069  [I]  RecurringPatternDetector:      avgInterval=25.823529411764707, maxDeviation=75.17647058823529
+2026-05-22 22:48:02.069  [I]  RecurringPatternDetector:    Gruppe 3: 18 TX, Betrag ~6.5
+2026-05-22 22:48:02.069  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.069  [I]  RecurringPatternDetector:      avgInterval=19.428571428571427, maxDeviation=84.57142857142857
+2026-05-22 22:48:02.069  [I]  RecurringPatternDetector:    Gruppe 2: 22 TX, Betrag ~32.0
+2026-05-22 22:48:02.069  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.069  [I]  RecurringPatternDetector:      avgInterval=16.77777777777778, maxDeviation=37.22222222222222
+2026-05-22 22:48:02.067  [I]  RecurringPatternDetector:    Gruppe 1: 28 TX, Betrag ~12.25
+2026-05-22 22:48:02.067  [I]  RecurringPatternDetector:      ? Intervalle nicht regelm‰ﬂig genug, skip
+2026-05-22 22:48:02.067  [I]  RecurringPatternDetector:      avgInterval=34.92307692307692, maxDeviation=177.0769230769231
+2026-05-22 22:48:02.067  [I]  RecurringPatternDetector:    Gruppe 0: 14 TX, Betrag ~172.0
+2026-05-22 22:48:02.066  [I]  RecurringPatternDetector:    ? 103 Gruppen gefunden
+2026-05-22 22:48:02.031  [I]  RecurringPatternDetector:    ? Gruppiere nach ‰hnlichen Betr‰gen...
+2026-05-22 22:48:02.031  [I]  RecurringPatternDetector:  detectPatterns: START with 1224 transactions
+2026-05-22 22:48:02.029  [I]  AccountDetailFragment:    ? Rufe RecurringPatternDetector auf...
+2026-05-22 22:48:02.029  [I]  AccountDetailFragment:    transactions.size=1224
+2026-05-22 22:48:02.029  [I]  AccountDetailFragment:  checkForRecurringPatterns: START
+2026-05-22 22:47:58.979  [I]  SyncIntervalRepo:    ? RETURN 12.08.2025 (Noch nicht bei heute)
+2026-05-22 22:47:58.979  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=284 Tage
+2026-05-22 22:47:58.979  [I]  SyncIntervalRepo:    gapStart=12.08.2025
+2026-05-22 22:47:58.979  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 22:47:58.978  [I]  SyncIntervalRepo:    newestHistorical.endDate=11.08.2025
+2026-05-22 22:47:58.978  [I]  SyncIntervalRepo:      [12] 26.06.2025 bis 11.08.2025
+2026-05-22 22:47:58.978  [I]  SyncIntervalRepo:      [11] 12.05.2025 bis 25.06.2025
+2026-05-22 22:47:58.978  [I]  SyncIntervalRepo:      [10] 18.03.2025 bis 06.05.2025
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [9] 15.01.2025 bis 17.03.2025
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [8] 18.11.2024 bis 14.01.2025
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 22:47:58.977  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 22:47:58.976  [I]  SyncIntervalRepo:    historicalIntervals.size=13
+2026-05-22 22:47:58.976  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 22:45:12.148  [I]  SyncIntervalRepo:    ? RETURN 12.08.2025 (Noch nicht bei heute)
+2026-05-22 22:45:12.148  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=284 Tage
+2026-05-22 22:45:12.148  [I]  SyncIntervalRepo:    gapStart=12.08.2025
+2026-05-22 22:45:12.147  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 22:45:12.147  [I]  SyncIntervalRepo:    ? RETURN 12.08.2025 (Noch nicht bei heute)
+2026-05-22 22:45:12.147  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=284 Tage
+2026-05-22 22:45:12.147  [I]  SyncIntervalRepo:    gapStart=12.08.2025
+2026-05-22 22:45:12.147  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 22:45:12.144  [I]  SyncIntervalRepo:    newestHistorical.endDate=11.08.2025
+2026-05-22 22:45:12.144  [I]  SyncIntervalRepo:      [12] 26.06.2025 bis 11.08.2025
+2026-05-22 22:45:12.144  [I]  SyncIntervalRepo:      [11] 12.05.2025 bis 25.06.2025
+2026-05-22 22:45:12.144  [I]  SyncIntervalRepo:      [10] 18.03.2025 bis 06.05.2025
+2026-05-22 22:45:12.143  [I]  SyncIntervalRepo:      [9] 15.01.2025 bis 17.03.2025
+2026-05-22 22:45:12.143  [I]  SyncIntervalRepo:      [8] 18.11.2024 bis 14.01.2025
+2026-05-22 22:45:12.143  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
+2026-05-22 22:45:12.143  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
+2026-05-22 22:45:12.143  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.143  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.142  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.142  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.142  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 22:45:12.142  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 22:45:12.141  [I]  SyncIntervalRepo:    historicalIntervals.size=13
+2026-05-22 22:45:12.141  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 22:45:12.140  [I]  SyncIntervalRepo:    newestHistorical.endDate=11.08.2025
+2026-05-22 22:45:12.140  [I]  SyncIntervalRepo:      [12] 26.06.2025 bis 11.08.2025
+2026-05-22 22:45:12.140  [I]  SyncIntervalRepo:      [11] 12.05.2025 bis 25.06.2025
+2026-05-22 22:45:12.140  [I]  SyncIntervalRepo:      [10] 18.03.2025 bis 06.05.2025
+2026-05-22 22:45:12.139  [I]  SyncIntervalRepo:      [9] 15.01.2025 bis 17.03.2025
+2026-05-22 22:45:12.139  [I]  SyncIntervalRepo:      [8] 18.11.2024 bis 14.01.2025
+2026-05-22 22:45:12.139  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
+2026-05-22 22:45:12.138  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
+2026-05-22 22:45:12.138  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.138  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.138  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.137  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.136  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 22:45:12.135  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 22:45:12.134  [I]  SyncIntervalRepo:    historicalIntervals.size=13
+2026-05-22 22:45:12.134  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 22:45:12.035  [I]  SyncIntervalRepo:    ? RETURN 12.08.2025 (Noch nicht bei heute)
+2026-05-22 22:45:12.035  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=284 Tage
+2026-05-22 22:45:12.035  [I]  SyncIntervalRepo:    gapStart=12.08.2025
+2026-05-22 22:45:12.035  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 22:45:12.034  [I]  SyncIntervalRepo:    newestHistorical.endDate=11.08.2025
+2026-05-22 22:45:12.034  [I]  SyncIntervalRepo:      [12] 26.06.2025 bis 11.08.2025
+2026-05-22 22:45:12.034  [I]  SyncIntervalRepo:      [11] 12.05.2025 bis 25.06.2025
+2026-05-22 22:45:12.034  [I]  SyncIntervalRepo:      [10] 18.03.2025 bis 06.05.2025
+2026-05-22 22:45:12.034  [I]  SyncIntervalRepo:      [9] 15.01.2025 bis 17.03.2025
+2026-05-22 22:45:12.034  [I]  SyncIntervalRepo:      [8] 18.11.2024 bis 14.01.2025
+2026-05-22 22:45:12.034  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:    historicalIntervals.size=13
+2026-05-22 22:45:12.033  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 22:45:12.031  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
+2026-05-22 22:45:12.031  [I]  AccountViewModel:    ?? SYNC ERFOLG: 150 neue Buchungen, Saldo=11087.36, Zeitraum=26.06.2025 - 11.08.2025
+2026-05-22 22:45:12.023  [I]  AccountViewModel:      ? Saldo 1 aktualisiert: 8208.08 ? 11087.36
+2026-05-22 22:45:12.022  [I]  AccountViewModel:        ? Historisch hat neueste DB-TX erreicht/¸berholt, verwende Balance
+2026-05-22 22:45:12.022  [I]  AccountViewModel:        newestDbTx=Mon Aug 11 00:00:00 GMT+02:00 2025
+2026-05-22 22:45:12.021  [I]  AccountViewModel:        isHistorical=true
+2026-05-22 22:45:12.021  [I]  AccountViewModel:        daysSinceNewestSynced=284 Tage
+2026-05-22 22:45:12.021  [I]  AccountViewModel:        newestSyncedTx=Mon Aug 11 00:00:00 GMT+02:00 2025
+2026-05-22 22:45:12.021  [I]  AccountViewModel:      Balance-Check:
+2026-05-22 22:45:12.020  [I]  AccountViewModel:      camtBalance=11087.36
+2026-05-22 22:45:12.020  [I]  AccountViewModel:      ? Sync-Intervall gespeichert: Thu Jun 26 00:00:00 GMT+02:00 2025 bis Mon Aug 11 00:00:00 GMT+02:00 2025, isHistorical=true
+2026-05-22 22:44:58.103  [I]  AccountViewModel:      newTx.size=150 (nach Deduplizierung)
+2026-05-22 22:44:58.102  [I]  AccountViewModel:      existingRemoteIds.size=1074 (bereits in DB)
+2026-05-22 22:44:58.086  [I]  AccountViewModel:      Zeitraum: Thu Jun 26 00:00:00 GMT+02:00 2025 bis Mon Aug 11 00:00:00 GMT+02:00 2025
+2026-05-22 22:44:58.086  [I]  AccountViewModel:      transactions.size=150
+2026-05-22 22:44:58.086  [I]  AccountViewModel:    ? Bank-Response erfolgreich:
+2026-05-22 22:44:58.085  [I]  FintsService:  [fetchAccountStatement/5-parse] SUCCESS: Extracted 150 transactions
+2026-05-22 22:44:58.084  [I]  FintsService:  tryCamtFallbackExtraction: ? SUCCESS - Extracted 150 transactions
+2026-05-22 22:44:58.084  [I]  FintsService:  tryCamtFallbackExtraction: Extracted balance=11087.36 from CAMT
+2026-05-22 22:44:58.083  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
+2026-05-22 22:44:58.053  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (212360 bytes)
+2026-05-22 22:44:58.053  [I]  FintsService:  tryCamtFallbackExtraction: CamtExtractionHelper returned 150 transactions
+2026-05-22 22:44:58.053  [I]  HbciCamtPatcher:  parseAndConvert: Converted 150 UmsLines
+2026-05-22 22:44:58.051  [I]  HbciCamtPatcher:  parseAndConvert: Parsed 150 transactions
+2026-05-22 22:44:58.051  [I]  CustomCamtParser:  parse: SUCCESS - 150 transactions, 0 warnings
+2026-05-22 22:44:58.008  [D]  CustomCamtParser:  parse: Starting CAMT.052 parse (212360 bytes)
+2026-05-22 22:44:58.007  [I]  HbciCamtPatcher:  parseAndConvert: Parsing CAMT XML (212360 bytes)
+2026-05-22 22:44:58.007  [I]  CamtExtractionHelper:  extractFromJobResult: Found CAMT XML (212360 bytes)
+2026-05-22 22:44:58.007  [D]  CamtExtractionHelper:  findCamtXml: Found CAMT XML at key 'content.booked.message'
+2026-05-22 22:44:58.007  [D]  CamtExtractionHelper:  extractFromJobResult: Job result has 14 properties
+2026-05-22 22:44:58.007  [I]  CamtExtractionHelper:  extractFromJobResult: Attempting custom CAMT extraction
+2026-05-22 22:44:58.007  [I]  FintsService:  tryCamtFallbackExtraction: Step 2 - Calling CamtExtractionHelper.extractFromJobResult...
+2026-05-22 22:44:58.007  [D]  FintsService:  tryCamtFallbackExtraction: Job properties keys: content.SegHead.seq, content.KTV.KIK.country, content.KTV.bic, basic.dialogid, content.SegHead.code, basic.msgnum, content.booked.message, content.KTV.KIK.blz, content.SegHead.ref, basic.segnum, content.KTV.number, content.SegHead.version, content.format, content.KTV.iban
+2026-05-22 22:44:58.007  [I]  FintsService:  tryCamtFallbackExtraction: Found 14 job properties
+2026-05-22 22:44:58.007  [I]  FintsService:  extractJobProperties: Found 14 properties via getResultData()
+2026-05-22 22:44:58.007  [D]  FintsService:  extractJobProperties: JobResult has 9 fields
+2026-05-22 22:44:58.007  [D]  FintsService:  extractJobProperties: Searching all fields in jobResult...
+2026-05-22 22:44:58.007  [D]  FintsService:  extractJobProperties: JobResult class: GVRKUms
+2026-05-22 22:44:58.007  [D]  FintsService:  extractJobProperties: Extracting from job class GVKUmsAllCamt
+2026-05-22 22:44:58.007  [I]  FintsService:  tryCamtFallbackExtraction: Step 1 - Extracting job properties...
+2026-05-22 22:44:58.007  [I]  FintsService:  tryCamtFallbackExtraction: Target account IBAN=DE91660908000007690118
+2026-05-22 22:44:58.006  [I]  FintsService:  tryCamtFallbackExtraction: START - Attempting custom CAMT extraction...
+2026-05-22 22:44:58.006  [W]  FintsService:  extractFlatData: getFlatData() empty, using CAMT fallback
+2026-05-22 22:44:58.006  [I]  FintsService:  [fetchAccountStatement/5-parse] Extracting transaction data from job GVKUmsAllCamt...
+2026-05-22 22:44:58.006  [W]  FintsService:  [fetchAccountStatement/4-exec] Status contains CAMT parsing error, but continuing with fallback parser...
+2026-05-22 22:44:58.006  [D]  FintsService:  HBCI callback reason=25 msg=Sie k?nnen die Internetverbindung jetzt beenden
+2026-05-22 22:44:58.005  [D]  FintsService:  HBCI status tag=20
+2026-05-22 22:44:58.003  [D]  FintsService:  HBCI status tag=26
+2026-05-22 22:44:57.993  [D]  FintsService:  HBCI status tag=28
+2026-05-22 22:44:57.977  [D]  FintsService:  HBCI status tag=31
+2026-05-22 22:44:57.977  [D]  FintsService:  HBCI status tag=25
+2026-05-22 22:44:57.971  [D]  FintsService:  HBCI status tag=28
+2026-05-22 22:44:57.970  [D]  FintsService:  HBCI status tag=32
+2026-05-22 22:44:57.919  [D]  FintsService:  HBCI status tag=27
+2026-05-22 22:44:57.917  [D]  FintsService:  HBCI status tag=30
+2026-05-22 22:44:57.917  [D]  FintsService:  HBCI status tag=24
+2026-05-22 22:44:57.909  [D]  FintsService:  HBCI status tag=23
+2026-05-22 22:44:57.678  [D]  FintsService:  HBCI status tag=22
+2026-05-22 22:44:57.673  [D]  FintsService:  HBCI status tag=21
+2026-05-22 22:44:57.673  [D]  FintsService:  HBCI status tag=19
+2026-05-22 22:44:57.672  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
+2026-05-22 22:44:57.672  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Speichern der Ergebnisdaten f?r Job TAN2Step7 im JobResult-Objekt
+at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:937)
+at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:311)
 at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:467)
 at org.kapott.hbci.manager.HBCIHandler.execute(HBCIHandler.java:545)
 at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:387)
@@ -517,240 +452,109 @@ at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-Caused by: java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
-at java.net.Inet6AddressImpl.lookupHostByName(Inet6AddressImpl.java:124)
-at java.net.Inet6AddressImpl.lookupAllHostAddr(Inet6AddressImpl.java:103)
-at java.net.InetAddress.getAllByName(InetAddress.java:1152)
-at com.android.okhttp.Dns$1.lookup(Dns.java:41)
-at com.android.okhttp.internal.http.RouteSelector.resetNextInetSocketAddress(RouteSelector.java:178)
-at com.android.okhttp.internal.http.RouteSelector.nextProxy(RouteSelector.java:144)
-at com.android.okhttp.internal.http.RouteSelector.next(RouteSelector.java:86)
-at com.android.okhttp.internal.http.StreamAllocation.findConnection(StreamAllocation.java:176)
-at com.android.okhttp.internal.http.StreamAllocation.findHealthyConnection(StreamAllocation.java:128)
-at com.android.okhttp.internal.http.StreamAllocation.newStream(StreamAllocation.java:97)
-at com.android.okhttp.internal.http.HttpEngine.connect(HttpEngine.java:289)
-at com.android.okhttp.internal.http.HttpEngine.sendRequest(HttpEngine.java:232)
-at com.android.okhttp.internal.huc.HttpURLConnectionImpl.execute(HttpURLConnectionImpl.java:465)
-at com.android.okhttp.internal.huc.HttpURLConnectionImpl.connect(HttpURLConnectionImpl.java:131)
-at com.android.okhttp.internal.huc.DelegatingHttpsURLConnection.connect(DelegatingHttpsURLConnection.java:90)
-at com.android.okhttp.internal.huc.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:30)
-at org.kapott.hbci.comm.CommPinTan.ping(CommPinTan.java:147)
-... 14 more
-2026-05-22 21:54:55.759  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:55.758  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:55.609  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:55.265  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:55.185  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:55.184  [D]  FintsService:  HBCI status tag=19
-2026-05-22 21:54:55.183  [E]  FintsService:  HBCI log level=1 msg=aborting current loop because of errors
-2026-05-22 21:54:55.182  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:55.176  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.HBCI_Exception: Fehler beim Senden der HBCI-Nachricht zum Server
-at org.kapott.hbci.comm.CommPinTan.ping(CommPinTan.java:157)
-at org.kapott.hbci.comm.Comm.pingpong(Comm.java:72)
-at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:348)
-at org.kapott.hbci.manager.HBCIDialog.doJobs(HBCIDialog.java:287)
-at org.kapott.hbci.manager.HBCIDialog.doIt(HBCIDialog.java:467)
-at org.kapott.hbci.manager.HBCIHandler.execute(HBCIHandler.java:545)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:387)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-Caused by: java.net.UnknownHostException: Unable to resolve host "fints2.atruvia.de": No address associated with hostname
-at java.net.Inet6AddressImpl.lookupHostByName(Inet6AddressImpl.java:156)
-at java.net.Inet6AddressImpl.lookupAllHostAddr(Inet6AddressImpl.java:103)
-at java.net.InetAddress.getAllByName(InetAddress.java:1152)
-at com.android.okhttp.Dns$1.lookup(Dns.java:41)
-at com.android.okhttp.internal.http.RouteSelector.resetNextInetSocketAddress(RouteSelector.java:178)
-at com.android.okhttp.internal.http.RouteSelector.nextProxy(RouteSelector.java:144)
-at com.android.okhttp.internal.http.RouteSelector.next(RouteSelector.java:86)
-at com.android.okhttp.internal.http.StreamAllocation.findConnection(StreamAllocation.java:176)
-at com.android.okhttp.internal.http.StreamAllocation.findHealthyConnection(StreamAllocation.java:128)
-at com.android.okhttp.internal.http.StreamAllocation.newStream(StreamAllocation.java:97)
-at com.android.okhttp.internal.http.HttpEngine.connect(HttpEngine.java:289)
-at com.android.okhttp.internal.http.HttpEngine.sendRequest(HttpEngine.java:232)
-at com.android.okhttp.internal.huc.HttpURLConnectionImpl.execute(HttpURLConnectionImpl.java:465)
-at com.android.okhttp.internal.huc.HttpURLConnectionImpl.connect(HttpURLConnectionImpl.java:131)
-at com.android.okhttp.internal.huc.DelegatingHttpsURLConnection.connect(DelegatingHttpsURLConnection.java:90)
-at com.android.okhttp.internal.huc.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:30)
-at org.kapott.hbci.comm.CommPinTan.ping(CommPinTan.java:147)
-... 14 more
-Caused by: android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)
-at libcore.io.Linux.android_getaddrinfo(Native Method)
-at libcore.io.ForwardingOs.android_getaddrinfo(ForwardingOs.java:134)
-at libcore.io.BlockGuardOs.android_getaddrinfo(BlockGuardOs.java:222)
-at libcore.io.ForwardingOs.android_getaddrinfo(ForwardingOs.java:134)
-at java.net.Inet6AddressImpl.lookupHostByName(Inet6AddressImpl.java:135)
-... 30 more
-2026-05-22 21:54:55.157  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:55.155  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:54.890  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:53.013  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:52.904  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:52.903  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:52.901  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:52.569  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:52.424  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:52.422  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:52.421  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:50.868  [D]  FintsService:  Decoupled Status-Retry angefordert: kurzer Wait 2000ms (ohne erneuten UI-Dialog)
-2026-05-22 21:54:50.451  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:50.376  [D]  FintsService:  Decoupled Status-Retry angefordert: kurzer Wait 2000ms (ohne erneuten UI-Dialog)
-2026-05-22 21:54:50.241  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:50.074  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:49.801  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:49.798  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:49.792  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:49.712  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:49.704  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:49.375  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:49.371  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:49.369  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:49.259  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:49.257  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:49.239  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:49.237  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:49.095  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:48.923  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:48.916  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:48.915  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:48.832  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:46.414  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:46.412  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:46.244  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:46.243  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:46.242  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:46.233  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:46.231  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:46.228  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:44.207  [D]  FintsService:  Decoupled Status-Retry angefordert: kurzer Wait 2000ms (ohne erneuten UI-Dialog)
-2026-05-22 21:54:44.183  [D]  FintsService:  Decoupled Status-Retry angefordert: kurzer Wait 2000ms (ohne erneuten UI-Dialog)
-2026-05-22 21:54:44.170  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:44.147  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:44.139  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:44.120  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:44.092  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:44.091  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:44.079  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:44.079  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:44.071  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:44.070  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:44.070  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:44.070  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:43.731  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:43.729  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:43.729  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:43.714  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:43.712  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:43.711  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:43.711  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:43.708  [I]  PinTanDialogs:  decoupledConfirmDialog: Auto-confirming (no user interaction needed)
-2026-05-22 21:54:43.708  [I]  FintsService:  Decoupled TAN-Best‰tigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
+Caused by: org.kapott.hbci.exceptions.HBCI_Exception: Error parsing CAMT document
+at org.kapott.hbci.GV.GVKUmsAllCamt.extractResults(GVKUmsAllCamt.java:188)
+at org.kapott.hbci.GV.HBCIJobImpl.fillJobResultFromTanJob(HBCIJobImpl.java:873)
+at org.kapott.hbci.GV.GVTAN2Step.extractResults(GVTAN2Step.java:242)
+at org.kapott.hbci.GV.HBCIJobImpl.fillJobResult(HBCIJobImpl.java:929)
+... 12 more
+Caused by: java.lang.IllegalStateException: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
+at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:143)
+at com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.getXMLReader(UnmarshallerImpl.java:154)
+at com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.unmarshal(UnmarshallerImpl.java:291)
+at javax.xml.bind.JAXB.unmarshal(JAXB.java:238)
+at org.kapott.hbci.GV.parsers.ParseCamt05200108.parse(ParseCamt05200108.java:77)
+at org.kapott.hbci.GV.parsers.ParseCamt05200108.parse(ParseCamt05200108.java:68)
+at org.kapott.hbci.GV.GVKUmsAllCamt.extractResults(GVKUmsAllCamt.java:182)
+... 15 more
+Caused by: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
+at org.apache.harmony.xml.parsers.SAXParserFactoryImpl.setFeature(SAXParserFactoryImpl.java:93)
+at com.sun.xml.bind.v2.util.XmlFactory.createParserFactory(XmlFactory.java:136)
+... 21 more
+2026-05-22 22:44:57.672  [E]  FintsService:  HBCI log level=1 msg=  unable to parse camt data: org.xml.sax.SAXNotRecognizedException: http://javax.xml.XMLConstants/feature/secure-processing
+2026-05-22 22:44:57.468  [D]  FintsService:  HBCI status tag=26
+2026-05-22 22:44:57.336  [D]  FintsService:  HBCI status tag=28
+2026-05-22 22:44:57.064  [D]  FintsService:  HBCI status tag=31
+2026-05-22 22:44:57.059  [D]  FintsService:  HBCI status tag=25
+2026-05-22 22:44:56.997  [D]  FintsService:  HBCI status tag=28
+2026-05-22 22:44:56.997  [D]  FintsService:  HBCI status tag=32
+2026-05-22 22:44:55.526  [D]  FintsService:  HBCI status tag=27
+2026-05-22 22:44:55.349  [D]  FintsService:  HBCI status tag=30
+2026-05-22 22:44:55.348  [D]  FintsService:  HBCI status tag=24
+2026-05-22 22:44:55.340  [D]  FintsService:  HBCI status tag=23
+2026-05-22 22:44:55.334  [I]  PinTanDialogs:  decoupledConfirmDialog: Resuming nach 30s delay
+2026-05-22 22:44:55.334  [I]  PinTanDialogs:  decoupledConfirmDialog: Auto-closed nach 30s
+2026-05-22 22:44:38.125  [I]  SyncIntervalRepo:    ? RETURN 26.06.2025 (Noch nicht bei heute)
+2026-05-22 22:44:38.125  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=331 Tage
+2026-05-22 22:44:38.125  [I]  SyncIntervalRepo:    gapStart=26.06.2025
+2026-05-22 22:44:38.125  [I]  SyncIntervalRepo:    normalIntervals.size=0
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:    newestHistorical.endDate=25.06.2025
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [11] 12.05.2025 bis 25.06.2025
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [10] 18.03.2025 bis 06.05.2025
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [9] 15.01.2025 bis 17.03.2025
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [8] 18.11.2024 bis 14.01.2025
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
+2026-05-22 22:44:38.107  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
+2026-05-22 22:44:38.106  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
+2026-05-22 22:44:38.106  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
+2026-05-22 22:44:38.106  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
+2026-05-22 22:44:38.106  [I]  SyncIntervalRepo:    historicalIntervals.size=12
+2026-05-22 22:44:38.106  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
+2026-05-22 22:44:25.281  [I]  PinTanDialogs:  decoupledConfirmDialog: Warte 30 Sekunden auf SecureGo-Freigabe...
+2026-05-22 22:44:25.280  [I]  FintsService:  Decoupled TAN-Best‰tigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
 TAN
 
 Bitte best‰tigen Sie den Vorgang in Ihrer SecureGo plus App
-2026-05-22 21:54:43.697  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:43.693  [I]  PinTanDialogs:  decoupledConfirmDialog: Auto-confirming (no user interaction needed)
-2026-05-22 21:54:43.693  [I]  FintsService:  Decoupled TAN-Best‰tigung erforderlich (Secure Go / BestSign): SecureGo plus (Direktfreigabe)
-TAN
-
-Bitte best‰tigen Sie den Vorgang in Ihrer SecureGo plus App
-2026-05-22 21:54:43.331  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:43.320  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:43.320  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:43.320  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:43.319  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:43.316  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:43.305  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:43.293  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:43.293  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:43.293  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:43.292  [D]  FintsService:  HBCI status tag=2
-2026-05-22 21:54:43.289  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:43.281  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:43.269  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:43.223  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:43.222  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:43.221  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:43.220  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:43.202  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:43.202  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:43.201  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:43.199  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:42.484  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:42.482  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:42.481  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:42.473  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:42.453  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:42.449  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:42.449  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:42.437  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:42.103  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:42.087  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:42.087  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:42.087  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:42.079  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:42.078  [D]  FintsService:  HBCI status tag=18
-2026-05-22 21:54:42.056  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:42.056  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:42.055  [D]  FintsService:  HBCI status tag=1
-2026-05-22 21:54:42.041  [D]  FintsService:  HBCI status tag=18
-2026-05-22 21:54:41.662  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:41.610  [D]  FintsService:  HBCI status tag=26
-2026-05-22 21:54:41.572  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:41.526  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:41.431  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:41.429  [D]  FintsService:  HBCI status tag=31
-2026-05-22 21:54:41.429  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:41.428  [D]  FintsService:  HBCI status tag=25
-2026-05-22 21:54:41.408  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:41.407  [D]  FintsService:  HBCI status tag=28
-2026-05-22 21:54:41.407  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:41.407  [D]  FintsService:  HBCI status tag=32
-2026-05-22 21:54:41.079  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:41.076  [D]  FintsService:  HBCI status tag=27
-2026-05-22 21:54:40.919  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:40.919  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:40.919  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
-2026-05-22 21:54:40.911  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:40.908  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
-2026-05-22 21:54:40.908  [D]  FintsService:  PIN-Cache: Verwende gecachte PIN, Timer zur¸cksetzen
-2026-05-22 21:54:40.908  [I]  FintsService:  PIN-Anfrage f¸r BLZ 66090800 userId='76****a'
-2026-05-22 21:54:40.884  [D]  FintsService:  HBCI status tag=30
-2026-05-22 21:54:40.884  [D]  FintsService:  HBCI status tag=24
-2026-05-22 21:54:40.883  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
-2026-05-22 21:54:40.874  [D]  FintsService:  HBCI status tag=23
-2026-05-22 21:54:40.871  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
-2026-05-22 21:54:40.871  [D]  FintsService:  PIN-Cache: Verwende gecachte PIN, Timer zur¸cksetzen
-2026-05-22 21:54:40.871  [I]  FintsService:  PIN-Anfrage f¸r BLZ 66090800 userId='76****a'
-2026-05-22 21:54:40.552  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:40.541  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:40.537  [D]  FintsService:  HBCI status tag=17
-2026-05-22 21:54:40.537  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank with job KUmsAllCamt...
-2026-05-22 21:54:40.537  [I]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
-2026-05-22 21:54:40.535  [D]  FintsService:  HBCI status tag=22
-2026-05-22 21:54:40.517  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:40.512  [D]  FintsService:  HBCI status tag=17
-2026-05-22 21:54:40.512  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank with job KUmsAllCamt...
-2026-05-22 21:54:40.511  [I]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
-2026-05-22 21:54:40.504  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2024-11-16)
-2026-05-22 21:54:40.504  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt ? KUmsZeitSEPA ? KUmsAll ? KUmsNew
-2026-05-22 21:54:40.504  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
-2026-05-22 21:54:40.503  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
-2026-05-22 21:54:40.503  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geˆffnet ñ Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
-2026-05-22 21:54:40.503  [I]  FintsService:  openSession: HBCI-Handler bereit ñ Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
-2026-05-22 21:54:40.471  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2024-11-16)
-2026-05-22 21:54:40.471  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt ? KUmsZeitSEPA ? KUmsAll ? KUmsNew
-2026-05-22 21:54:40.471  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
-2026-05-22 21:54:40.470  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
-2026-05-22 21:54:40.470  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geˆffnet ñ Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
-2026-05-22 21:54:40.470  [I]  FintsService:  openSession: HBCI-Handler bereit ñ Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
-2026-05-22 21:54:40.409  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
-2026-05-22 21:54:40.409  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: ?berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m?glich
+2026-05-22 22:44:25.047  [D]  FintsService:  HBCI status tag=22
+2026-05-22 22:44:25.037  [D]  FintsService:  HBCI status tag=21
+2026-05-22 22:44:25.037  [D]  FintsService:  HBCI status tag=1
+2026-05-22 22:44:25.036  [D]  FintsService:  HBCI status tag=2
+2026-05-22 22:44:25.036  [D]  FintsService:  HBCI status tag=2
+2026-05-22 22:44:25.033  [D]  FintsService:  HBCI status tag=26
+2026-05-22 22:44:25.016  [D]  FintsService:  HBCI status tag=28
+2026-05-22 22:44:24.860  [D]  FintsService:  HBCI status tag=31
+2026-05-22 22:44:24.859  [D]  FintsService:  HBCI status tag=25
+2026-05-22 22:44:24.852  [D]  FintsService:  HBCI status tag=28
+2026-05-22 22:44:24.851  [D]  FintsService:  HBCI status tag=32
+2026-05-22 22:44:24.187  [D]  FintsService:  HBCI status tag=27
+2026-05-22 22:44:24.183  [D]  FintsService:  HBCI status tag=30
+2026-05-22 22:44:24.183  [D]  FintsService:  HBCI status tag=24
+2026-05-22 22:44:24.174  [D]  FintsService:  HBCI status tag=23
+2026-05-22 22:44:23.954  [D]  FintsService:  HBCI status tag=22
+2026-05-22 22:44:23.940  [D]  FintsService:  HBCI status tag=21
+2026-05-22 22:44:23.940  [D]  FintsService:  HBCI status tag=1
+2026-05-22 22:44:23.940  [D]  FintsService:  HBCI status tag=1
+2026-05-22 22:44:23.928  [D]  FintsService:  HBCI status tag=18
+2026-05-22 22:44:23.709  [D]  FintsService:  HBCI status tag=26
+2026-05-22 22:44:23.668  [D]  FintsService:  HBCI status tag=28
+2026-05-22 22:44:23.394  [D]  FintsService:  HBCI status tag=31
+2026-05-22 22:44:23.393  [D]  FintsService:  HBCI status tag=25
+2026-05-22 22:44:23.375  [D]  FintsService:  HBCI status tag=28
+2026-05-22 22:44:23.375  [D]  FintsService:  HBCI status tag=32
+2026-05-22 22:44:23.066  [D]  FintsService:  HBCI status tag=27
+2026-05-22 22:44:22.900  [D]  FintsService:  HBCI status tag=30
+2026-05-22 22:44:22.900  [D]  FintsService:  HBCI status tag=24
+2026-05-22 22:44:22.895  [D]  FintsService:  HBCI callback reason=24 msg=Bitte stellen Sie jetzt die Verbindung zum Internet her
+2026-05-22 22:44:22.884  [D]  FintsService:  HBCI status tag=23
+2026-05-22 22:44:22.877  [D]  FintsService:  PIN erhalten: [PIN: 8 Stellen]
+2026-05-22 22:44:22.877  [D]  FintsService:  PIN-Cache: PIN f¸r 2 Minuten gecacht
+2026-05-22 22:44:16.277  [I]  FintsService:  PIN-Anfrage f¸r BLZ 66090800 userId='76****a'
+2026-05-22 22:44:16.046  [D]  FintsService:  HBCI status tag=22
+2026-05-22 22:44:16.033  [D]  FintsService:  HBCI status tag=21
+2026-05-22 22:44:16.028  [D]  FintsService:  HBCI status tag=17
+2026-05-22 22:44:16.028  [I]  FintsService:  [fetchAccountStatement/4-exec] Sending request to bank with job KUmsAllCamt...
+2026-05-22 22:44:16.028  [I]  FintsService:  [fetchAccountStatement/3-job] Job KUmsAllCamt added successfully
+2026-05-22 22:44:15.987  [D]  FintsService:  [fetchAccountStatement/3-job] Attempt 1/4: KUmsAllCamt (fromDate=2025-06-26)
+2026-05-22 22:44:15.987  [I]  FintsService:  [fetchAccountStatement/3-job] Trying job sequence: KUmsAllCamt ? KUmsZeitSEPA ? KUmsAll ? KUmsNew
+2026-05-22 22:44:15.986  [I]  FintsService:  [fetchAccountStatement/2-bic] BIC resolved: GENODE61BBB
+2026-05-22 22:44:15.986  [I]  FintsService:  [fetchAccountStatement/2-bic] Lookup BIC from passport UPD for iban=DE91****0118
+2026-05-22 22:44:15.986  [I]  FintsService:  [fetchAccountStatement/1-setup] Session geˆffnet ñ Server=fints2.atruvia.de/cgi-bin/hbciservlet:443
+2026-05-22 22:44:15.986  [I]  FintsService:  openSession: HBCI-Handler bereit ñ Server=fints2.atruvia.de/cgi-bin/hbciservlet:443 BLZ=66090800 iban=DE91****0118 HBCI=300 Produkt=MyBudgets
+2026-05-22 22:44:15.930  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
+2026-05-22 22:44:15.929  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: ?berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m?glich
 at org.kapott.hbci.protocol.DE.propagateValue(DE.java:72)
 at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
 at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
@@ -758,8 +562,8 @@ at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntax
 at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
 at org.kapott.hbci.protocol.MSG.propagateUserData(MSG.java:79)
 at org.kapott.hbci.protocol.MSG.initData(MSG.java:128)
-at org.kapott.hbci.protocol.MSG.init(MSG.java:123)
-at org.kapott.hbci.protocol.factory.MSGFactory.createMSG(MSGFactory.java:60)
+at org.kapott.hbci.protocol.MSG.<init>(MSG.java:117)
+at org.kapott.hbci.protocol.factory.MSGFactory.createMSG(MSGFactory.java:55)
 at org.kapott.hbci.manager.MsgGen.generate(MsgGen.java:112)
 at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:209)
 at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:176)
@@ -782,110 +586,32 @@ at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
 at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-2026-05-22 21:54:40.407  [W]  FintsService:  openSession: HBCI 2.2 fehlgeschlagen, versuche 3.0: Fehler beim Erzeugen eines HBCIHandler Objektes
-2026-05-22 21:54:40.407  [E]  FintsService:  HBCI log level=1 msg=org.kapott.hbci.exceptions.OverwriteException: ?berschreiben des Wertes "1" im Element DialogInit.MsgHead.msgnum mit "1" nicht m?glich
-at org.kapott.hbci.protocol.DE.propagateValue(DE.java:72)
-at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
-at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
-at org.kapott.hbci.protocol.MultipleSyntaxElements.propagateValue(MultipleSyntaxElements.java:194)
-at org.kapott.hbci.protocol.SyntaxElement.propagateValue(SyntaxElement.java:510)
-at org.kapott.hbci.protocol.MSG.propagateUserData(MSG.java:79)
-at org.kapott.hbci.protocol.MSG.initData(MSG.java:128)
-at org.kapott.hbci.protocol.MSG.init(MSG.java:123)
-at org.kapott.hbci.protocol.factory.MSGFactory.createMSG(MSGFactory.java:60)
-at org.kapott.hbci.manager.MsgGen.generate(MsgGen.java:112)
-at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:209)
-at org.kapott.hbci.manager.HBCIKernelImpl.rawDoIt(HBCIKernelImpl.java:176)
-at org.kapott.hbci.dialog.AbstractRawHBCIDialog.sendData(AbstractRawHBCIDialog.java:126)
-at org.kapott.hbci.dialog.AbstractRawHBCIDialog.execute(AbstractRawHBCIDialog.java:99)
-at org.kapott.hbci.manager.HBCIUser.fetchUPD(HBCIUser.java:639)
-at org.kapott.hbci.manager.HBCIUser.sync(HBCIUser.java:696)
-at org.kapott.hbci.manager.HBCIUser.register(HBCIUser.java:721)
-at org.kapott.hbci.manager.HBCIHandler.registerUser(HBCIHandler.java:296)
-at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:166)
-at org.kapott.hbci.manager.HBCIHandler.<init>(HBCIHandler.java:116)
-at de.mybudgets.app.data.banking.FintsService.openSession(FintsService.kt:676)
-at de.mybudgets.app.data.banking.FintsService.access$openSession(FintsService.kt:61)
-at de.mybudgets.app.data.banking.FintsService$fetchAccountStatement$2.invokeSuspend(FintsService.kt:300)
-at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
-at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:104)
-at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)
-at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)
-at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)
-at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)
-2026-05-22 21:54:40.404  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:40.398  [D]  FintsService:  HBCI status tag=21
-2026-05-22 21:54:40.008  [D]  FintsService:  HBCI status tag=11
-2026-05-22 21:54:39.975  [D]  FintsService:  HBCI status tag=11
-2026-05-22 21:54:39.529  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
-2026-05-22 21:54:39.529  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
-2026-05-22 21:54:39.529  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
-2026-05-22 21:54:39.529  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
-2026-05-22 21:54:39.529  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
-2026-05-22 21:54:39.528  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Sat Nov 16 00:00:00 GMT+01:00 2024 multiChunk=false tanFree=false
-2026-05-22 21:54:39.528  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
-2026-05-22 21:54:39.528  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Sat Nov 16 00:00:00 GMT+01:00 2024 multiChunk=false tanFree=false
-2026-05-22 21:54:39.528  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=319)
-2026-05-22 21:54:39.528  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=319)
-2026-05-22 21:54:39.526  [I]  AccountViewModel:     Rufe FintsService.fetchAccountStatement auf...
-2026-05-22 21:54:39.526  [I]  AccountViewModel:    Sync-Typ: HISTORISCH-CONTINUE mit fromDate=Sat Nov 16 00:00:00 GMT+01:00 2024
-2026-05-22 21:54:39.526  [I]  AccountViewModel:     Rufe FintsService.fetchAccountStatement auf...
-2026-05-22 21:54:39.525  [I]  AccountViewModel:    Sync-Typ: HISTORISCH-CONTINUE mit fromDate=Sat Nov 16 00:00:00 GMT+01:00 2024
-2026-05-22 21:54:39.525  [I]  AccountViewModel:    isHistorical=true
-2026-05-22 21:54:39.525  [I]  AccountViewModel:    fromDateMillis=1731711600000 (Sat Nov 16 00:00:00 GMT+01:00 2024)
-2026-05-22 21:54:39.525  [I]  AccountViewModel:    accountId=1
-2026-05-22 21:54:39.525  [I]  AccountViewModel:  syncBankTransactions: START
-2026-05-22 21:54:39.525  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
-2026-05-22 21:54:39.525  [I]  AccountViewModel:  bulkLoadHistory: Sync #2
-2026-05-22 21:54:39.524  [I]  AccountViewModel:  bulkLoadHistory: Loop iteration #2: nextDate=Sat Nov 16 00:00:00 GMT+01:00 2024 lastGapDate=Sat Sep 14 00:00:00 GMT+02:00 2024
-2026-05-22 21:54:39.524  [I]  SyncIntervalRepo:    ? RETURN 16.11.2024 (Noch nicht bei heute)
-2026-05-22 21:54:39.524  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=553 Tage
-2026-05-22 21:54:39.524  [I]  SyncIntervalRepo:    gapStart=16.11.2024
-2026-05-22 21:54:39.524  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:54:39.523  [I]  AccountViewModel:    isHistorical=true
-2026-05-22 21:54:39.523  [I]  AccountViewModel:    fromDateMillis=1731711600000 (Sat Nov 16 00:00:00 GMT+01:00 2024)
-2026-05-22 21:54:39.523  [I]  AccountViewModel:    accountId=1
-2026-05-22 21:54:39.523  [I]  AccountViewModel:  syncBankTransactions: START
-2026-05-22 21:54:39.523  [I]  AccountViewModel:  ?????????????????????????????????????????????????????
-2026-05-22 21:54:39.522  [I]  AccountViewModel:  bulkLoadHistory: Sync #2
-2026-05-22 21:54:39.521  [I]  AccountViewModel:  bulkLoadHistory: Loop iteration #2: nextDate=Sat Nov 16 00:00:00 GMT+01:00 2024 lastGapDate=Sat Sep 14 00:00:00 GMT+02:00 2024
-2026-05-22 21:54:39.521  [I]  SyncIntervalRepo:    ? RETURN 16.11.2024 (Noch nicht bei heute)
-2026-05-22 21:54:39.521  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=553 Tage
-2026-05-22 21:54:39.521  [I]  SyncIntervalRepo:    gapStart=16.11.2024
-2026-05-22 21:54:39.521  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:54:39.519  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.11.2024
-2026-05-22 21:54:39.519  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
-2026-05-22 21:54:39.519  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
-2026-05-22 21:54:39.518  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:39.518  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:39.518  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:39.518  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:54:39.518  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:54:39.518  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:54:39.517  [I]  SyncIntervalRepo:    historicalIntervals.size=8
-2026-05-22 21:54:39.517  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:54:39.517  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.11.2024
-2026-05-22 21:54:39.517  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
-2026-05-22 21:54:39.517  [I]  SyncIntervalRepo:      [6] 16.07.2024 bis 13.09.2024
-2026-05-22 21:54:39.516  [I]  SyncIntervalRepo:      [5] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:39.516  [I]  SyncIntervalRepo:      [4] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:39.516  [I]  SyncIntervalRepo:      [3] 23.05.2024 bis 15.07.2024
-2026-05-22 21:54:39.516  [I]  SyncIntervalRepo:      [2] 21.05.2024 bis 15.07.2024
-2026-05-22 21:54:39.515  [I]  SyncIntervalRepo:      [1] 13.05.2024 bis 03.07.2024
-2026-05-22 21:54:39.515  [I]  SyncIntervalRepo:      [0] 13.05.2024 bis 03.07.2024
-2026-05-22 21:54:39.514  [I]  SyncIntervalRepo:    historicalIntervals.size=8
-2026-05-22 21:54:39.514  [I]  SyncIntervalRepo:  getNextHistoricalSyncDate(1):
-2026-05-22 21:54:39.128  [I]  SyncIntervalRepo:    ? RETURN 16.11.2024 (Noch nicht bei heute)
-2026-05-22 21:54:39.128  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=553 Tage
-2026-05-22 21:54:39.128  [I]  SyncIntervalRepo:    gapStart=16.11.2024
-2026-05-22 21:54:39.128  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:54:39.127  [I]  SyncIntervalRepo:    ? RETURN 16.11.2024 (Noch nicht bei heute)
-2026-05-22 21:54:39.127  [I]  SyncIntervalRepo:    Kein Normal-Sync, daysSinceNewest=553 Tage
-2026-05-22 21:54:39.127  [I]  SyncIntervalRepo:    gapStart=16.11.2024
-2026-05-22 21:54:39.127  [I]  SyncIntervalRepo:    normalIntervals.size=0
-2026-05-22 21:54:39.127  [I]  SyncIntervalRepo:    newestHistorical.endDate=15.11.2024
-2026-05-22 21:54:39.126  [I]  SyncIntervalRepo:      [7] 16.09.2024 bis 15.11.2024
+2026-05-22 22:44:15.917  [D]  FintsService:  HBCI status tag=21
+2026-05-22 22:44:15.673  [D]  FintsService:  HBCI status tag=11
+2026-05-22 22:44:15.015  [D]  FintsService:  openSession: Passport-Datei: /data/user/0/de.mybudgets.app/files/hbci_passports/passport_66090800_1.dat
+2026-05-22 22:44:14.971  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
+2026-05-22 22:44:14.971  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 22:44:14.971  [W]  FintsService:  HBCI log level=2 msg=** This test registration can be invalidated at any time!!             **
+2026-05-22 22:44:14.971  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 22:44:14.971  [W]  FintsService:  HBCI log level=2 msg=** HBCIUtils.setParam("client.product.name","<your registration>");    **
+2026-05-22 22:44:14.971  [W]  FintsService:  HBCI log level=2 msg=** After receiving your registration, add this line to your code:      **
+2026-05-22 22:44:14.971  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 22:44:14.971  [W]  FintsService:  HBCI log level=2 msg=** and create your own registration (it's free)                        **
+2026-05-22 22:44:14.970  [W]  FintsService:  HBCI log level=2 msg=** Please go to https://www.hbci-zka.de/register/prod_register.htm     **
+2026-05-22 22:44:14.970  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 22:44:14.970  [W]  FintsService:  HBCI log level=2 msg=** ONLY be used for internal testing, not for production purpose!!     **
+2026-05-22 22:44:14.970  [W]  FintsService:  HBCI log level=2 msg=** HBCI4Java is currently using a product registration that should     **
+2026-05-22 22:44:14.970  [W]  FintsService:  HBCI log level=2 msg=**                                                                     **
+2026-05-22 22:44:14.970  [W]  FintsService:  HBCI log level=2 msg=** WARNING                                                             **
+2026-05-22 22:44:14.970  [W]  FintsService:  HBCI log level=2 msg=*************************************************************************
+2026-05-22 22:44:14.913  [D]  FintsService:  initHbciOnce: Locale normalisiert von 'de-DE-u-fw-mon-mu-celsius' zu 'de-DE' (Unicode-Erweiterungen entfernt)
+2026-05-22 22:44:14.912  [I]  FintsService:  openSession: BLZ=66090800 iban=DE91****0118 userId='76****a' tanMethod='(auto)' accountId=1
+2026-05-22 22:44:14.912  [I]  FintsService:  [fetchAccountStatement/1-setup] Initiate HBCI session...
+2026-05-22 22:44:14.912  [I]  FintsService:  [fetchAccountStatement/1-setup] START: iban=DE91****0118 userId=76****a blz=66090800 ab Thu Jun 26 00:00:00 GMT+02:00 2025 multiChunk=false tanFree=false
+2026-05-22 22:44:14.910  [I]  FintsService:  [fetchAccountStatement/0-version] MyBudgets Version: 1.0.45 (versionCode=321)
+2026-05-22 22:44:14.909  [I]  AccountViewModel:     Rufe FintsService.fetchAccountStatement auf...
+2026-05-22 22:44:14.908  [I]  AccountViewModel:    Sync-Typ: HISTORISCH-CONTINUE mit fromDate=Thu Jun 26 00:00:00 GMT+02:00 2025
+2026-05-22 22:44:14.903  [I]  AccountViewModel:    isHistorical=true
+2026-05-22 22:44:14.903  [I]  AccountViewModel:    fromDateMillis=1750888800000 (Thu Jun 26 00:00:00 GMT+02:00 2025)
 
  

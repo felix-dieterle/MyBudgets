@@ -54,6 +54,7 @@ class AccountViewModel @Inject constructor(
     private val txRepo: TransactionRepository,
     private val ruleRepo: RecurringRuleRepository,
     private val syncIntervalRepo: de.mybudgets.app.data.repository.SyncIntervalRepository,
+    private val syncSettings: de.mybudgets.app.data.repository.SyncSettingsRepository,
     private val fintsService: FintsService
 ) : ViewModel() {
 
@@ -143,13 +144,14 @@ class AccountViewModel @Inject constructor(
                 
                 // Retry logic for intermittent DNS errors
                 var retryCount = 0
-                val maxRetries = 2
+                val maxRetries = syncSettings.dnsRetryCount
                 var syncSuccess = false
                 
                 while (retryCount <= maxRetries && !syncSuccess) {
                     if (retryCount > 0) {
-                        AppLogger.w(TAG, "bulkLoadHistory: Retry #$retryCount für Sync #$syncCount (nach DNS-Fehler)")
-                        kotlinx.coroutines.delay(3000) // Wait 3s before retry
+                        val retryDelay = syncSettings.dnsRetryDelaySeconds * 1000L
+                        AppLogger.w(TAG, "bulkLoadHistory: Retry #$retryCount für Sync #$syncCount (warte ${syncSettings.dnsRetryDelaySeconds}s)")
+                        kotlinx.coroutines.delay(retryDelay)
                     }
                     
                     syncBankTransactions(accountId, nextDate, isHistorical = true)
@@ -189,7 +191,13 @@ class AccountViewModel @Inject constructor(
                 AppLogger.i(TAG, "bulkLoadHistory: Sync #$syncCount erfolgreich (${successState?.importedCount ?: 0} neue TXs)")
                 
                 // Longer delay to avoid DNS caching issues and bank rate limiting
-                kotlinx.coroutines.delay(2000) // 2s between syncs
+                val delaySeconds = syncSettings.bulkSyncDelaySeconds
+                AppLogger.i(TAG, "bulkLoadHistory: Warte ${delaySeconds}s vor nächstem Sync...")
+                for (i in delaySeconds downTo 1) {
+                    _bulkSyncProgress.value = Pair(-i, -1) // Negative = countdown
+                    kotlinx.coroutines.delay(1000)
+                }
+                AppLogger.i(TAG, "bulkLoadHistory: Countdown beendet, starte nächsten Sync")
             }
         }
     }

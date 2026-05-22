@@ -124,6 +124,13 @@
             android:layout_marginTop="8dp"
             android:text="@string/settings_log_console" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_sync_settings"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Sync-Einstellungen (Debug)" />
+
         <TextView
             android:id="@+id/tv_app_version"
             android:layout_width="match_parent"

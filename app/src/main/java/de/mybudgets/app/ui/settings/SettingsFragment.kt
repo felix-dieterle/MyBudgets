@@ -96,6 +96,10 @@ class SettingsFragment : Fragment() {
         binding.btnLogConsole.setOnClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_logConsoleFragment)
         }
+
+        binding.btnSyncSettings.setOnClickListener {
+            findNavController().navigate(R.id.action_settingsFragment_to_syncSettingsFragment)
+        }
     }
 
     private fun updateSyncStatus() {

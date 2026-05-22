@@ -40,6 +40,7 @@ class AccountDetailFragment : Fragment() {
     private var pendingRecurrenceCheck = false
 
     @Inject lateinit var fintsService: FintsService
+    @Inject lateinit var syncSettings: de.mybudgets.app.data.repository.SyncSettingsRepository
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, s: Bundle?): View {
         _binding = FragmentAccountDetailBinding.inflate(inflater, container, false)
@@ -82,7 +83,13 @@ class AccountDetailFragment : Fragment() {
                 launch {
                     vm.bulkSyncProgress.collect { progress ->
                         if (progress != null) {
-                            binding.tvSyncStatus.text = getString(R.string.bank_bulk_load_progress, progress.first)
+                            val (current, _) = progress
+                            binding.tvSyncStatus.text = if (current < 0) {
+                                // Negative = countdown
+                                "⏳ Nächster Sync in ${-current}s..."
+                            } else {
+                                getString(R.string.bank_bulk_load_progress, current)
+                            }
                             binding.tvSyncStatus.visibility = View.VISIBLE
                         } else {
                             // Bulk load finished → trigger recurrence check
@@ -198,7 +205,7 @@ class AccountDetailFragment : Fragment() {
             tanDialog(requireActivity(), getString(R.string.transfer_tan_title, challenge))
         }
         fintsService.decoupledConfirmProvider = { challenge ->
-            decoupledConfirmDialog(requireActivity(), challenge)
+            decoupledConfirmDialog(requireActivity(), challenge, syncSettings.secureGoWaitSeconds)
         }
     }
 
