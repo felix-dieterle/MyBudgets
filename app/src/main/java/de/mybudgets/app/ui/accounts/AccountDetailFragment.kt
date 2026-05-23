@@ -42,6 +42,10 @@ class AccountDetailFragment : Fragment() {
     @Inject lateinit var fintsService: FintsService
     @Inject lateinit var syncSettings: de.mybudgets.app.data.repository.SyncSettingsRepository
 
+    companion object {
+        private const val TAG = "AccountDetailFragment"
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, s: Bundle?): View {
         _binding = FragmentAccountDetailBinding.inflate(inflater, container, false)
         return binding.root
@@ -118,7 +122,10 @@ class AccountDetailFragment : Fragment() {
                             is BankSyncState.Success -> {
                                 binding.progressSync.visibility = View.GONE
                                 binding.tvSyncStatus.visibility = View.GONE
-                                vm.resetBankSyncState()
+                                // Only reset state if NOT in bulk sync (bulk needs to see Success)
+                                if (!vm.isBulkSyncActive) {
+                                    vm.resetBankSyncState()
+                                }
                                 showSyncResultSnackbar(state)
                                 // Update Button-Status nach Sync (mit kleinem Delay für DB-Commit)
                                 viewLifecycleOwner.lifecycleScope.launch {
@@ -142,7 +149,10 @@ class AccountDetailFragment : Fragment() {
                                 binding.progressSync.visibility = View.GONE
                                 binding.tvSyncStatus.visibility = View.GONE
                                 Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show()
-                                vm.resetBankSyncState()
+                                // Only reset state if NOT in bulk sync
+                                if (!vm.isBulkSyncActive) {
+                                    vm.resetBankSyncState()
+                                }
                             }
                         }
                     }
@@ -210,17 +220,23 @@ class AccountDetailFragment : Fragment() {
     }
 
     private fun showBulkLoadDialog(account: Account) {
+        AppLogger.i(TAG, "showBulkLoadDialog: START für Account=${account.id}")
         viewLifecycleOwner.lifecycleScope.launch {
             val estimatedTans = vm.estimateTanCount(accountId)
+            AppLogger.i(TAG, "showBulkLoadDialog: Zeige Dialog mit $estimatedTans geschätzten TANs")
             
             com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.bank_bulk_load_title))
                 .setMessage(getString(R.string.bank_bulk_load_message, estimatedTans))
                 .setPositiveButton("Laden") { _, _ ->
+                    AppLogger.i(TAG, "showBulkLoadDialog: User klickte LADEN")
                     registerPinTanProviders()
                     vm.bulkLoadHistory(accountId)
                 }
                 .setNegativeButton(android.R.string.cancel, null)
+                .setOnDismissListener {
+                    AppLogger.i(TAG, "showBulkLoadDialog: Dialog dismissed")
+                }
                 .show()
         }
     }

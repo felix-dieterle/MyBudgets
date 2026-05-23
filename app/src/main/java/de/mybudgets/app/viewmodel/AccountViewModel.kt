@@ -11,6 +11,8 @@ import de.mybudgets.app.data.repository.RecurringRuleRepository
 import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.util.AppLogger
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -77,6 +79,10 @@ class AccountViewModel @Inject constructor(
     val bulkSyncProgress: StateFlow<Pair<Int, Int>?> = _bulkSyncProgress
 
     private var bulkSyncCancelled = false
+    private var isBulkSyncRunning = false
+    
+    val isBulkSyncActive: Boolean
+        get() = isBulkSyncRunning
 
     suspend fun canContinueSync(accountId: Long): Boolean {
         val nextDate = syncIntervalRepo.getNextHistoricalSyncDate(accountId)
@@ -109,6 +115,7 @@ class AccountViewModel @Inject constructor(
     fun bulkLoadHistory(accountId: Long) {
         AppLogger.i(TAG, "bulkLoadHistory: START für Account=$accountId")
         bulkSyncCancelled = false
+        isBulkSyncRunning = true
         
         viewModelScope.launch {
             var syncCount = 0
@@ -118,6 +125,7 @@ class AccountViewModel @Inject constructor(
                 if (bulkSyncCancelled) {
                     AppLogger.i(TAG, "bulkLoadHistory: ABBRUCH durch User")
                     _bulkSyncProgress.value = null
+                    isBulkSyncRunning = false
                     break
                 }
                 
@@ -127,6 +135,7 @@ class AccountViewModel @Inject constructor(
                 if (nextDate == null) {
                     AppLogger.i(TAG, "bulkLoadHistory: ✅ FERTIG - Keine Lücken mehr")
                     _bulkSyncProgress.value = null
+                    isBulkSyncRunning = false
                     break
                 }
                 
@@ -134,6 +143,7 @@ class AccountViewModel @Inject constructor(
                 if (lastGapDate != null && nextDate == lastGapDate) {
                     AppLogger.w(TAG, "bulkLoadHistory: ⚠️ ABBRUCH - Gap hat sich nicht verändert (0 neue TX oder Duplikate)")
                     _bulkSyncProgress.value = null
+                    isBulkSyncRunning = false
                     break
                 }
                 lastGapDate = nextDate
@@ -154,20 +164,40 @@ class AccountViewModel @Inject constructor(
                         kotlinx.coroutines.delay(retryDelay)
                     }
                     
-                    // Reset state to Idle to ensure we wait for the NEW sync result
-                    _bankSyncState.value = BankSyncState.Idle
+                    AppLogger.i(TAG, "bulkLoadHistory: Starting sync #$syncCount (attempt ${retryCount + 1}/${maxRetries + 1})")
                     
+                    // Launch sync
                     syncBankTransactions(accountId, nextDate, isHistorical = true)
                     
-                    // Wait for sync to complete (ignore Idle/Loading, wait for Success/Error)
-                    bankSyncState.first { it is BankSyncState.Success || it is BankSyncState.Error }
+                    // Wait briefly for sync to start
+                    kotlinx.coroutines.delay(200)
+                    
+                    // Wait for completion with timeout
+                    AppLogger.i(TAG, "bulkLoadHistory: Waiting for sync #$syncCount to complete...")
+                    AppLogger.i(TAG, "bulkLoadHistory: Current state before .first() = ${bankSyncState.value}")
+                    try {
+                        withTimeout(120000L) { // 2 minutes
+                            bankSyncState.first { 
+                                val isDone = it is BankSyncState.Success || it is BankSyncState.Error
+                                AppLogger.d(TAG, "bulkLoadHistory: .first() predicate check: state=$it, isDone=$isDone")
+                                if (isDone) AppLogger.i(TAG, "bulkLoadHistory: Sync #$syncCount result: $it")
+                                isDone
+                            }
+                        }
+                        AppLogger.i(TAG, "bulkLoadHistory: .first() returned successfully")
+                    } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                        AppLogger.e(TAG, "bulkLoadHistory: TIMEOUT after 2min for sync #$syncCount, final state=${bankSyncState.value}")
+                        _bulkSyncProgress.value = null
+                        isBulkSyncRunning = false
+                        break
+                    }
                     
                     if (bankSyncState.value is BankSyncState.Success) {
                         syncSuccess = true
                     } else {
                         val errorState = bankSyncState.value as? BankSyncState.Error
                         val errorMsg = errorState?.message ?: ""
-                        AppLogger.d(TAG, "bulkLoadHistory: Error message für DNS-Check: ${errorMsg.take(200)}")
+                        AppLogger.d(TAG, "bulkLoadHistory: Error for DNS-Check: ${errorMsg.take(200)}")
                         val isDnsError = errorMsg.contains("Unable to resolve host", ignoreCase = true) ||
                                        errorMsg.contains("EAI_NODATA", ignoreCase = true) ||
                                        errorMsg.contains("android_getaddrinfo failed", ignoreCase = true) ||
@@ -175,18 +205,19 @@ class AccountViewModel @Inject constructor(
                                        errorMsg.contains("GaiException", ignoreCase = true)
                         
                         if (isDnsError && retryCount < maxRetries) {
-                            AppLogger.w(TAG, "bulkLoadHistory: DNS-Fehler erkannt, versuche erneut...")
+                            AppLogger.w(TAG, "bulkLoadHistory: DNS error, will retry")
                             retryCount++
                         } else {
-                            // Non-DNS error or max retries reached
-                            AppLogger.e(TAG, "bulkLoadHistory: FEHLER bei Sync #$syncCount (${if (isDnsError) "DNS nach $maxRetries Versuchen" else "Anderer Fehler"})")
+                            AppLogger.e(TAG, "bulkLoadHistory: FEHLER bei Sync #$syncCount (${if (isDnsError) "DNS maxed out" else "other error"})")
                             _bulkSyncProgress.value = null
+                            isBulkSyncRunning = false
                             break
                         }
                     }
                 }
                 
                 if (!syncSuccess) {
+                    isBulkSyncRunning = false
                     break // Exit bulk loop
                 }
                 
@@ -201,7 +232,14 @@ class AccountViewModel @Inject constructor(
                     kotlinx.coroutines.delay(1000)
                 }
                 AppLogger.i(TAG, "bulkLoadHistory: Countdown beendet, starte nächsten Sync")
+                
+                // Reset state for next iteration
+                _bankSyncState.value = BankSyncState.Idle
             }
+            
+            // Cleanup: Reset state after bulk ends
+            isBulkSyncRunning = false
+            _bankSyncState.value = BankSyncState.Idle
         }
     }
 

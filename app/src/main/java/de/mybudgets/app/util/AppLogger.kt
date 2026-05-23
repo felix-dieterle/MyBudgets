@@ -30,7 +30,7 @@ data class LogEntry(
  */
 object AppLogger {
 
-    private const val MAX_ENTRIES = 500
+    private const val MAX_ENTRIES = 3000
 
     private val counter = AtomicLong(0)
     private val buffer = CopyOnWriteArrayList<LogEntry>()
