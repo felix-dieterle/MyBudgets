@@ -52,4 +52,7 @@ interface TransactionDao {
 
     @Delete
     suspend fun delete(transaction: Transaction)
+    
+    @Query("DELETE FROM transactions WHERE accountId = :accountId AND date >= :fromDate AND date <= :toDate")
+    suspend fun deleteInDateRange(accountId: Long, fromDate: Long, toDate: Long): Int
 }

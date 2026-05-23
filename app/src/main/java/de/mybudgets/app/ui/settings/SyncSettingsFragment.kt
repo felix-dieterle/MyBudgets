@@ -5,15 +5,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.data.repository.SyncSettingsRepository
 import de.mybudgets.app.databinding.FragmentSyncSettingsBinding
+import de.mybudgets.app.viewmodel.AccountViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class SyncSettingsFragment : Fragment() {
     
     @Inject lateinit var syncSettings: SyncSettingsRepository
+    private val viewModel: AccountViewModel by viewModels()
     
     private var _binding: FragmentSyncSettingsBinding? = null
     private val binding get() = _binding!!
@@ -58,6 +65,31 @@ class SyncSettingsFragment : Fragment() {
             binding.tvDnsRetryDelay.text = "${value.toInt()}s"
         }
         
+        // Undo Syncs
+        binding.sliderUndoSyncs.addOnChangeListener { _, value, _ ->
+            binding.tvUndoSyncs.text = value.toInt().toString()
+        }
+        
+        binding.btnUndoSyncs.setOnClickListener {
+            val count = binding.sliderUndoSyncs.value.toInt()
+            val accounts = viewModel.realAccounts.value
+            
+            if (accounts.isEmpty()) {
+                Snackbar.make(requireView(), "Keine Konten vorhanden", Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            // Show account selection if multiple accounts
+            val accountNames = accounts.map { "${it.name} (${it.iban.takeLast(4)})" }.toTypedArray()
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Konto wählen")
+                .setItems(accountNames) { _, which ->
+                    val accountId = accounts[which].id
+                    confirmUndoSyncs(accountId, count)
+                }
+                .show()
+        }
+        
         // Reset Button
         binding.btnReset.setOnClickListener {
             syncSettings.resetToDefaults()
@@ -67,6 +99,32 @@ class SyncSettingsFragment : Fragment() {
             binding.sliderDnsRetryDelay.value = 3f
             updateLabels()
         }
+    }
+    
+    private fun confirmUndoSyncs(accountId: Long, count: Int) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("⚠️ Wirklich löschen?")
+            .setMessage("Die letzten $count Sync-Intervalle und alle zugehörigen Transaktionen werden unwiderruflich gelöscht!")
+            .setPositiveButton("Löschen") { _, _ ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    try {
+                        val deletedTxCount = viewModel.undoLastNSyncs(accountId, count)
+                        Snackbar.make(
+                            requireView(), 
+                            "✅ $count Syncs gelöscht ($deletedTxCount Transaktionen)", 
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    } catch (e: Exception) {
+                        Snackbar.make(
+                            requireView(), 
+                            "❌ Fehler: ${e.message}", 
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+            .setNegativeButton("Abbrechen", null)
+            .show()
     }
     
     private fun updateLabels() {

@@ -14,6 +14,9 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
@@ -95,16 +98,17 @@ class ChartPageFragment : Fragment() {
     }
 
     private fun setupForecastChart(root: View) {
-        val chart = root.findViewById<com.github.mikephil.charting.charts.BarChart>(R.id.bar_chart_forecast) ?: return
+        val chart = root.findViewById<com.github.mikephil.charting.charts.LineChart>(R.id.line_chart_forecast) ?: return
         val warnings = root.findViewById<android.widget.TextView>(R.id.tv_prediction_warnings)
         chart.description.isEnabled = false
-        chart.setFitBars(true)
-        chart.setDrawValueAboveBar(true)
-        chart.legend.textSize = 11f
+        chart.legend.textSize = 10f
+        chart.legend.isWordWrapEnabled = true
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         chart.xAxis.granularity = 1f
+        chart.xAxis.textSize = 10f
         chart.axisLeft.textSize = 10f
         chart.axisRight.isEnabled = false
+        chart.setDrawGridBackground(false)
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -163,23 +167,61 @@ class ChartPageFragment : Fragment() {
         chart.invalidate()
     }
 
-    private fun updateForecastChart(chart: com.github.mikephil.charting.charts.BarChart, forecast: List<ForecastPoint>) {
+    private fun updateForecastChart(chart: com.github.mikephil.charting.charts.LineChart, forecast: List<ForecastPoint>) {
         if (forecast.isEmpty()) {
             chart.data = null; chart.invalidate()
             return
         }
-        val entries = forecast.mapIndexed { i, p -> BarEntry(i.toFloat(), p.predicted) }
-        val forecastColor = ContextCompat.getColor(requireContext(), R.color.expense_red)
-        val dataSet = BarDataSet(entries, "Prognose").apply {
-            color = forecastColor; setDrawValues(false)
+        
+        val dataSets = mutableListOf<LineDataSet>()
+        val colors = listOf(
+            ContextCompat.getColor(requireContext(), R.color.expense_red),
+            ContextCompat.getColor(requireContext(), R.color.recurring_purple),
+            ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark),
+            ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark),
+            ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark),
+            ContextCompat.getColor(requireContext(), R.color.income_green)
+        )
+        
+        // Fixed costs line (thicker, dashed)
+        val fixedCostsEntries = forecast.mapIndexed { i, p -> Entry(i.toFloat(), p.fixedCosts) }
+        if (fixedCostsEntries.any { it.y > 0 }) {
+            dataSets.add(LineDataSet(fixedCostsEntries, "Fixkosten").apply {
+                color = colors[0]
+                lineWidth = 3f
+                setDrawCircles(true)
+                circleRadius = 4f
+                setCircleColor(colors[0])
+                setDrawValues(false)
+                enableDashedLine(10f, 5f, 0f)
+            })
         }
+        
+        // Top category lines
+        val allCategoryNames = forecast.flatMap { it.categoryForecasts.keys }.distinct()
+        allCategoryNames.take(5).forEachIndexed { idx, catName ->
+            val entries = forecast.mapIndexed { i, p ->
+                Entry(i.toFloat(), p.categoryForecasts[catName] ?: 0f)
+            }
+            if (entries.any { it.y > 0 }) {
+                dataSets.add(LineDataSet(entries, catName).apply {
+                    color = colors.getOrElse(idx + 1) { colors.last() }
+                    lineWidth = 2f
+                    setDrawCircles(true)
+                    circleRadius = 3f
+                    setCircleColor(color)
+                    setDrawValues(false)
+                })
+            }
+        }
+        
         chart.xAxis.valueFormatter = object : IndexAxisValueFormatter() {
             override fun getFormattedValue(value: Float): String {
                 val idx = value.toInt()
                 return if (idx in forecast.indices) forecast[idx].label else ""
             }
         }
-        chart.data = BarData(dataSet).apply { barWidth = 0.6f }
+        chart.data = LineData(dataSets as List<com.github.mikephil.charting.interfaces.datasets.ILineDataSet>)
         chart.invalidate()
     }
 

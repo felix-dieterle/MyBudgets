@@ -78,6 +78,9 @@ class AccountViewModel @Inject constructor(
     private val _bulkSyncProgress = MutableStateFlow<Pair<Int, Int>?>(null) // (current, total)
     val bulkSyncProgress: StateFlow<Pair<Int, Int>?> = _bulkSyncProgress
 
+    private val _bulkSyncCompleted = MutableStateFlow<Long?>(null) // accountId when completed
+    val bulkSyncCompleted: StateFlow<Long?> = _bulkSyncCompleted
+
     private var bulkSyncCancelled = false
     private var isBulkSyncRunning = false
     
@@ -136,6 +139,7 @@ class AccountViewModel @Inject constructor(
                     AppLogger.i(TAG, "bulkLoadHistory: ✅ FERTIG - Keine Lücken mehr")
                     _bulkSyncProgress.value = null
                     isBulkSyncRunning = false
+                    _bulkSyncCompleted.value = accountId // Trigger recurrence check
                     break
                 }
                 
@@ -245,6 +249,10 @@ class AccountViewModel @Inject constructor(
 
     fun cancelBulkLoad() {
         bulkSyncCancelled = true
+    }
+    
+    suspend fun undoLastNSyncs(accountId: Long, count: Int): Int {
+        return syncIntervalRepo.undoLastNSyncs(accountId, count)
     }
 
     private suspend fun matchTransactionsAgainstRules(transactions: List<de.mybudgets.app.data.model.Transaction>, accountId: Long) {

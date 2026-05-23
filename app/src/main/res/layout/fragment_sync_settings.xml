@@ -238,6 +238,72 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Debug: Undo Last Syncs -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFF3E0">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🔧 Debug: Syncs rückgängig"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Löscht die letzten N Sync-Intervalle inkl. Transaktionen (für Test nach Bulk-Load)"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:alpha="0.7"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/slider_undo_syncs"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:valueFrom="1"
+                        android:valueTo="10"
+                        android:stepSize="1"
+                        android:value="3" />
+
+                    <TextView
+                        android:id="@+id/tv_undo_syncs"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:minWidth="50dp"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_undo_syncs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Letzte N Syncs löschen"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:icon="@android:drawable/ic_menu_revert" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Reset Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_reset"

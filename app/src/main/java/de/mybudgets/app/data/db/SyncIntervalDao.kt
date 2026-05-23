@@ -16,4 +16,10 @@ interface SyncIntervalDao {
 
     @Query("DELETE FROM sync_intervals WHERE accountId = :accountId")
     suspend fun deleteForAccount(accountId: Long)
+    
+    @Query("DELETE FROM sync_intervals WHERE id IN (SELECT id FROM sync_intervals WHERE accountId = :accountId ORDER BY endDate DESC LIMIT :count)")
+    suspend fun deleteLastNSyncs(accountId: Long, count: Int)
+    
+    @Query("SELECT * FROM sync_intervals WHERE accountId = :accountId ORDER BY endDate DESC LIMIT :count")
+    suspend fun getLastNSyncs(accountId: Long, count: Int): List<SyncInterval>
 }

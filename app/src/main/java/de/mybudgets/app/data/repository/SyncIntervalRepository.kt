@@ -1,13 +1,15 @@
 package de.mybudgets.app.data.repository
 
 import de.mybudgets.app.data.db.SyncIntervalDao
+import de.mybudgets.app.data.db.TransactionDao
 import de.mybudgets.app.data.model.SyncInterval
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SyncIntervalRepository @Inject constructor(
-    private val dao: SyncIntervalDao
+    private val dao: SyncIntervalDao,
+    private val transactionDao: TransactionDao
 ) {
     suspend fun getAllForAccount(accountId: Long): List<SyncInterval> =
         dao.getAllForAccount(accountId)
@@ -18,6 +20,26 @@ class SyncIntervalRepository @Inject constructor(
     suspend fun insert(interval: SyncInterval): Long = dao.insert(interval)
 
     suspend fun deleteForAccount(accountId: Long) = dao.deleteForAccount(accountId)
+    
+    /**
+     * Löscht die letzten N Sync-Intervalle und alle zugehörigen Transaktionen.
+     * Nützlich für Debug/Testing nach Bulk-Sync.
+     */
+    suspend fun undoLastNSyncs(accountId: Long, count: Int): Int {
+        val intervals = dao.getLastNSyncs(accountId, count)
+        var deletedTxCount = 0
+        
+        intervals.forEach { interval ->
+            deletedTxCount += transactionDao.deleteInDateRange(
+                accountId, 
+                interval.startDate, 
+                interval.endDate
+            )
+        }
+        
+        dao.deleteLastNSyncs(accountId, count)
+        return deletedTxCount
+    }
 
     /**
      * Findet das nächste fromDate für historischen Sync.

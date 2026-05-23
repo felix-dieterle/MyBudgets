@@ -106,6 +106,16 @@ class AccountDetailFragment : Fragment() {
                     }
                 }
                 launch {
+                    vm.bulkSyncCompleted.collect { completedAccountId ->
+                        if (completedAccountId == accountId) {
+                            // Bulk sync completed for this account → trigger recurrence check
+                            kotlinx.coroutines.delay(500) // DB settle
+                            checkForRecurringPatterns {}
+                            pendingRecurrenceCheck = false
+                        }
+                    }
+                }
+                launch {
                     vm.bankSyncState.collect { state ->
                         when (state) {
                             is BankSyncState.Idle -> {

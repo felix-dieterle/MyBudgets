@@ -34,7 +34,9 @@ data class MonthlyTrendPoint(
 
 data class ForecastPoint(
     val label: String, // e.g. "Jun", "Jul", "Aug"
-    val predicted: Float
+    val predicted: Float, // Total predicted expenses (legacy, kept for compatibility)
+    val categoryForecasts: Map<String, Float> = emptyMap(), // Category name -> amount
+    val fixedCosts: Float = 0f // Sum of all recurring/fixed expenses
 )
 
 @HiltViewModel
@@ -126,26 +128,60 @@ class DashboardViewModel @Inject constructor(
 
     val forecast: StateFlow<List<ForecastPoint>> = combine(
         transactions,
-        selectedTimeRange
-    ) { txs, _ ->
+        selectedTimeRange,
+        categoryRepo.observeAll()
+    ) { txs, _, cats ->
         val monthly = groupByMonth(txs)
         val sorted = monthly.entries.sortedBy { parseMonthLabel(it.key) }
         if (sorted.size < 3) return@combine emptyList()
 
-        val recentExpenses = sorted.takeLast(3).map { (_, txs) ->
-            txs.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        val categoryLabels = cats.associate { it.id to it.name }
+        
+        // Calculate averages per category for last 3 months
+        val recentMonths = sorted.takeLast(3).map { it.value }
+        val categoryAverages = mutableMapOf<Long?, Float>()
+        
+        recentMonths.forEach { monthTxs ->
+            monthTxs.filter { it.type == TransactionType.EXPENSE }
+                .groupBy { it.categoryId }
+                .forEach { (catId, catTxs) ->
+                    val sum = catTxs.sumOf { it.amount }.toFloat()
+                    categoryAverages[catId] = (categoryAverages[catId] ?: 0f) + (sum / recentMonths.size)
+                }
         }
-        val avgExpense = recentExpenses.average().toFloat()
-        val trend = if (recentExpenses.size >= 2) {
-            (recentExpenses.last() - recentExpenses.first()) / (recentExpenses.size - 1)
-        } else 0.0
+        
+        // Calculate fixed costs (recurring expenses average)
+        val fixedCostsAvg = recentMonths.map { monthTxs ->
+            monthTxs.filter { it.type == TransactionType.EXPENSE && it.isRecurring }
+                .sumOf { it.amount }.toFloat()
+        }.average().toFloat()
+        
+        // Total expense average (legacy)
+        val avgExpense = recentMonths.map { monthTxs ->
+            monthTxs.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }.toFloat()
+        }.average().toFloat()
+        
         val lastLabel = sorted.last().key
 
         (1..3).map { offset ->
             val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
             val label = monthLabel(nextCal)
-            val predicted = (avgExpense + trend * offset).toFloat().coerceAtLeast(0f)
-            ForecastPoint(label, predicted)
+            
+            // Top 5 categories
+            val topCategories = categoryAverages.entries
+                .sortedByDescending { it.value }
+                .take(5)
+                .associate { (catId, avg) ->
+                    val catName = categoryLabels[catId] ?: "Sonstige"
+                    catName to avg
+                }
+            
+            ForecastPoint(
+                label = label,
+                predicted = avgExpense.coerceAtLeast(0f),
+                categoryForecasts = topCategories,
+                fixedCosts = fixedCostsAvg
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 

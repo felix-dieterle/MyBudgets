@@ -5,16 +5,19 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.snackbar.Snackbar
 import de.mybudgets.app.R
 import de.mybudgets.app.databinding.FragmentLogConsoleBinding
 import de.mybudgets.app.util.AppLogger
 import de.mybudgets.app.util.LogEntry
 import de.mybudgets.app.util.LogLevel
 import kotlinx.coroutines.launch
+import java.io.File
 
 class LogConsoleFragment : Fragment() {
 
@@ -68,13 +71,31 @@ class LogConsoleFragment : Fragment() {
     }
 
     private fun exportLog() {
-        val text = AppLogger.export()
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, text)
-            putExtra(Intent.EXTRA_SUBJECT, "MyBudgets Fehlerprotokoll")
+        try {
+            val text = AppLogger.export()
+            
+            // Write to cache file (avoids 1MB EXTRA_TEXT limit)
+            val cacheDir = requireContext().cacheDir
+            val logFile = File(cacheDir, "mybudgets-log.txt")
+            logFile.writeText(text)
+            
+            // Share via FileProvider
+            val uri = FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().packageName}.fileprovider",
+                logFile
+            )
+            
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, "MyBudgets Fehlerprotokoll")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, getString(R.string.log_export_chooser_title)))
+        } catch (e: Exception) {
+            Snackbar.make(requireView(), "Export fehlgeschlagen: ${e.message}", Snackbar.LENGTH_LONG).show()
         }
-        startActivity(Intent.createChooser(intent, getString(R.string.log_export_chooser_title)))
     }
 
     override fun onDestroyView() {
