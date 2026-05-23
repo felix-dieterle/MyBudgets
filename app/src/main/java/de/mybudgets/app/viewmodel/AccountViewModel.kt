@@ -154,9 +154,12 @@ class AccountViewModel @Inject constructor(
                         kotlinx.coroutines.delay(retryDelay)
                     }
                     
+                    // Reset state to Idle to ensure we wait for the NEW sync result
+                    _bankSyncState.value = BankSyncState.Idle
+                    
                     syncBankTransactions(accountId, nextDate, isHistorical = true)
                     
-                    // Wait for sync to complete
+                    // Wait for sync to complete (ignore Idle/Loading, wait for Success/Error)
                     bankSyncState.first { it is BankSyncState.Success || it is BankSyncState.Error }
                     
                     if (bankSyncState.value is BankSyncState.Success) {
