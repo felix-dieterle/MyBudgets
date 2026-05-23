@@ -33,6 +33,11 @@ class SyncSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        // Observe accounts (trigger lazy StateFlow)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.realAccounts.collect { /* just to activate flow */ }
+        }
+        
         // Load current values
         binding.sliderSecuregoWait.value = syncSettings.secureGoWaitSeconds.toFloat()
         binding.sliderBulkDelay.value = syncSettings.bulkSyncDelaySeconds.toFloat()
@@ -90,6 +95,21 @@ class SyncSettingsFragment : Fragment() {
                 .show()
         }
         
+        // Recurrence Check
+        binding.btnRecurrenceCheck.setOnClickListener {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Muster neu erkennen")
+                .setMessage("Wie sollen bestehende Marker behandelt werden?")
+                .setPositiveButton("Neu erkennen (Reset)") { _, _ ->
+                    runRecurrenceCheck(resetExisting = true)
+                }
+                .setNegativeButton("Nur neue markieren") { _, _ ->
+                    runRecurrenceCheck(resetExisting = false)
+                }
+                .setNeutralButton("Abbrechen", null)
+                .show()
+        }
+        
         // Reset Button
         binding.btnReset.setOnClickListener {
             syncSettings.resetToDefaults()
@@ -125,6 +145,26 @@ class SyncSettingsFragment : Fragment() {
             }
             .setNegativeButton("Abbrechen", null)
             .show()
+    }
+    
+    private fun runRecurrenceCheck(resetExisting: Boolean) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val action = if (resetExisting) "zurückgesetzt und neu geprüft" else "geprüft"
+                val count = viewModel.recheckRecurringPatterns(resetExisting)
+                Snackbar.make(
+                    requireView(),
+                    "✅ $count Transaktionen $action",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } catch (e: Exception) {
+                Snackbar.make(
+                    requireView(),
+                    "❌ Fehler: ${e.message}",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            }
+        }
     }
     
     private fun updateLabels() {

@@ -254,6 +254,22 @@ class AccountViewModel @Inject constructor(
     suspend fun undoLastNSyncs(accountId: Long, count: Int): Int {
         return syncIntervalRepo.undoLastNSyncs(accountId, count)
     }
+    
+    suspend fun recheckRecurringPatterns(resetExisting: Boolean = false): Int {
+        val allTxs = txRepo.observeAll().first()
+        if (resetExisting) {
+            // Reset all isRecurring flags
+            for (tx in allTxs.filter { it.isRecurring }) {
+                txRepo.save(tx.copy(
+                    isRecurring = false,
+                    recurringIntervalDays = 0
+                ))
+            }
+        }
+        val txsToCheck = if (resetExisting) allTxs else allTxs.filter { !it.isRecurring }
+        matchTransactionsAgainstRules(txsToCheck, accountId = 0L) // 0L = all accounts
+        return txsToCheck.size
+    }
 
     private suspend fun matchTransactionsAgainstRules(transactions: List<de.mybudgets.app.data.model.Transaction>, accountId: Long) {
         val rules = ruleRepo.getActive()

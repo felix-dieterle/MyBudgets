@@ -137,50 +137,75 @@ class DashboardViewModel @Inject constructor(
 
         val categoryLabels = cats.associate { it.id to it.name }
         
-        // Calculate averages per category for last 3 months
-        val recentMonths = sorted.takeLast(3).map { it.value }
-        val categoryAverages = mutableMapOf<Long?, Float>()
+        // Use at least 6 months for trend analysis (fallback to 3 if not available)
+        val historySize = if (sorted.size >= 6) 6 else 3
+        val recentMonths = sorted.takeLast(historySize)
         
-        recentMonths.forEach { monthTxs ->
-            monthTxs.filter { it.type == TransactionType.EXPENSE }
-                .groupBy { it.categoryId }
-                .forEach { (catId, catTxs) ->
-                    val sum = catTxs.sumOf { it.amount }.toFloat()
-                    categoryAverages[catId] = (categoryAverages[catId] ?: 0f) + (sum / recentMonths.size)
+        // Calculate trends per category using linear regression
+        val categoryTrends = mutableMapOf<Long?, Pair<Float, Float>>() // catId -> (avg, trend)
+        
+        txs.filter { it.type == TransactionType.EXPENSE }
+            .groupBy { it.categoryId }
+            .forEach { (catId, catTxs) ->
+                val monthlyAmounts = recentMonths.map { (monthKey, monthTxs) ->
+                    monthTxs.filter { it.categoryId == catId && it.type == TransactionType.EXPENSE }
+                        .sumOf { it.amount }.toFloat()
                 }
-        }
+                
+                // Linear regression: y = avg + trend * x
+                val avg = monthlyAmounts.average().toFloat()
+                val trend = if (monthlyAmounts.size >= 2) {
+                    val n = monthlyAmounts.size
+                    val sumX = (0 until n).sum().toFloat()
+                    val sumY = monthlyAmounts.sum()
+                    val sumXY = monthlyAmounts.mapIndexed { i, y -> i * y }.sum()
+                    val sumX2 = (0 until n).sumOf { it * it }.toFloat()
+                    
+                    // trend = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX^2)
+                    val numerator = n * sumXY - sumX * sumY
+                    val denominator = n * sumX2 - sumX * sumX
+                    if (denominator != 0f) numerator / denominator else 0f
+                } else 0f
+                
+                categoryTrends[catId] = Pair(avg, trend)
+            }
         
-        // Calculate fixed costs (recurring expenses average)
-        val fixedCostsAvg = recentMonths.map { monthTxs ->
+        // Fixed costs (recurring): use simple average (more stable)
+        val fixedCostsAvg = recentMonths.map { (_, monthTxs) ->
             monthTxs.filter { it.type == TransactionType.EXPENSE && it.isRecurring }
                 .sumOf { it.amount }.toFloat()
         }.average().toFloat()
         
-        // Total expense average (legacy)
-        val avgExpense = recentMonths.map { monthTxs ->
-            monthTxs.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }.toFloat()
-        }.average().toFloat()
-        
         val lastLabel = sorted.last().key
+        val lastMonthIdx = historySize - 1
 
         (1..3).map { offset ->
             val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
             val label = monthLabel(nextCal)
             
-            // Top 5 categories
-            val topCategories = categoryAverages.entries
-                .sortedByDescending { it.value }
+            // Apply trend to top categories
+            val topCategories = categoryTrends.entries
+                .sortedByDescending { it.value.first } // Sort by average
                 .take(5)
-                .associate { (catId, avg) ->
+                .associate { (catId, pair) ->
+                    val (avg, trend) = pair
                     val catName = categoryLabels[catId] ?: "Sonstige"
-                    catName to avg
+                    
+                    // Predict: avg + trend * (lastMonthIdx + offset)
+                    val predicted = (avg + trend * (lastMonthIdx + offset)).coerceAtLeast(0f)
+                    catName to predicted
                 }
+            
+            // Total predicted (sum of all category trends)
+            val totalPredicted = categoryTrends.values.sumOf { (avg, trend) ->
+                (avg + trend * (lastMonthIdx + offset)).toDouble()
+            }.toFloat().coerceAtLeast(0f)
             
             ForecastPoint(
                 label = label,
-                predicted = avgExpense.coerceAtLeast(0f),
+                predicted = totalPredicted,
                 categoryForecasts = topCategories,
-                fixedCosts = fixedCostsAvg
+                fixedCosts = fixedCostsAvg // Fixkosten bleiben stabil
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())

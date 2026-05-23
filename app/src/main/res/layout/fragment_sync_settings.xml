@@ -301,6 +301,30 @@
                     android:text="Letzte N Syncs löschen"
                     style="@style/Widget.Material3.Button.TonalButton"
                     app:icon="@android:drawable/ic_menu_revert" />
+                
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Wiederholende Buchungen"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="8dp" />
+                
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Erkennt Muster in allen Transaktionen neu. Bestehende Marker können zurückgesetzt werden."
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:alpha="0.7"
+                    android:layout_marginBottom="12dp" />
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_recurrence_check"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Muster neu erkennen"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:icon="@android:drawable/ic_menu_rotate" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
