@@ -15,7 +15,7 @@ import kotlin.math.abs
 object RecurringPatternDetector {
     
     private const val AMOUNT_TOLERANCE = 0.05 // ±5%
-    private const val INTERVAL_TOLERANCE_DAYS = 3 // ±3 days
+    private const val INTERVAL_TOLERANCE_RATIO = 0.25 // ±25% vom Durchschnittsintervall (war: absolute 3 Tage)
     private const val MIN_OCCURRENCES = 3 // Need at least 3 occurrences to detect pattern
     
     data class RecurringPattern(
@@ -74,13 +74,14 @@ object RecurringPatternDetector {
                         continue
                     }
                     
-                    // Check if intervals are regular
+                    // Check if intervals are regular (relative tolerance)
                     val avgInterval = intervals.average()
                     val maxDeviation = intervals.maxOfOrNull { abs(it - avgInterval) } ?: Double.MAX_VALUE
+                    val toleranceDays = avgInterval * INTERVAL_TOLERANCE_RATIO // 25% vom avg statt feste 3 Tage
                     
-                    AppLogger.i("RecurringPatternDetector", "    avgInterval=$avgInterval, maxDeviation=$maxDeviation")
+                    AppLogger.i("RecurringPatternDetector", "    avgInterval=$avgInterval, maxDeviation=$maxDeviation, tolerance=$toleranceDays")
                     
-                    if (maxDeviation <= INTERVAL_TOLERANCE_DAYS) {
+                    if (maxDeviation <= toleranceDays) {
                         // Check if amounts are exact or just similar
                         val amountExactness = calculateAmountExactness(sorted)
                         

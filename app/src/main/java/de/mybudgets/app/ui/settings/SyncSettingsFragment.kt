@@ -11,8 +11,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.data.repository.SyncSettingsRepository
+import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.databinding.FragmentSyncSettingsBinding
+import de.mybudgets.app.ui.transactions.RecurringPatternDialog
+import de.mybudgets.app.util.AppLogger
+import de.mybudgets.app.util.RecurringPatternDetector
 import de.mybudgets.app.viewmodel.AccountViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,6 +25,7 @@ import javax.inject.Inject
 class SyncSettingsFragment : Fragment() {
     
     @Inject lateinit var syncSettings: SyncSettingsRepository
+    @Inject lateinit var txRepo: TransactionRepository
     private val viewModel: AccountViewModel by viewModels()
     
     private var _binding: FragmentSyncSettingsBinding? = null
@@ -150,14 +156,51 @@ class SyncSettingsFragment : Fragment() {
     private fun runRecurrenceCheck(resetExisting: Boolean) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val action = if (resetExisting) "zurückgesetzt und neu geprüft" else "geprüft"
-                val count = viewModel.recheckRecurringPatterns(resetExisting)
-                Snackbar.make(
-                    requireView(),
-                    "✅ $count Transaktionen $action",
-                    Snackbar.LENGTH_LONG
-                ).show()
+                // Get all transactions
+                val allTxs = txRepo.observeAll().first()
+                
+                if (resetExisting) {
+                    // Reset all isRecurring flags
+                    for (tx in allTxs.filter { it.isRecurring }) {
+                        txRepo.save(tx.copy(
+                            isRecurring = false,
+                            recurringIntervalDays = 0
+                        ))
+                    }
+                }
+                
+                // Run pattern detection
+                AppLogger.i("SyncSettingsFragment", "Running pattern detection on ${allTxs.size} transactions...")
+                val patterns = RecurringPatternDetector.detectPatterns(allTxs)
+                AppLogger.i("SyncSettingsFragment", "Found ${patterns.size} patterns")
+                
+                if (patterns.isEmpty()) {
+                    Snackbar.make(
+                        requireView(),
+                        "❌ Keine wiederkehrenden Muster gefunden",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                    return@launch
+                }
+                
+                // Show pattern selection dialog
+                RecurringPatternDialog.newInstance(patterns)
+                    .setOnApplyListener { rules ->
+                        AppLogger.i("SyncSettingsFragment", "Saving ${rules.size} recurring rules...")
+                        rules.forEach { rule -> viewModel.saveRecurringRule(rule) }
+                        Snackbar.make(
+                            requireView(),
+                            "✅ ${rules.size} Muster als Regeln gespeichert",
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    }
+                    .setOnDismissListener {
+                        AppLogger.i("SyncSettingsFragment", "Pattern dialog dismissed")
+                    }
+                    .show(childFragmentManager, "RecurringPatternDialog")
+                    
             } catch (e: Exception) {
+                AppLogger.e("SyncSettingsFragment", "runRecurrenceCheck failed", e)
                 Snackbar.make(
                     requireView(),
                     "❌ Fehler: ${e.message}",
