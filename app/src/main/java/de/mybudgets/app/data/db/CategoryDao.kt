@@ -21,6 +21,9 @@ interface CategoryDao {
     @Query("SELECT COUNT(*) FROM categories WHERE isDefault = 1")
     suspend fun countDefaults(): Int
 
+    @Query("SELECT * FROM categories WHERE id = :id")
+    suspend fun getById(id: Long): Category?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(category: Category): Long
 
@@ -28,7 +31,7 @@ interface CategoryDao {
     suspend fun insertAll(categories: List<Category>)
 
     @Update
-    suspend fun update(category: Category)
+    suspend fun update(category: Category): Int
 
     @Delete
     suspend fun delete(category: Category)

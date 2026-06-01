@@ -1,27 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="12dp">
+    android:layout_height="wrap_content">
 
+    <!-- Drop Zone Indicator (shown during drag) -->
     <View
-        android:id="@+id/view_category_color"
-        android:layout_width="8dp"
-        android:layout_height="match_parent"
-        android:layout_marginEnd="12dp" />
+        android:id="@+id/drop_zone_indicator"
+        android:layout_width="0dp"
+        android:layout_height="4dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
 
+    <!-- Drop Feedback Banner (shown above dragged item) -->
     <TextView
-        android:id="@+id/tv_category_name"
+        android:id="@+id/drop_feedback_banner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textAppearance="?attr/textAppearanceTitleSmall" />
+        android:gravity="center"
+        android:padding="4dp"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/drop_zone_indicator"
+        tools:text="✅ Wird Kind von Wohnen"
+        tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/tv_category_level"
-        android:layout_width="wrap_content"
+    <!-- Category Content -->
+    <LinearLayout
+        android:id="@+id/category_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceBodySmall" />
+        android:background="?attr/selectableItemBackground"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/drop_feedback_banner">
 
-</LinearLayout>
+        <View
+            android:id="@+id/view_category_color"
+            android:layout_width="8dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="12dp" />
+
+        <TextView
+            android:id="@+id/tv_category_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            tools:text="Lebensmittel" />
+
+        <TextView
+            android:id="@+id/tv_category_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            tools:text="L2" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

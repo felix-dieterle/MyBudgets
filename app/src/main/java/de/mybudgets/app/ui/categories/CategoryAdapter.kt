@@ -1,16 +1,28 @@
 package de.mybudgets.app.ui.categories
 
+import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import de.mybudgets.app.R
 import de.mybudgets.app.data.model.Category
+import de.mybudgets.app.data.model.DropResult
 import de.mybudgets.app.databinding.ItemCategoryBinding
 
 class CategoryAdapter(
-    private val onClick: (Category) -> Unit
+    private val onClick: (Category) -> Unit,
+    private val onDragFeedback: (source: Category?, target: Category?, result: DropResult?) -> Unit
 ) : ListAdapter<Category, CategoryAdapter.VH>(DIFF) {
+
+    private var isDragging = false
+    private var currentDropTarget: Int? = null
+    private var currentDropResult: DropResult? = null
+    private var draggedItemPosition: Int? = null
 
     inner class VH(val binding: ItemCategoryBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(cat: Category) {
@@ -18,6 +30,33 @@ class CategoryAdapter(
             binding.tvCategoryLevel.text = "L${cat.level}"
             binding.viewCategoryColor.setBackgroundColor(cat.color)
             binding.root.setOnClickListener { onClick(cat) }
+
+            // Indentation based on level
+            val indent = (cat.level - 1) * 32 // 32dp per level
+            binding.root.setPadding(indent, binding.root.paddingTop, binding.root.paddingRight, binding.root.paddingBottom)
+
+            // Make dragged item nearly invisible (alpha 0.3)
+            if (adapterPosition == draggedItemPosition && isDragging) {
+                binding.root.alpha = 0.3f
+            } else {
+                binding.root.alpha = 1f
+            }
+
+            // Target highlighting (no animation for now - might interfere with drag)
+            val isTarget = adapterPosition == currentDropTarget
+            if (isTarget) {
+                binding.categoryContent.elevation = 8f
+                binding.categoryContent.scaleX = 1.05f
+                binding.categoryContent.scaleY = 1.05f
+            } else {
+                binding.categoryContent.elevation = 0f
+                binding.categoryContent.scaleX = 1f
+                binding.categoryContent.scaleY = 1f
+            }
+
+            // Hide item-level feedback (we use top banner now)
+            binding.dropZoneIndicator.isVisible = false
+            binding.dropFeedbackBanner.isVisible = false
         }
     }
 
@@ -25,6 +64,74 @@ class CategoryAdapter(
         VH(ItemCategoryBinding.inflate(LayoutInflater.from(p.context), p, false))
 
     override fun onBindViewHolder(h: VH, pos: Int) = h.bind(getItem(pos))
+
+    fun setDraggingState(dragging: Boolean, draggedPos: Int? = null) {
+        // Set state WITHOUT any UI updates during drag
+        isDragging = dragging
+        draggedItemPosition = draggedPos
+        
+        if (dragging) {
+            // Just store state, NO notify, NO banner update
+            Log.d("CategoryAdapter", "Drag started at pos $draggedPos")
+        } else {
+            // Clear all drag state AFTER drag ends
+            Log.d("CategoryAdapter", "Drag ended")
+            val oldTarget = currentDropTarget
+            val oldDragged = draggedItemPosition
+            currentDropTarget = null
+            currentDropResult = null
+            draggedItemPosition = null
+            
+            // Notify top banner
+            onDragFeedback(null, null, null)
+            
+            // Refresh affected items AFTER drag ends
+            if (oldTarget != null) notifyItemChanged(oldTarget)
+            if (oldDragged != null) notifyItemChanged(oldDragged)
+        }
+    }
+
+
+
+    fun updateDropFeedback(sourcePos: Int, targetPos: Int, result: DropResult) {
+        // Clear previous target
+        val oldTarget = currentDropTarget
+        if (oldTarget != null && oldTarget != targetPos) {
+            notifyItemChanged(oldTarget)
+        }
+        
+        // Haptic feedback on target change
+        if (oldTarget != targetPos) {
+            performTargetChangeHaptic()
+        }
+        
+        // Set new target
+        currentDropTarget = targetPos
+        currentDropResult = result
+        notifyItemChanged(targetPos)
+        
+        // Update top banner
+        val source = currentList.getOrNull(sourcePos)
+        val target = currentList.getOrNull(targetPos)
+        onDragFeedback(source, target, result)
+    }
+
+    fun performSuccessHaptic() {
+        // Will be called from Fragment with View context
+    }
+
+    fun performErrorHaptic() {
+        // Will be called from Fragment with View context
+    }
+
+    private fun performTargetChangeHaptic() {
+        // Light haptic on target change (called from adapter with RecyclerView context)
+        currentList.firstOrNull()?.let {
+            // Note: Needs View for haptic, will work from RecyclerView
+        }
+    }
+
+    fun getCategoryAt(position: Int): Category = currentList[position]
 
     companion object {
         val DIFF = object : DiffUtil.ItemCallback<Category>() {
