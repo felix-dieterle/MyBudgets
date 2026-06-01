@@ -1,6 +1,6 @@
 package de.mybudgets.app.viewmodel
 
-import android.util.Log
+import de.mybudgets.app.util.AppLogger
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,41 +23,43 @@ class CategoryViewModel @Inject constructor(
     fun delete(cat: Category) = viewModelScope.launch { repo.delete(cat) }
 
     fun validateDrop(source: Category, target: Category?): DropResult {
-        Log.d(TAG, "validateDrop: source=${source.name}(L${source.level}), target=${target?.name}(L${target?.level})")
+        AppLogger.e(TAG, "========== validateDrop CALLED ==========")
+        AppLogger.e(TAG, "validateDrop: source=${source.name}(id=${source.id}, L${source.level})")
+        AppLogger.e(TAG, "validateDrop: target=${target?.name}(id=${target?.id}, L${target?.level})")
 
         // 1. Self-drop
         if (source.id == target?.id) {
-            Log.d(TAG, "validateDrop: INVALID - Self-drop")
+            AppLogger.e(TAG, "validateDrop: ❌ INVALID - Self-drop")
             return DropResult.Invalid("Kategorie kann nicht auf sich selbst verschoben werden")
         }
 
         // 2. Circular reference (target ist Kind/Enkel von source)
         if (target != null && isDescendantOf(target, source)) {
-            Log.d(TAG, "validateDrop: INVALID - Circular reference")
+            AppLogger.e(TAG, "validateDrop: ❌ INVALID - Circular reference")
             return DropResult.Invalid("Zirkuläre Referenz verhindert")
         }
 
         // 3. Calculate new level
         val newLevel = if (target == null) 1 else target.level + 1
-        Log.d(TAG, "validateDrop: newLevel=$newLevel")
+        AppLogger.e(TAG, "validateDrop: newLevel=$newLevel")
 
         // 4. Max depth check
         if (newLevel > 3) {
-            Log.d(TAG, "validateDrop: INVALID - Max depth exceeded")
+            AppLogger.e(TAG, "validateDrop: ❌ INVALID - Max depth exceeded (newLevel=$newLevel > 3)")
             return DropResult.Invalid("Maximale Tiefe (Level 3) erreicht")
         }
 
         // 5. Children depth overflow
         val maxChildDepth = getMaxDescendantDepth(source)
-        Log.d(TAG, "validateDrop: maxChildDepth=$maxChildDepth")
+        AppLogger.e(TAG, "validateDrop: maxChildDepth=$maxChildDepth, newLevel+maxChildDepth=${newLevel + maxChildDepth}")
         if (newLevel + maxChildDepth > 3) {
-            Log.d(TAG, "validateDrop: INVALID - Children would be too deep")
+            AppLogger.e(TAG, "validateDrop: ❌ INVALID - Children would be too deep")
             return DropResult.Invalid("Unterkategorien würden zu tief (> Level 3)")
         }
 
         // 6. Warning for max depth (Level 3)
         if (newLevel == 3) {
-            Log.d(TAG, "validateDrop: WARNING - Level 3")
+            AppLogger.e(TAG, "validateDrop: ⚠️ WARNING - Level 3 (Maximum)")
             return DropResult.Warning(
                 "Wird Level 3 (Maximum)",
                 newLevel,
@@ -66,14 +68,45 @@ class CategoryViewModel @Inject constructor(
         }
 
         // 7. Valid drop
-        Log.d(TAG, "validateDrop: VALID")
+        AppLogger.e(TAG, "validateDrop: ✅ VALID - newLevel=$newLevel")
+        AppLogger.e(TAG, "========== validateDrop END ==========")
         return DropResult.Valid(newLevel, target?.name)
     }
 
     fun moveCategory(source: Category, newParentId: Long?) = viewModelScope.launch {
-        Log.d(TAG, "moveCategory: ${source.name} -> parentId=$newParentId")
+        AppLogger.e(TAG, "========== moveCategory CALLED ==========")
+        AppLogger.e(TAG, "moveCategory: source=${source.name}(id=${source.id}, L${source.level}, parent=${source.parentCategoryId})")
+        AppLogger.e(TAG, "moveCategory: newParentId=$newParentId")
+        AppLogger.e(TAG, "moveCategory: Calling repo.moveCategory()...")
+        
         repo.moveCategory(source, newParentId)
-        Log.d(TAG, "moveCategory: Done")
+        
+        AppLogger.e(TAG, "moveCategory: repo.moveCategory() returned, waiting 200ms for DB...")
+        kotlinx.coroutines.delay(200)
+        
+        AppLogger.e(TAG, "moveCategory: Checking all categories from Flow...")
+        val allCats = categories.value
+        AppLogger.e(TAG, "moveCategory: Total categories in Flow: ${allCats.size}")
+        allCats.forEach { cat ->
+            AppLogger.e(TAG, "  📁 ${cat.name} | id=${cat.id} | L${cat.level} | parent=${cat.parentCategoryId}")
+        }
+        
+        // Find source in updated list
+        val updatedSource = allCats.find { it.id == source.id }
+        if (updatedSource != null) {
+            AppLogger.e(TAG, "moveCategory: ✅ Found source in Flow:")
+            AppLogger.e(TAG, "  BEFORE: ${source.name} | L${source.level} | parent=${source.parentCategoryId}")
+            AppLogger.e(TAG, "  AFTER:  ${updatedSource.name} | L${updatedSource.level} | parent=${updatedSource.parentCategoryId}")
+            if (updatedSource.parentCategoryId == newParentId) {
+                AppLogger.e(TAG, "moveCategory: ✅✅✅ UPDATE SUCCESSFUL!")
+            } else {
+                AppLogger.e(TAG, "moveCategory: ❌❌❌ UPDATE FAILED - parentId not changed!")
+            }
+        } else {
+            AppLogger.e(TAG, "moveCategory: ❌ Source not found in Flow!")
+        }
+        
+        AppLogger.e(TAG, "========== moveCategory END ==========")
     }
 
     private fun isDescendantOf(child: Category, ancestor: Category): Boolean {

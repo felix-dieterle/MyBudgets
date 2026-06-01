@@ -3,6 +3,35 @@
 **Projekt:** MyBudgets - Android Budget-Tracking App mit FinTS/HBCI Banking-Integration  
 **Repo:** https://github.com/felix-dieterle/MyBudgets
 
+## Logging (KRITISCH!)
+
+**⚠️ NIEMALS `android.util.Log` verwenden - IMMER `AppLogger` nutzen!**
+
+```kotlin
+// ❌ FALSCH - geht nur nach Logcat, nicht in App-Logs-View
+import android.util.Log
+Log.e(TAG, "message")
+
+// ✅ RICHTIG - geht sowohl nach Logcat als auch in App-Logs-View
+import de.mybudgets.app.util.AppLogger
+AppLogger.e(TAG, "message")
+```
+
+**Warum?** 
+- Die App hat ein Custom-Logging-System (`AppLogger.kt`)
+- Logs werden in In-Memory-Buffer geschrieben (max 3000 Einträge)
+- UI zeigt `AppLogger.entries` via StateFlow
+- `android.util.Log` geht NUR nach Logcat (externe Tools)
+- User kann Logs in der App sehen und via Intent exportieren
+
+**API:**
+- `AppLogger.e(tag, message)` - Error (höchste Priorität)
+- `AppLogger.w(tag, message)` - Warning
+- `AppLogger.i(tag, message)` - Info
+- `AppLogger.d(tag, message)` - Debug
+- `AppLogger.clear()` - Buffer leeren
+- `AppLogger.export()` - Als String für Sharing
+
 ## Coding Standards
 
 **Layer-Regel:** Daten fließen nur abwärts. UI kennt ViewModel, ViewModel kennt Repository, Repository kennt DAO. Keine Layer überspringen.

@@ -1,7 +1,7 @@
 package de.mybudgets.app.ui.categories
 
 import android.os.Bundle
-import android.util.Log
+import de.mybudgets.app.util.AppLogger
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -118,13 +118,16 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun handleDrop(source: de.mybudgets.app.data.model.Category, target: de.mybudgets.app.data.model.Category?) {
-        Log.d(TAG, "handleDrop: ${source.name} -> ${target?.name}")
+        AppLogger.e(TAG, "========== handleDrop CALLED ==========")
+        AppLogger.e(TAG, "handleDrop: source=${source.name}(id=${source.id}, L${source.level}, parent=${source.parentCategoryId})")
+        AppLogger.e(TAG, "handleDrop: target=${target?.name}(id=${target?.id}, L${target?.level})")
         
         val result = vm.validateDrop(source, target)
+        AppLogger.e(TAG, "handleDrop: validation result=${result::class.simpleName}")
 
         when (result) {
             is DropResult.Valid -> {
-                Log.d(TAG, "handleDrop: VALID - executing move")
+                AppLogger.e(TAG, "handleDrop: ✅ VALID - calling vm.moveCategory()")
                 vm.moveCategory(source, target?.id)
                 val message = if (target == null) {
                     "✅ ${source.name} → Top-Level"
@@ -132,17 +135,21 @@ class CategoriesFragment : Fragment() {
                     "✅ ${source.name} → ${target.name}"
                 }
                 Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+                AppLogger.e(TAG, "handleDrop: Snackbar shown: $message")
             }
             is DropResult.Warning -> {
-                Log.d(TAG, "handleDrop: WARNING - executing move with warning")
+                AppLogger.e(TAG, "handleDrop: ⚠️ WARNING - calling vm.moveCategory()")
                 vm.moveCategory(source, target?.id)
                 Snackbar.make(binding.root, "⚠️ ${result.message}", Snackbar.LENGTH_SHORT).show()
+                AppLogger.e(TAG, "handleDrop: Snackbar shown: ${result.message}")
             }
             is DropResult.Invalid -> {
-                Log.d(TAG, "handleDrop: INVALID - not executing")
+                AppLogger.e(TAG, "handleDrop: ❌ INVALID - NOT calling vm.moveCategory()")
                 Snackbar.make(binding.root, "❌ ${result.message}", Snackbar.LENGTH_SHORT).show()
+                AppLogger.e(TAG, "handleDrop: Snackbar shown: ${result.message}")
             }
         }
+        AppLogger.e(TAG, "========== handleDrop END ==========")
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }

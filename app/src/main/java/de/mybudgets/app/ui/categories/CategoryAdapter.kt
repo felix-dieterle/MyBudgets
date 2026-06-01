@@ -1,6 +1,6 @@
 package de.mybudgets.app.ui.categories
 
-import android.util.Log
+import de.mybudgets.app.util.AppLogger
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
@@ -72,10 +72,11 @@ class CategoryAdapter(
         
         if (dragging) {
             // Just store state, NO notify, NO banner update
-            Log.d("CategoryAdapter", "Drag started at pos $draggedPos")
+            AppLogger.e("CategoryAdapter", "========== setDraggingState: DRAG START ==========")
+            AppLogger.e("CategoryAdapter", "setDraggingState: dragging=true, pos=$draggedPos")
         } else {
             // Clear all drag state AFTER drag ends
-            Log.d("CategoryAdapter", "Drag ended")
+            AppLogger.e("CategoryAdapter", "========== setDraggingState: DRAG END ==========")
             val oldTarget = currentDropTarget
             val oldDragged = draggedItemPosition
             currentDropTarget = null
@@ -86,17 +87,26 @@ class CategoryAdapter(
             onDragFeedback(null, null, null)
             
             // Refresh affected items AFTER drag ends
-            if (oldTarget != null) notifyItemChanged(oldTarget)
-            if (oldDragged != null) notifyItemChanged(oldDragged)
+            if (oldTarget != null) {
+                AppLogger.e("CategoryAdapter", "setDraggingState: Refreshing old target pos=$oldTarget")
+                notifyItemChanged(oldTarget)
+            }
+            if (oldDragged != null) {
+                AppLogger.e("CategoryAdapter", "setDraggingState: Refreshing old dragged pos=$oldDragged")
+                notifyItemChanged(oldDragged)
+            }
         }
     }
 
 
 
     fun updateDropFeedback(sourcePos: Int, targetPos: Int, result: DropResult) {
+        AppLogger.e("CategoryAdapter", "updateDropFeedback: sourcePos=$sourcePos, targetPos=$targetPos, result=${result::class.simpleName}")
+        
         // Clear previous target
         val oldTarget = currentDropTarget
         if (oldTarget != null && oldTarget != targetPos) {
+            AppLogger.e("CategoryAdapter", "updateDropFeedback: Clearing old target pos=$oldTarget")
             notifyItemChanged(oldTarget)
         }
         
@@ -108,11 +118,13 @@ class CategoryAdapter(
         // Set new target
         currentDropTarget = targetPos
         currentDropResult = result
+        AppLogger.e("CategoryAdapter", "updateDropFeedback: Refreshing new target pos=$targetPos")
         notifyItemChanged(targetPos)
         
         // Update top banner
         val source = currentList.getOrNull(sourcePos)
         val target = currentList.getOrNull(targetPos)
+        AppLogger.e("CategoryAdapter", "updateDropFeedback: Calling onDragFeedback(${source?.name}, ${target?.name}, ...)")
         onDragFeedback(source, target, result)
     }
 
