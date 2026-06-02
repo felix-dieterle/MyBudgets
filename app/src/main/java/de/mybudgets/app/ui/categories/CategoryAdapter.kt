@@ -16,7 +16,9 @@ import de.mybudgets.app.databinding.ItemCategoryBinding
 
 class CategoryAdapter(
     private val onClick: (Category) -> Unit,
-    private val onDragFeedback: (source: Category?, target: Category?, result: DropResult?) -> Unit
+    private val onLongClick: (Category) -> Boolean,
+    private val onDragFeedback: (source: Category?, target: Category?, result: DropResult?) -> Unit,
+    private val expandedCategories: Set<Long>
 ) : ListAdapter<Category, CategoryAdapter.VH>(DIFF) {
 
     private var isDragging = false
@@ -30,6 +32,17 @@ class CategoryAdapter(
             binding.tvCategoryLevel.text = "L${cat.level}"
             binding.viewCategoryColor.setBackgroundColor(cat.color)
             binding.root.setOnClickListener { onClick(cat) }
+            binding.root.setOnLongClickListener { 
+                if (isDragging) false else onLongClick(cat)
+            }
+
+            // Expand/Collapse arrow for L1 categories
+            if (cat.level == 1) {
+                binding.tvExpandArrow.isVisible = true
+                binding.tvExpandArrow.text = if (expandedCategories.contains(cat.id)) "▼" else "►"
+            } else {
+                binding.tvExpandArrow.isVisible = false
+            }
 
             // Indentation based on level
             val indent = (cat.level - 1) * 32 // 32dp per level

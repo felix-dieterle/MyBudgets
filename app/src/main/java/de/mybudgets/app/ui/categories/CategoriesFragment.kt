@@ -24,6 +24,7 @@ class CategoriesFragment : Fragment() {
     private val vm: CategoryViewModel by viewModels()
     private lateinit var adapter: CategoryAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
+    private val expandedCategories = mutableSetOf<Long>() // Track expanded L1 categories
 
     companion object {
         private const val TAG = "CategoriesFragment"
@@ -38,8 +39,10 @@ class CategoriesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         adapter = CategoryAdapter(
-            onClick = { /* TODO: navigate to edit */ },
-            onDragFeedback = { source, target, result -> updateDragBanner(source, target, result) }
+            onClick = { category -> toggleCategory(category) },
+            onLongClick = { category -> showCategoryMenu(category); true },
+            onDragFeedback = { source, target, result -> updateDragBanner(source, target, result) },
+            expandedCategories = expandedCategories
         )
         binding.rvCategories.adapter = adapter
 
@@ -68,32 +71,11 @@ class CategoriesFragment : Fragment() {
 
     private fun updateDragBanner(source: de.mybudgets.app.data.model.Category?, target: de.mybudgets.app.data.model.Category?, result: DropResult?) {
         if (source == null || result == null) {
-            // Hide banner + restore RecyclerView padding
             binding.dragFeedbackBanner.visibility = android.view.View.GONE
-            binding.rvCategories.setPadding(
-                binding.rvCategories.paddingLeft,
-                resources.getDimensionPixelSize(R.dimen.default_padding),
-                binding.rvCategories.paddingRight,
-                binding.rvCategories.paddingBottom
-            )
             return
         }
 
-        // Show banner + add top padding to RecyclerView
         binding.dragFeedbackBanner.visibility = android.view.View.VISIBLE
-        
-        // Measure banner height and add as padding
-        binding.dragFeedbackBanner.post {
-            val bannerHeight = binding.dragFeedbackBanner.height
-            binding.rvCategories.setPadding(
-                binding.rvCategories.paddingLeft,
-                bannerHeight + resources.getDimensionPixelSize(R.dimen.default_padding),
-                binding.rvCategories.paddingRight,
-                binding.rvCategories.paddingBottom
-            )
-        }
-
-        // Set source
         binding.dragBannerSource.text = "${getCategoryIcon(source)} ${source.name}"
 
         // Set target + icon based on result
@@ -172,6 +154,48 @@ class CategoriesFragment : Fragment() {
         AppLogger.e(TAG, "========== handleDrop END ==========")
     }
 
+    private fun toggleCategory(category: de.mybudgets.app.data.model.Category) {
+        // Only L1 categories can be collapsed
+        if (category.level != 1) return
+        
+        if (expandedCategories.contains(category.id)) {
+            expandedCategories.remove(category.id)
+        } else {
+            expandedCategories.add(category.id)
+        }
+        
+        // Refresh list
+        viewLifecycleOwner.lifecycleScope.launch {
+            val sorted = sortHierarchically(vm.categories.value)
+            adapter.submitList(sorted)
+        }
+    }
+
+    private fun showCategoryMenu(category: de.mybudgets.app.data.model.Category) {
+        val items = arrayOf("Bearbeiten", "Löschen")
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(category.name)
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> { /* TODO: Navigate to edit */ }
+                    1 -> confirmDelete(category)
+                }
+            }
+            .show()
+    }
+
+    private fun confirmDelete(category: de.mybudgets.app.data.model.Category) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Kategorie löschen?")
+            .setMessage("\"${category.name}\" wirklich löschen?\n\nTransaktionen dieser Kategorie werden auf 'Uncategorized' gesetzt.")
+            .setPositiveButton("Löschen") { _, _ ->
+                vm.delete(category)
+                Snackbar.make(binding.root, "✅ Kategorie gelöscht", Snackbar.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Abbrechen", null)
+            .show()
+    }
+
     private fun sortHierarchically(categories: List<de.mybudgets.app.data.model.Category>): List<de.mybudgets.app.data.model.Category> {
         val result = mutableListOf<de.mybudgets.app.data.model.Category>()
         
@@ -180,6 +204,12 @@ class CategoriesFragment : Fragment() {
         
         fun addWithChildren(cat: de.mybudgets.app.data.model.Category) {
             result.add(cat)
+            
+            // Skip children if L1 is collapsed
+            if (cat.level == 1 && !expandedCategories.contains(cat.id)) {
+                return
+            }
+            
             // Find children, sort by name, recurse
             categories.filter { it.parentCategoryId == cat.id }
                 .sortedBy { it.name }

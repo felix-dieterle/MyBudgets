@@ -59,8 +59,12 @@ class CategoryViewModel @Inject constructor(
         val maxChildDepth = getMaxDescendantDepth(source)
         AppLogger.e(TAG, "validateDrop: maxChildDepth=$maxChildDepth, newLevel+maxChildDepth=${newLevel + maxChildDepth}")
         if (newLevel + maxChildDepth > 3) {
-            AppLogger.e(TAG, "validateDrop: ❌ INVALID - Children would be too deep")
-            return DropResult.Invalid("Unterkategorien würden zu tief (> Level 3)")
+            AppLogger.e(TAG, "validateDrop: ⚠️ WARNING - Children overflow, will flatten")
+            return DropResult.Warning(
+                "${source.name} hat tiefe Unterkategorien - werden automatisch angepasst",
+                newLevel,
+                target?.name
+            )
         }
 
         // 7. Warning for max depth (Level 3)
@@ -128,11 +132,18 @@ class CategoryViewModel @Inject constructor(
     private fun getMaxDescendantDepth(category: Category): Int {
         val allCategories = categories.value
         val children = allCategories.filter { it.parentCategoryId == category.id }
+        
+        AppLogger.e(TAG, "getMaxDescendantDepth: category=${category.name}(id=${category.id}, L${category.level})")
+        AppLogger.e(TAG, "getMaxDescendantDepth: found ${children.size} children: ${children.map { "${it.name}(L${it.level})" }}")
+        
         if (children.isEmpty()) return 0
 
-        return children.maxOfOrNull { child ->
+        val maxDepth = children.maxOfOrNull { child ->
             1 + getMaxDescendantDepth(child)
         } ?: 0
+        
+        AppLogger.e(TAG, "getMaxDescendantDepth: ${category.name} → maxDepth=$maxDepth")
+        return maxDepth
     }
 
     companion object {
