@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Drag Feedback Banner (Overlay, z-index above RecyclerView) -->
+    <!-- Drag Feedback Banner (Overlay, z-index above RecyclerView, touch-transparent) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/drag_feedback_banner"
         android:layout_width="match_parent"
@@ -16,6 +16,7 @@
         android:elevation="16dp"
         android:clickable="false"
         android:focusable="false"
+        android:importantForAccessibility="no"
         app:cardCornerRadius="0dp"
         tools:visibility="visible">
 

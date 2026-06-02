@@ -85,16 +85,31 @@ class DashboardViewModel @Inject constructor(
         }
         val filtered = if (cutoff > 0L) txs.filter { it.date >= cutoff } else txs
         val expenses = filtered.filter { it.type == TransactionType.EXPENSE }
-        val byCategory = expenses.groupBy { it.categoryId }
+        
+        // Build category hierarchy: catId -> parentId
+        val categoryMap = cats.associateBy { it.id }
         val labels = cats.associate { it.id to it.name }
+        
+        // Get root category (walk up to level 1)
+        fun getRootCategory(catId: Long?): Long? {
+            if (catId == null) return null
+            var current = categoryMap[catId] ?: return catId
+            while (current.parentCategoryId != null) {
+                current = categoryMap[current.parentCategoryId] ?: return catId
+            }
+            return current.id
+        }
+        
+        // Group expenses by root (L1) category
+        val byRootCategory = expenses.groupBy { getRootCategory(it.categoryId) }
         val total = expenses.sumOf { it.amount }.toFloat().coerceAtLeast(1f)
 
-        val entries = byCategory.entries
+        val entries = byRootCategory.entries
             .sortedByDescending { it.value.sumOf { t -> t.amount } }
-            .map { (catId, txList) ->
+            .map { (rootCatId, txList) ->
                 val sum = txList.sumOf { it.amount }.toFloat()
-                val label = labels[catId] ?: "Sonstige"
-                PieEntry(sum / total * 100f, label, catId?.toInt() ?: 0)
+                val label = labels[rootCatId] ?: "Sonstige"
+                PieEntry(sum / total * 100f, label, rootCatId?.toInt() ?: 0)
             }
         CategoryChartData(entries, labels)
     }.stateIn(viewModelScope, SharingStarted.Lazily, CategoryChartData(emptyList(), emptyMap()))
@@ -135,20 +150,31 @@ class DashboardViewModel @Inject constructor(
         val sorted = monthly.entries.sortedBy { parseMonthLabel(it.key) }
         if (sorted.size < 3) return@combine emptyList()
 
+        val categoryMap = cats.associateBy { it.id }
         val categoryLabels = cats.associate { it.id to it.name }
+        
+        // Get root category (walk up to level 1)
+        fun getRootCategory(catId: Long?): Long? {
+            if (catId == null) return null
+            var current = categoryMap[catId] ?: return catId
+            while (current.parentCategoryId != null) {
+                current = categoryMap[current.parentCategoryId] ?: return catId
+            }
+            return current.id
+        }
         
         // Use at least 6 months for trend analysis (fallback to 3 if not available)
         val historySize = if (sorted.size >= 6) 6 else 3
         val recentMonths = sorted.takeLast(historySize)
         
-        // Calculate trends per category using linear regression
-        val categoryTrends = mutableMapOf<Long?, Pair<Float, Float>>() // catId -> (avg, trend)
+        // Calculate trends per ROOT category using linear regression
+        val categoryTrends = mutableMapOf<Long?, Pair<Float, Float>>() // rootCatId -> (avg, trend)
         
         txs.filter { it.type == TransactionType.EXPENSE }
-            .groupBy { it.categoryId }
-            .forEach { (catId, catTxs) ->
+            .groupBy { getRootCategory(it.categoryId) }
+            .forEach { (rootCatId, catTxs) ->
                 val monthlyAmounts = recentMonths.map { (monthKey, monthTxs) ->
-                    monthTxs.filter { it.categoryId == catId && it.type == TransactionType.EXPENSE }
+                    monthTxs.filter { getRootCategory(it.categoryId) == rootCatId && it.type == TransactionType.EXPENSE }
                         .sumOf { it.amount }.toFloat()
                 }
                 
@@ -167,7 +193,7 @@ class DashboardViewModel @Inject constructor(
                     if (denominator != 0f) numerator / denominator else 0f
                 } else 0f
                 
-                categoryTrends[catId] = Pair(avg, trend)
+                categoryTrends[rootCatId] = Pair(avg, trend)
             }
         
         // Fixed costs (recurring): use simple average (more stable)
@@ -183,13 +209,13 @@ class DashboardViewModel @Inject constructor(
             val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
             val label = monthLabel(nextCal)
             
-            // Apply trend to top categories
+            // Apply trend to top ROOT categories
             val topCategories = categoryTrends.entries
                 .sortedByDescending { it.value.first } // Sort by average
                 .take(5)
-                .associate { (catId, pair) ->
+                .associate { (rootCatId, pair) ->
                     val (avg, trend) = pair
-                    val catName = categoryLabels[catId] ?: "Sonstige"
+                    val catName = categoryLabels[rootCatId] ?: "Sonstige"
                     
                     // Predict: avg + trend * (lastMonthIdx + offset)
                     val predicted = (avg + trend * (lastMonthIdx + offset)).coerceAtLeast(0f)
