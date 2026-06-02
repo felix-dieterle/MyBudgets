@@ -2,4 +2,5 @@
 <resources>
     <dimen name="page_indicator_dot_size">8dp</dimen>
     <dimen name="page_indicator_dot_spacing">4dp</dimen>
+    <dimen name="default_padding">8dp</dimen>
 </resources>

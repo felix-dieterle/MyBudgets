@@ -33,23 +33,29 @@ class CategoryViewModel @Inject constructor(
             return DropResult.Invalid("Kategorie kann nicht auf sich selbst verschoben werden")
         }
 
-        // 2. Circular reference (target ist Kind/Enkel von source)
+        // 2. Already at target (parent unchanged)
+        if (source.parentCategoryId == target?.id) {
+            AppLogger.e(TAG, "validateDrop: ❌ INVALID - Already child of target")
+            return DropResult.Invalid("Kategorie ist bereits hier")
+        }
+
+        // 3. Circular reference (target ist Kind/Enkel von source)
         if (target != null && isDescendantOf(target, source)) {
             AppLogger.e(TAG, "validateDrop: ❌ INVALID - Circular reference")
             return DropResult.Invalid("Zirkuläre Referenz verhindert")
         }
 
-        // 3. Calculate new level
+        // 4. Calculate new level
         val newLevel = if (target == null) 1 else target.level + 1
         AppLogger.e(TAG, "validateDrop: newLevel=$newLevel")
 
-        // 4. Max depth check
+        // 5. Max depth check
         if (newLevel > 3) {
             AppLogger.e(TAG, "validateDrop: ❌ INVALID - Max depth exceeded (newLevel=$newLevel > 3)")
             return DropResult.Invalid("Maximale Tiefe (Level 3) erreicht")
         }
 
-        // 5. Children depth overflow
+        // 6. Children depth overflow
         val maxChildDepth = getMaxDescendantDepth(source)
         AppLogger.e(TAG, "validateDrop: maxChildDepth=$maxChildDepth, newLevel+maxChildDepth=${newLevel + maxChildDepth}")
         if (newLevel + maxChildDepth > 3) {
@@ -57,7 +63,7 @@ class CategoryViewModel @Inject constructor(
             return DropResult.Invalid("Unterkategorien würden zu tief (> Level 3)")
         }
 
-        // 6. Warning for max depth (Level 3)
+        // 7. Warning for max depth (Level 3)
         if (newLevel == 3) {
             AppLogger.e(TAG, "validateDrop: ⚠️ WARNING - Level 3 (Maximum)")
             return DropResult.Warning(
@@ -67,7 +73,7 @@ class CategoryViewModel @Inject constructor(
             )
         }
 
-        // 7. Valid drop
+        // 8. Valid drop
         AppLogger.e(TAG, "validateDrop: ✅ VALID - newLevel=$newLevel")
         AppLogger.e(TAG, "========== validateDrop END ==========")
         return DropResult.Valid(newLevel, target?.name)

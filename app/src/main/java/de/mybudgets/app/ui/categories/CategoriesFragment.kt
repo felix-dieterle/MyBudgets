@@ -58,20 +58,40 @@ class CategoriesFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.categories.collect { adapter.submitList(it) }
+                vm.categories.collect { categories ->
+                    val sorted = sortHierarchically(categories)
+                    adapter.submitList(sorted)
+                }
             }
         }
     }
 
     private fun updateDragBanner(source: de.mybudgets.app.data.model.Category?, target: de.mybudgets.app.data.model.Category?, result: DropResult?) {
         if (source == null || result == null) {
-            // Hide banner
+            // Hide banner + restore RecyclerView padding
             binding.dragFeedbackBanner.visibility = android.view.View.GONE
+            binding.rvCategories.setPadding(
+                binding.rvCategories.paddingLeft,
+                resources.getDimensionPixelSize(R.dimen.default_padding),
+                binding.rvCategories.paddingRight,
+                binding.rvCategories.paddingBottom
+            )
             return
         }
 
-        // Show banner
+        // Show banner + add top padding to RecyclerView
         binding.dragFeedbackBanner.visibility = android.view.View.VISIBLE
+        
+        // Measure banner height and add as padding
+        binding.dragFeedbackBanner.post {
+            val bannerHeight = binding.dragFeedbackBanner.height
+            binding.rvCategories.setPadding(
+                binding.rvCategories.paddingLeft,
+                bannerHeight + resources.getDimensionPixelSize(R.dimen.default_padding),
+                binding.rvCategories.paddingRight,
+                binding.rvCategories.paddingBottom
+            )
+        }
 
         // Set source
         binding.dragBannerSource.text = "${getCategoryIcon(source)} ${source.name}"
@@ -150,6 +170,24 @@ class CategoriesFragment : Fragment() {
             }
         }
         AppLogger.e(TAG, "========== handleDrop END ==========")
+    }
+
+    private fun sortHierarchically(categories: List<de.mybudgets.app.data.model.Category>): List<de.mybudgets.app.data.model.Category> {
+        val result = mutableListOf<de.mybudgets.app.data.model.Category>()
+        
+        // Start with L1 (no parent), sorted by name
+        val topLevel = categories.filter { it.parentCategoryId == null }.sortedBy { it.name }
+        
+        fun addWithChildren(cat: de.mybudgets.app.data.model.Category) {
+            result.add(cat)
+            // Find children, sort by name, recurse
+            categories.filter { it.parentCategoryId == cat.id }
+                .sortedBy { it.name }
+                .forEach { addWithChildren(it) }
+        }
+        
+        topLevel.forEach { addWithChildren(it) }
+        return result
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
