@@ -4,11 +4,12 @@ package de.mybudgets.app.util
  * Utility für Category Pattern Matching.
  * 
  * TEXT-Pattern: Alle Keywords (mit | getrennt) müssen in der Beschreibung vorkommen (AND-Logik).
- * Satzzeichen werden entfernt: , . : ; / \ ( )
+ * Satzzeichen (,.:;/\()[]{}·) werden durch Leerzeichen ersetzt (nicht entfernt!).
  * 
  * Beispiel:
  * - Pattern "EDEKA|Lebensmittel" → TX muss BEIDE Wörter enthalten
  * - TX "Einkauf bei EDEKA Lebensmittel" → ✅ Match
+ * - TX "edeka.de einkauf" → normalizeText → "edeka de einkauf" → ✅ enthält "edeka"
  * - TX "EDEKA Abteilung" → ❌ Kein Match (fehlt "Lebensmittel")
  */
 object PatternMatcher {
@@ -16,11 +17,14 @@ object PatternMatcher {
     private val PUNCTUATION_REGEX = Regex("[,.:;/\\\\()\\[\\]{}]")
     
     /**
-     * Normalisiert einen Text: Entfernt Satzzeichen, konvertiert zu Lowercase, trimmt.
+     * Normalisiert einen Text: Ersetzt Satzzeichen durch Leerzeichen, konvertiert zu Lowercase, trimmt.
+     * 
+     * WICHTIG: Satzzeichen werden durch Leerzeichen ersetzt, nicht entfernt!
+     * Grund: "edeka.de|einkauf" darf nicht zu "edekadeeinkauf" werden
      */
     fun normalizeText(text: String): String {
         return text
-            .replace(PUNCTUATION_REGEX, "")
+            .replace(PUNCTUATION_REGEX, " ")  // Satzzeichen → Leerzeichen (nicht entfernen!)
             .trim()
             .lowercase()
     }
