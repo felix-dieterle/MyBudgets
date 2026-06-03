@@ -42,6 +42,7 @@ class CategoriesFragment : Fragment() {
             onClick = { category -> toggleCategory(category) },
             onLongClick = { category -> showCategoryMenu(category); true },
             onDragFeedback = { source, target, result -> updateDragBanner(source, target, result) },
+            onEditClick = { category -> showColorIconPicker(category) },
             expandedCategories = expandedCategories
         )
         binding.rvCategories.adapter = adapter
@@ -172,15 +173,57 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun showCategoryMenu(category: de.mybudgets.app.data.model.Category) {
-        val items = arrayOf("Bearbeiten", "Löschen")
+        val items = arrayOf("Farbe/Icon", "Bearbeiten", "Löschen")
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle(category.name)
             .setItems(items) { _, which ->
                 when (which) {
-                    0 -> { /* TODO: Navigate to edit */ }
-                    1 -> confirmDelete(category)
+                    0 -> showColorIconPicker(category)
+                    1 -> { /* TODO: Navigate to edit */ }
+                    2 -> confirmDelete(category)
                 }
             }
+            .show()
+    }
+
+    private fun showColorIconPicker(category: de.mybudgets.app.data.model.Category) {
+        // Check if category has children
+        val allCategories = vm.categories.value
+        val hasChildren = allCategories.any { it.parentCategoryId == category.id }
+        
+        CategoryColorIconPickerDialogFragment.newInstance(category)
+            .apply {
+                setOnSaveListener { color, icon ->
+                    if (hasChildren) {
+                        // Ask if user wants to apply to children too
+                        askApplyToChildren(category, color, icon, allCategories)
+                    } else {
+                        vm.updateCategoryColorIcon(category.id, color, icon)
+                        Snackbar.make(binding.root, "✅ Kategorie aktualisiert", Snackbar.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .show(childFragmentManager, "ColorIconPicker")
+    }
+    
+    private fun askApplyToChildren(
+        category: de.mybudgets.app.data.model.Category,
+        color: Int,
+        icon: String,
+        allCategories: List<de.mybudgets.app.data.model.Category>
+    ) {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Auf Unterkategorien anwenden?")
+            .setMessage("Soll die Farbe/Icon auch auf alle Unterkategorien von \"${category.name}\" angewendet werden?")
+            .setPositiveButton("Ja, alle") { _, _ ->
+                vm.updateCategoryAndChildren(category.id, color, icon, allCategories)
+                Snackbar.make(binding.root, "✅ Kategorie und Unterkategorien aktualisiert", Snackbar.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Nur diese") { _, _ ->
+                vm.updateCategoryColorIcon(category.id, color, icon)
+                Snackbar.make(binding.root, "✅ Kategorie aktualisiert", Snackbar.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Abbrechen", null)
             .show()
     }
 

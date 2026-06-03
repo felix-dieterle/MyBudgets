@@ -73,8 +73,20 @@
             android:id="@+id/tv_category_level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:textAppearance="?attr/textAppearanceBodySmall"
             tools:text="L2" />
+
+        <ImageButton
+            android:id="@+id/btn_edit_category"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_edit"
+            android:contentDescription="Edit"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:tint="?android:attr/textColorSecondary"
+            android:padding="2dp" />
 
     </LinearLayout>
 

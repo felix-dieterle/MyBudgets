@@ -9,14 +9,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.R
+import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.databinding.FragmentTransactionsBinding
 import de.mybudgets.app.util.DateFormatter
 import de.mybudgets.app.viewmodel.TransactionViewModel
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class TransactionsFragment : Fragment() {
@@ -25,6 +29,8 @@ class TransactionsFragment : Fragment() {
     private val binding get() = _binding!!
     private val vm: TransactionViewModel by viewModels()
     private lateinit var adapter: TransactionAdapter
+
+    @Inject lateinit var categoryRepository: CategoryRepository
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, s: Bundle?): View {
         _binding = FragmentTransactionsBinding.inflate(inflater, container, false)
@@ -78,6 +84,14 @@ class TransactionsFragment : Fragment() {
             binding.etSearch.setText("")
         }
 
+        binding.btnSelectCategories.setOnClickListener {
+            showCategoryFilterDialog()
+        }
+
+        binding.chipUncategorized.setOnCheckedChangeListener { _, isChecked ->
+            vm.setShowUncategorizedOnly(isChecked)
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -127,6 +141,29 @@ class TransactionsFragment : Fragment() {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         override fun afterTextChanged(s: Editable?) { onChange(s?.toString() ?: "") }
+    }
+
+    private fun showCategoryFilterDialog() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val allCategories = try {
+                categoryRepository.observeAll().first()
+            } catch (e: Exception) {
+                emptyList()
+            }
+
+            if (allCategories.isEmpty()) {
+                return@launch
+            }
+
+            CategoryFilterDialogFragment.newInstance(allCategories, vm.selectedCategoryIds.value)
+                .apply {
+                    setOnSaveListener { selectedIds ->
+                        vm.setSelectedCategories(selectedIds)
+                        binding.btnSelectCategories.text = "${selectedIds.size} gewählt"
+                    }
+                }
+                .show(childFragmentManager, "CategoryFilter")
+        }
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }

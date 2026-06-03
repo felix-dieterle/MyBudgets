@@ -9,6 +9,7 @@ import de.mybudgets.app.data.model.DropResult
 import de.mybudgets.app.data.repository.CategoryRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,6 +22,47 @@ class CategoryViewModel @Inject constructor(
 
     fun save(cat: Category) = viewModelScope.launch { repo.save(cat) }
     fun delete(cat: Category) = viewModelScope.launch { repo.delete(cat) }
+    
+    fun updateCategoryColorIcon(categoryId: Long, color: Int, icon: String) {
+        viewModelScope.launch {
+            val cat = try {
+                repo.observeAll().first()
+            } catch (e: Exception) {
+                emptyList()
+            }.find { it.id == categoryId } ?: return@launch
+            repo.save(cat.copy(color = color, icon = icon))
+            AppLogger.e(TAG, "updateCategoryColorIcon: Updated ${cat.name} - color=${String.format("%08X", color)}, icon=$icon")
+        }
+    }
+    
+    fun updateCategoryAndChildren(categoryId: Long, color: Int, icon: String, allCategories: List<Category>) {
+        viewModelScope.launch {
+            val childIds = getChildrenRecursive(categoryId, allCategories)
+            val idsToUpdate = listOf(categoryId) + childIds
+            
+            val cats = try {
+                repo.observeAll().first()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            
+            idsToUpdate.forEach { id ->
+                val cat = cats.find { it.id == id } ?: return@forEach
+                repo.save(cat.copy(color = color, icon = icon))
+                AppLogger.e(TAG, "updateCategoryAndChildren: Updated ${cat.name} (id=$id)")
+            }
+        }
+    }
+    
+    private fun getChildrenRecursive(parentId: Long, allCategories: List<Category>): List<Long> {
+        val result = mutableListOf<Long>()
+        val children = allCategories.filter { it.parentCategoryId == parentId }
+        for (child in children) {
+            result.add(child.id)
+            result.addAll(getChildrenRecursive(child.id, allCategories))
+        }
+        return result
+    }
 
     fun validateDrop(source: Category, target: Category?): DropResult {
         AppLogger.e(TAG, "========== validateDrop CALLED ==========")

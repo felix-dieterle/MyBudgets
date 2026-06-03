@@ -18,6 +18,7 @@ class CategoryAdapter(
     private val onClick: (Category) -> Unit,
     private val onLongClick: (Category) -> Boolean,
     private val onDragFeedback: (source: Category?, target: Category?, result: DropResult?) -> Unit,
+    private val onEditClick: (Category) -> Unit,
     private val expandedCategories: Set<Long>
 ) : ListAdapter<Category, CategoryAdapter.VH>(DIFF) {
 
@@ -35,6 +36,7 @@ class CategoryAdapter(
             binding.root.setOnLongClickListener { 
                 if (isDragging) false else onLongClick(cat)
             }
+            binding.btnEditCategory.setOnClickListener { onEditClick(cat) }
 
             // Expand/Collapse arrow for L1 categories
             if (cat.level == 1) {

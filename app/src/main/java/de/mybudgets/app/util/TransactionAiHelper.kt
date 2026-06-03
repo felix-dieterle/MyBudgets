@@ -34,7 +34,7 @@ object TransactionAiHelper {
 
         if (byHistory != null) return byHistory
 
-        return PatternMatcher.match(description, patternCategories)
+        return null
     }
 
     fun inferRecurringIntervalDays(

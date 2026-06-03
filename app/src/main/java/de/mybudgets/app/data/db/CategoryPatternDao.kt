@@ -36,14 +36,8 @@ interface CategoryPatternDao {
     @Query("SELECT * FROM category_patterns WHERE patternType = 'IBAN' AND patternValue = :iban")
     suspend fun getByIban(iban: String): CategoryPattern?
 
-    @Query("""
-        SELECT * FROM category_patterns 
-        WHERE patternType = 'TEXT' 
-        AND :usageText LIKE '%' || patternValue || '%'
-        ORDER BY confidence DESC, LENGTH(patternValue) DESC
-        LIMIT 1
-    """)
-    suspend fun findTextMatch(usageText: String): CategoryPattern?
+    @Query("SELECT * FROM category_patterns WHERE patternType = :type ORDER BY confidence DESC, usageCount DESC")
+    suspend fun getAllByType(type: String): List<CategoryPattern>
 
     @Query("UPDATE category_patterns SET usageCount = usageCount + 1, lastUsed = :timestamp WHERE id = :id")
     suspend fun incrementUsage(id: Long, timestamp: Long = System.currentTimeMillis())

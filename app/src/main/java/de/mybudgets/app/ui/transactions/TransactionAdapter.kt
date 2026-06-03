@@ -39,7 +39,15 @@ class TransactionAdapter(
             }
 
             if (item.category != null) {
-                binding.tvCategory.text = "${item.category.icon} ${item.category.name}"
+                val category = item.category
+                // Show emoji icon if not default, otherwise show colored dot
+                if (category.icon != "ic_category" && category.icon != "📦") {
+                    binding.tvCategory.text = "${category.icon} ${category.name}"
+                } else {
+                    // Show colored dot instead of default icon
+                    binding.tvCategory.text = "● ${category.name}"
+                    binding.tvCategory.setTextColor(category.color)
+                }
                 binding.tvCategory.visibility = View.VISIBLE
             } else {
                 binding.tvCategory.visibility = View.GONE

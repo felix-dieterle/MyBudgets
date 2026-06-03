@@ -29,16 +29,27 @@ class TransactionViewModel @Inject constructor(
     private val _dateTo = MutableStateFlow(0L)
     private val _amountMin = MutableStateFlow<Double?>(null)
     private val _amountMax = MutableStateFlow<Double?>(null)
+    private val _selectedCategoryIds = MutableStateFlow<Set<Long>>(emptySet())
+    private val _showUncategorizedOnly = MutableStateFlow(false)
 
     val dateFrom: StateFlow<Long> = _dateFrom
     val dateTo: StateFlow<Long> = _dateTo
     val amountMin: StateFlow<Double?> = _amountMin
     val amountMax: StateFlow<Double?> = _amountMax
+    val selectedCategoryIds: StateFlow<Set<Long>> = _selectedCategoryIds
+    val showUncategorizedOnly: StateFlow<Boolean> = _showUncategorizedOnly
 
     fun setDateFrom(millis: Long) { _dateFrom.value = millis }
     fun setDateTo(millis: Long) { _dateTo.value = millis }
     fun setAmountMin(v: Double?) { _amountMin.value = v }
     fun setAmountMax(v: Double?) { _amountMax.value = v }
+    fun setSelectedCategories(ids: Set<Long>) { _selectedCategoryIds.value = ids }
+    fun setShowUncategorizedOnly(show: Boolean) { _showUncategorizedOnly.value = show }
+    fun toggleCategory(id: Long) {
+        val current = _selectedCategoryIds.value.toMutableSet()
+        if (current.contains(id)) current.remove(id) else current.add(id)
+        _selectedCategoryIds.value = current
+    }
 
     fun clearFilters() {
         _searchQuery.value = ""
@@ -46,6 +57,8 @@ class TransactionViewModel @Inject constructor(
         _dateTo.value = 0L
         _amountMin.value = null
         _amountMax.value = null
+        _selectedCategoryIds.value = emptySet()
+        _showUncategorizedOnly.value = false
     }
 
     val hasActiveFilters: Boolean get() =
@@ -69,13 +82,35 @@ class TransactionViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val searchedTransactions = combine(
-        textFiltered, _dateFrom, _dateTo, _amountMin, _amountMax
-    ) { list: List<TransactionWithCategory>, df: Long, dt: Long, amin: Double?, amax: Double? ->
-        list.filter { (tx, _) ->
-            (df <= 0L || tx.date >= df) &&
-            (dt <= 0L || tx.date <= dt) &&
-            (amin == null || kotlin.math.abs(tx.amount) >= amin) &&
-            (amax == null || kotlin.math.abs(tx.amount) <= amax)
+        textFiltered, _dateFrom, _dateTo, _amountMin, _amountMax, _selectedCategoryIds, _showUncategorizedOnly, transactionsWithCategory
+    ) { flows: Array<*> ->
+        @Suppress("UNCHECKED_CAST")
+        val list = flows[0] as List<TransactionWithCategory>
+        val df = flows[1] as Long
+        val dt = flows[2] as Long
+        val amin = flows[3] as Double?
+        val amax = flows[4] as Double?
+        val catIds = flows[5] as Set<Long>
+        val uncatOnly = flows[6] as Boolean
+        val allTxWithCat = flows[7] as List<TransactionWithCategory>
+        
+        // Build set of all categories and their children
+        val allCategories = allTxWithCat.mapNotNull { it.category }.distinctBy { it.id }
+        val selectedCatsWithChildren = mutableSetOf<Long>()
+        catIds.forEach { catId ->
+            selectedCatsWithChildren.add(catId)
+            selectedCatsWithChildren.addAll(getChildrenRecursive(catId, allCategories))
+        }
+        
+        list.filter { (tx, cat) ->
+            val dateOk = (df <= 0L || tx.date >= df) && (dt <= 0L || tx.date <= dt)
+            val amountOk = (amin == null || kotlin.math.abs(tx.amount) >= amin) && (amax == null || kotlin.math.abs(tx.amount) <= amax)
+            val categoryOk = when {
+                uncatOnly -> tx.categoryId == null
+                catIds.isEmpty() -> true
+                else -> tx.categoryId in selectedCatsWithChildren
+            }
+            dateOk && amountOk && categoryOk
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -84,4 +119,14 @@ class TransactionViewModel @Inject constructor(
 
     fun save(tx: Transaction) = viewModelScope.launch { repo.save(tx) }
     fun delete(tx: Transaction) = viewModelScope.launch { repo.delete(tx) }
+    
+    private fun getChildrenRecursive(parentId: Long, allCategories: List<de.mybudgets.app.data.model.Category>): List<Long> {
+        val result = mutableListOf<Long>()
+        val children = allCategories.filter { it.parentCategoryId == parentId }
+        for (child in children) {
+            result.add(child.id)
+            result.addAll(getChildrenRecursive(child.id, allCategories))
+        }
+        return result
+    }
 }

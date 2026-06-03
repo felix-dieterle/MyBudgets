@@ -2,6 +2,7 @@ package de.mybudgets.app.data.repository
 
 import de.mybudgets.app.data.db.CategoryPatternDao
 import de.mybudgets.app.data.model.CategoryPattern
+import de.mybudgets.app.util.PatternMatcher
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,7 +21,18 @@ class CategoryPatternRepository @Inject constructor(
 
     suspend fun delete(pattern: CategoryPattern) = dao.delete(pattern)
 
-    suspend fun findTextMatch(usageText: String): CategoryPattern? = dao.findTextMatch(usageText)
+    /**
+     * Findet das beste matching TEXT-Pattern für einen gegebenen Text.
+     * Verwendet PatternMatcher für korrekte Keyword-Logik (AND, nicht LIKE).
+     */
+    suspend fun findTextMatch(description: String, note: String): CategoryPattern? {
+        val allPatterns = dao.getAllByType("TEXT")
+        return allPatterns
+            .filter { PatternMatcher.matchTextPattern(it.patternValue, description, note) }
+            .sortedWith(compareBy({ -it.confidence }, { -it.usageCount }))
+            .firstOrNull()
+    }
 
     suspend fun incrementUsage(id: Long) = dao.incrementUsage(id)
 }
+

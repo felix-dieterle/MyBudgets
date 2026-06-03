@@ -215,16 +215,7 @@ class TransactionDetailFragment : Fragment() {
         patternValue: String
     ): List<Transaction> {
         return allTxs.filter { tx ->
-            when (patternType) {
-                "IBAN" -> tx.note.contains(patternValue, ignoreCase = true)
-                "TEXT" -> {
-                    val keywords = patternValue.split("|")
-                    keywords.any { keyword ->
-                        tx.description.contains(keyword, ignoreCase = true)
-                    }
-                }
-                else -> false
-            }
+            de.mybudgets.app.util.PatternMatcher.matches(patternType, patternValue, tx.description, tx.note)
         }
     }
     

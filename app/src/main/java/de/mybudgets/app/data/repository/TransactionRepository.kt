@@ -74,7 +74,7 @@ class TransactionRepository @Inject constructor(
         } else transaction
 
         val patternMatched = if (withVirtualMapping.categoryId == null && withVirtualMapping.description.isNotBlank()) {
-            categoryPatternRepository.findTextMatch(withVirtualMapping.description)?.let { pattern ->
+            categoryPatternRepository.findTextMatch(withVirtualMapping.description, withVirtualMapping.note)?.let { pattern ->
                 patternMatchedId = pattern.id
                 withVirtualMapping.copy(categoryId = pattern.categoryId)
             } ?: withVirtualMapping
