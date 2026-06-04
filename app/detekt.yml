@@ -1,0 +1,471 @@
+---
+build:
+  maxIssues: 100
+  excludeCorrectable: false
+  ignoreFailures: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+  checkBuildUponDefaultConfig: true
+
+console-reports:
+  active: true
+  exclude:
+    - 'ProjectStatisticsReport'
+    - 'MetricsReport'
+    - 'ComplexityReport'
+
+output-reports:
+  active: true
+  exclude: []
+  include:
+    - 'HtmlReport'
+
+rules:
+  active: true
+  
+  style:
+    active: true
+    MaxLineLength:
+      active: true
+      maxLineLength: 120
+      excludePackageStatements: false
+      excludeImportStatements: false
+      excludeCommentStatements: false
+    MagicNumber:
+      active: true
+      ignoreNumbers:
+        - '-1'
+        - '0'
+        - '1'
+        - '2'
+        - '3'
+        - '24'
+        - '16'
+        - '3000'
+        - '689'
+        - '150'
+      ignoreHashCodeFunction: true
+      ignoreEnums: true
+      ignoreRanges: false
+      ignoreConstantDeclaration: false
+      ignorePropertyDeclaration: false
+      ignoreLocalVariableDeclaration: false
+      ignoreAnnotationParameter: true
+    NamingRules:
+      active: true
+      FunctionNaming:
+        active: true
+        functionPattern: '^([a-z$_][a-zA-Z$_0-9]*)|(`.*`)$'
+      FunctionMaxLength:
+        active: false
+      FunctionMinLength:
+        active: false
+      VariableNaming:
+        active: true
+        variablePattern: '^(_)?[a-z$_][a-zA-Z$_0-9]*$'
+      PrivatePropertyNaming:
+        active: true
+        privatePropertyPattern: '^(_)?[a-z$_][a-zA-Z$_0-9]*$'
+      ConstantNaming:
+        active: true
+        constantPattern: '^([A-Z_][A-Z0-9_]*|`.*`)$'
+      EnumEntryNaming:
+        active: true
+        enumEntryPattern: '^([A-Z_][A-Z0-9_]*|`.*`)$'
+      MatchingDeclarationName:
+        active: true
+    UnusedImports:
+      active: true
+    UnusedVariable:
+      active: true
+    UnusedPrivateMember:
+      active: true
+      allowedNames: '(_|ignored|unused)'
+    ExpressionBodySyntax:
+      active: true
+      includeLineWrapping: false
+    NestedClassesVisibility:
+      active: true
+    RedundantExplicitType:
+      active: true
+    RedundantHigherOrderMapUsage:
+      active: true
+    RedundantVisibilityModifierRule:
+      active: true
+    SerialVersionUIDInSerializableClass:
+      active: true
+    SpacingBetweenPackageAndImports:
+      active: true
+    WildcardImport:
+      active: true
+      excludeImports:
+        - 'java.util.*'
+        - 'kotlinx.android.synthetic.*'
+  
+  complexity:
+    active: true
+    ComplexInterface:
+      active: false
+      threshold: 21
+      includeStaticDeclarations: false
+      includePrivateDeclarations: false
+    ComplexMethod:
+      active: true
+      threshold: 15
+      ignoreSingleWhenExpression: true
+      ignoreNestingFunctions: false
+      nestingFunctionBody: 1
+    CyclomaticComplexMethod:
+      active: false
+    LongMethod:
+      active: true
+      threshold: 50
+    LongParameterList:
+      active: true
+      functionThreshold: 6
+      constructorThreshold: 7
+      ignoreDefaultParameters: false
+      ignoreDataClasses: true
+      ignoreAnnotatedParameter: []
+    MethodOverloading:
+      active: true
+      threshold: 6
+    NamedArguments:
+      active: false
+      threshold: 3
+    NestedBlockDepth:
+      active: true
+      threshold: 4
+    ReplaceSafeCallChainWithRun:
+      active: true
+    StringLiteralDuplication:
+      active: true
+      excludeStrings:
+        - 'TAG'
+      threshold: 3
+      ignoreAnnotation: true
+      excludeStringsWithLessThan5Characters: true
+      excludeStringsWithSimilarLength: false
+      similarLength: 5
+    TooManyFunctions:
+      active: true
+      thresholdInClasses: 15
+      thresholdInInterfaces: 15
+      thresholdInEnums: 11
+      thresholdInAnnotations: 6
+      thresholdInObjects: 15
+      ignoreDeprecated: false
+      ignorePrivate: false
+      ignoreOverridden: false
+  
+  coroutines:
+    active: true
+    GlobalCoroutineUsage:
+      active: true
+    RedundantSuspendModifier:
+      active: true
+    SuspendFunSwallowsCancellation:
+      active: true
+    SuspendFunWithFlowReturnType:
+      active: true
+  
+  empty-blocks:
+    active: true
+    EmptyCatchBlock:
+      active: true
+      allowedExceptionNameRegex: '_|(ignore|expected)'
+    EmptyClassBody:
+      active: true
+    EmptyDefaultConstructor:
+      active: true
+    EmptyDoWhileBlock:
+      active: true
+    EmptyElseBlock:
+      active: true
+    EmptyFinallyBlock:
+      active: true
+    EmptyForBlock:
+      active: true
+    EmptyFunctionBody:
+      active: true
+    EmptyIfBlock:
+      active: true
+    EmptyInitBlock:
+      active: true
+    EmptyKtFile:
+      active: true
+    EmptySecondaryConstructor:
+      active: true
+    EmptyWhenBlock:
+      active: true
+  
+  exceptions:
+    active: true
+    ExceptionRaisedInUnexpectedLocation:
+      active: true
+      methodNames:
+        - 'toString'
+        - 'hashCode'
+        - 'equals'
+        - 'finalize'
+    InstanceOfCheckForException:
+      active: true
+    NotImplementedDeclaration:
+      active: true
+    ObjectExtendsThrowable:
+      active: true
+    PrintStacktrace:
+      active: true
+    RethrowCaughtException:
+      active: true
+    ReturnFromFinally:
+      active: true
+      ignoreLabeled: false
+    SwallowedException:
+      active: true
+      ignoredExceptionTypes:
+        - 'InterruptedException'
+        - 'NumberFormatException'
+        - 'ParseException'
+        - 'MalformedURLException'
+      allowedExceptionNameRegex: '_|(ignore|expected)'
+    ThrowingExceptionFromFinally:
+      active: true
+    ThrowingExceptionInMain:
+      active: true
+    ThrowingNewInstanceOfSameException:
+      active: true
+    TooGenericExceptionCaught:
+      active: true
+      exceptionNames:
+        - 'ArrayIndexOutOfBoundsException'
+        - 'Error'
+        - 'Exception'
+        - 'IllegalMonitorStateException'
+        - 'NullPointerException'
+        - 'RuntimeException'
+        - 'Throwable'
+      allowedExceptionNameRegex: '_|(ignore|expected)'
+    TooGenericExceptionThrown:
+      active: true
+      exceptionNames:
+        - 'Error'
+        - 'Exception'
+        - 'Throwable'
+        - 'RuntimeException'
+  
+  potential-bugs:
+    active: true
+    AvoidReferringToAnotherPackageInDocumentation:
+      active: false
+      excludedPackages: []
+    CastToNullableType:
+      active: true
+    Deprecation:
+      active: false
+    DontDowncastCollectionTypes:
+      active: true
+    DuplicateCaseInWhenExpression:
+      active: true
+    EqualsAlwaysReturnsFalseOrTrue:
+      active: true
+    EqualsWithHashCodeExist:
+      active: true
+    ExplicitGarbageCollectionCall:
+      active: true
+    HasPlatformType:
+      active: true
+    ImplicitDefaultLocale:
+      active: true
+    InvalidRange:
+      active: true
+    IteratorHasNextCallsNextMethod:
+      active: true
+    IteratorNotThrowingNoSuchElementException:
+      active: true
+    LateinitUsage:
+      active: true
+      excludeAnnotatedProperties:
+        - 'Inject'
+        - 'Assisted'
+      ignoreOnClassesPattern: ''
+    MapGetWithNotNullAssertionOperator:
+      active: true
+    MissingDependencyClass:
+      active: false
+      excludedClasses:
+        - 'java.awt.*'
+    MissingPackageDeclaration:
+      active: false
+      excludedClasses: []
+    NullCheckOnMutableProperty:
+      active: true
+    NullPointerException:
+      active: true
+    RedundantElseInWhen:
+      active: true
+    UnnecessaryNotNullOperator:
+      active: true
+    UnnecessarySafeCallOperator:
+      active: true
+    UnreachableCode:
+      active: true
+    UnsafeCallOnNullableType:
+      active: true
+    UnsafeCast:
+      active: true
+    UselessPostfixExpression:
+      active: true
+    WhenExpressionOnNullableType:
+      active: true
+
+  performance:
+    active: true
+    ArrayPrimitive:
+      active: true
+    ForEachOnRange:
+      active: true
+      excludedTypes:
+        - 'kotlin.ranges.IntRange'
+        - 'kotlin.ranges.LongRange'
+        - 'kotlin.ranges.CharRange'
+    SpreadOperator:
+      active: true
+      excludedFunctions:
+        - 'kotlin.arrayOf'
+        - 'kotlin.arrayOfNulls'
+        - 'kotlin.emptyArray'
+        - 'java.util.Arrays.asList'
+    UnnecessaryPartOfBinaryExpression:
+      active: true
+    UnnecessaryTemporaryInstantiation:
+      active: true
+
+  readability:
+    active: true
+    ClassOrdering:
+      active: true
+    CommentOverPrivateFunction:
+      active: false
+    CommentOverPrivateProperty:
+      active: false
+    FunctionOnlyReturningConstant:
+      active: true
+      ignoreOverridableFunction: true
+      ignoreActualFunctions: true
+      excludedFunctions: []
+    KDocMissingDocumentation:
+      active: false
+    KdocReferencesNonPublicProperty:
+      active: true
+    LibraryCodeMustSpecifyReturnType:
+      active: true
+    LibraryEntitiesShouldNotBePublic:
+      active: false
+    MagicMagicNumber:
+      active: false
+    MissingKdoc:
+      active: false
+    OptionalAbstractKeyword:
+      active: true
+    OptionalUnit:
+      active: true
+    OptionalWhenBraces:
+      active: false
+    PreferredName:
+      active: true
+      classPattern: '[A-Z]([A-Za-z0-9]*)'
+      enumPattern: '[A-Z]([A-Za-z0-9]*)'
+      excludeClassPattern: 'Test'
+      ignoreOverridden: true
+    PublicNonPublicApi:
+      active: true
+      excludedPackages: []
+      excludedClasses: []
+    RedundantDefaultValues:
+      active: true
+    RedundantExplicitType:
+      active: false
+    RedundantNullableReturnType:
+      active: true
+    RedundantSuspendModifier:
+      active: true
+    RepeatedUnusedVariableName:
+      active: true
+    VariableNaming:
+      active: true
+      variablePattern: '^(_)?[a-z$_][a-zA-Z$_0-9]*$'
+      privateVariablePattern: '^(_)?[a-z$_][a-zA-Z$_0-9]*$'
+      excludeClassPattern: '^$'
+      ignoreOverridden: true
+    VerboseWithLambda:
+      active: false
+    VerboseWithNamedArguments:
+      active: false
+
+  naming:
+    active: true
+    BooleanPropertyNaming:
+      active: true
+      allowedBooleanPrefixes:
+        - 'is'
+        - 'has'
+        - 'are'
+    ClassNaming:
+      active: true
+      classPattern: '[A-Z]([A-Za-z0-9]*)'
+    ConstructorParameterNaming:
+      active: true
+      parameterPattern: '[a-z]([a-zA-Z0-9]*)?'
+      privateParameterPattern: '[a-z]([a-zA-Z0-9]*)?'
+      excludeClassPattern: '^$'
+    DestructuringDeclarationNaming:
+      active: true
+      variablePattern: '[a-z]([a-zA-Z0-9]*)?'
+    EnumNaming:
+      active: true
+      enumPattern: '[A-Z]([A-Za-z0-9]*)'
+    ForbiddenClassName:
+      active: false
+      forbiddenName: []
+    FunctionMaxLength:
+      active: false
+    FunctionMinLength:
+      active: false
+    FunctionNaming:
+      active: true
+      functionPattern: '^([a-z$_][a-zA-Z$_0-9]*)|(`.*`)$'
+      excludeClassPattern: '^$'
+      ignoreOverridden: true
+    InvalidPackageDeclaration:
+      active: false
+    MatchingDeclarationName:
+      active: true
+      mustBeFirst: true
+    MemberNameEqualsClassName:
+      active: true
+      ignoreOverridden: true
+    ObjectPropertyNaming:
+      active: true
+      constantPattern: '[A-Z]([A-Za-z0-9_]*)'
+      propertyPattern: '[a-z]([a-zA-Z0-9_]*)?'
+      privatePropertyPattern: '[a-z]([a-zA-Z0-9_]*)?'
+    PackageNaming:
+      active: true
+      packagePattern: '^[a-z]+(\.[a-z][a-z0-9]*)*$'
+    TopLevelPropertyNaming:
+      active: true
+      constantPattern: '[A-Z]([A-Za-z0-9_]*)'
+      propertyPattern: '[a-z]([a-zA-Z0-9_]*)?'
+      privatePropertyPattern: '(_)?[a-z]([a-zA-Z0-9_]*)?'
+    VariableNaming:
+      active: true
+      variablePattern: '^(_)?[a-z$_][a-zA-Z$_0-9]*$'
+      privateVariablePattern: '^(_)?[a-z$_][a-zA-Z$_0-9]*$'
+      excludeClassPattern: '^$'
+      ignoreOverridden: true
+
+  comments:
+    active: false
