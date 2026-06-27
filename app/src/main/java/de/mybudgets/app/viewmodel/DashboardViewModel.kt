@@ -25,6 +25,7 @@ data class CategoryChartData(
     val pieEntries: List<PieEntry>,
     val categoryLabels: Map<Long, String>,
     val categoryAmounts: Map<Long, Float> = emptyMap(),
+    val levelCategoryIds: List<Long> = emptyList(),
     val drillDownParentName: String? = null
 )
 
@@ -34,6 +35,13 @@ data class MonthlyTrendPoint(
     val expense: Float,
     val balance: Float = 0f,
     val categoryExpenses: Map<String, Float> = emptyMap()
+)
+
+private data class PieChartIntermediate(
+    val entries: List<PieEntry>,
+    val amounts: Map<Long, Float>,
+    val levelIds: List<Long>,
+    val drillParentName: String?
 )
 
 data class ForecastPoint(
@@ -116,37 +124,56 @@ class DashboardViewModel @Inject constructor(
         fun hasChildrenInData(catId: Long): Boolean =
             cats.any { it.parentCategoryId == catId && it.id in allExpenseCatIds }
         
-        val (entries, amounts, drillParentName) = if (drillId == null) {
-            // L1: group by root category, filter hidden
+        val l1RootIds = cats.filter { it.parentCategoryId == null || it.level == 1 }
+            .map { it.id }
+        
+        val pieResult = if (drillId == null) {
+            // L1: all root categories (including hidden/zero), compute amounts for all
             val byRoot = expenses.groupBy { getRootCategory(it.categoryId) }
-                .filterKeys { it != null && it !in hiddenIds }
             val total = byRoot.values.sumOf { it.sumOf { t -> t.amount } }.toFloat().coerceAtLeast(1f)
-            val ent = byRoot.entries
-                .sortedByDescending { it.value.sumOf { t -> t.amount } }
-                .map { (catId, txList) ->
-                    val sum = txList.sumOf { it.amount }.toFloat()
-                    PieEntry(sum / total * 100f, labels[catId] ?: "Sonstige", catId?.toInt() ?: 0)
+            val allAmounts = l1RootIds.associateWith { cId ->
+                byRoot[cId]?.sumOf { it.amount }?.toFloat() ?: 0f
+            }
+            val visible = allAmounts.filterKeys { it !in hiddenIds && allAmounts[it]!! > 0f }
+            val ent = visible.entries
+                .sortedByDescending { it.value }
+                .map { (cId, sum) ->
+                    PieEntry(sum / total * 100f, labels[cId] ?: "Sonstige", cId.toInt())
                 }
-            val amt = byRoot.mapValues { (_, txs) -> txs.sumOf { it.amount }.toFloat() }.filterKeys { it != null }.mapKeys { it.key!! }
-            Triple(ent, amt, null as String?)
+            PieChartIntermediate(ent, allAmounts, l1RootIds, null)
         } else {
-            // Drill-down: show children of drillId, filter hidden
+            // Drill-down: group by direct child of drillId
             val childIds = cats.filter { it.parentCategoryId == drillId }.map { it.id }.toSet()
-            val byChild = expenses.filter { getRootCategory(it.categoryId) == drillId || it.categoryId in childIds }
-                .groupBy { if (it.categoryId in childIds) it.categoryId else getRootCategory(it.categoryId) }
-                .filterKeys { it != null && it !in hiddenIds }
-            val total = byChild.values.sumOf { it.sumOf { t -> t.amount } }.toFloat().coerceAtLeast(1f)
-            val ent = byChild.entries
-                .sortedByDescending { it.value.sumOf { t -> t.amount } }
-                .map { (catId, txList) ->
-                    val sum = txList.sumOf { it.amount }.toFloat()
-                    PieEntry(sum / total * 100f, labels[catId] ?: "Sonstige", catId?.toInt() ?: 0)
+            fun getDirectChild(cId: Long): Long {
+                var cur = categoryMap[cId] ?: return cId
+                while (cur.parentCategoryId != null && cur.parentCategoryId != drillId) {
+                    cur = categoryMap[cur.parentCategoryId] ?: return cId
                 }
-            val amt = byChild.mapValues { (_, txs) -> txs.sumOf { it.amount }.toFloat() }.filterKeys { it != null }.mapKeys { it.key!! }
+                return cur.id
+            }
+            val drillTxs = expenses.filter { tx ->
+                val catId = tx.categoryId ?: return@filter false
+                categoryMap[catId]?.let { c ->
+                    c.id == drillId || c.parentCategoryId == drillId || getRootCategory(catId) == drillId
+                } ?: false
+            }
+            val allLevelIds = (childIds + drillId).sorted()
+            val byChild = drillTxs.groupBy { getDirectChild(it.categoryId!!) }
+            val total = drillTxs.sumOf { it.amount }.toFloat().coerceAtLeast(1f)
+            val allAmounts = allLevelIds.associateWith { cId ->
+                byChild[cId]?.sumOf { it.amount }?.toFloat() ?: 0f
+            }
+            val visible = allAmounts.filterKeys { it !in hiddenIds && allAmounts[it]!! > 0f }
+            val ent = visible.entries
+                .sortedByDescending { it.value }
+                .map { (cId, sum) ->
+                    val label = if (cId == drillId) "Rest (${labels[cId] ?: ""})" else (labels[cId] ?: "Sonstige")
+                    PieEntry(sum / total * 100f, label, cId.toInt())
+                }
             val parentName = labels[drillId] ?: ""
-            Triple(ent, amt, parentName)
+            PieChartIntermediate(ent, allAmounts, allLevelIds, parentName)
         }
-        CategoryChartData(entries, labels, amounts, drillParentName)
+        CategoryChartData(pieResult.entries, labels, pieResult.amounts, pieResult.levelIds, pieResult.drillParentName)
     }.stateIn(viewModelScope, SharingStarted.Lazily, CategoryChartData(emptyList(), emptyMap()))
 
     val monthlyTrend: StateFlow<List<MonthlyTrendPoint>> = combine(

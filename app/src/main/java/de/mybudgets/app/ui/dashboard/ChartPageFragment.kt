@@ -149,10 +149,13 @@ class ChartPageFragment : Fragment() {
         }
 
         catContainer.removeAllViews()
-        for (entry in entries) {
-            val catId = (entry.data as? Int)?.toLong() ?: continue
-            val amount = data.categoryAmounts[catId] ?: 0f
-            val isHidden = catId in vm.hiddenCategoryIds.value
+        val hiddenIds = vm.hiddenCategoryIds.value
+        for (cId in data.levelCategoryIds) {
+            val amount = data.categoryAmounts[cId] ?: 0f
+            val name = data.categoryLabels[cId] ?: "Sonstige"
+            val matchingEntry = entries.find { (it.data as? Int)?.toLong() == cId }
+            val pct = matchingEntry?.value ?: 0f
+            val isHidden = cId in hiddenIds
             val cb = CheckBox(requireContext()).apply {
                 isChecked = !isHidden
                 layoutParams = LinearLayout.LayoutParams(
@@ -161,21 +164,20 @@ class ChartPageFragment : Fragment() {
                 )
             }
             cb.setOnCheckedChangeListener { _, checked ->
-                if (!checked) vm.toggleHideCategory(catId)
-                else if (catId in vm.hiddenCategoryIds.value) vm.toggleHideCategory(catId)
+                vm.toggleHideCategory(cId)
             }
             val nameTv = TextView(requireContext()).apply {
-                text = "${entry.label}: ${CurrencyFormatter.format(amount.toDouble())} (${"%.1f".format(entry.value)}%)"
+                text = buildString {
+                    append(name)
+                    if (amount > 0f) append(": ${CurrencyFormatter.format(amount.toDouble())} (${"%.1f".format(pct)}%)")
+                }
                 textSize = 13f
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                 setTextColor(
                     if (isHidden) ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
                     else ContextCompat.getColor(requireContext(), R.color.on_surface)
                 )
-                setOnClickListener {
-                    val cId = (entry.data as? Int)?.toLong() ?: return@setOnClickListener
-                    vm.drillDownCategory(cId)
-                }
+                setOnClickListener { vm.drillDownCategory(cId) }
             }
             val rowLayout = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -235,8 +237,9 @@ class ChartPageFragment : Fragment() {
             chart.data = null; chart.invalidate()
             return
         }
-        val visibleSpan = (chart.highestVisibleX - chart.lowestVisibleX).toInt() + 1
-        if (visibleSpan <= 4) renderCategoryBreakdown(chart)
+        val span = chart.highestVisibleX - chart.lowestVisibleX
+        val visibleMonths = if (span > 0f && span < currentTrend.size.toFloat() * 2f) (span.toInt() + 1) else currentTrend.size
+        if (visibleMonths <= 4) renderCategoryBreakdown(chart)
         else renderIncomeExpenseWithBalance(chart)
     }
 
