@@ -9,14 +9,22 @@
         android:orientation="vertical"
         android:padding="16dp">
         <TextView
+            android:id="@+id/tv_pie_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Ausgaben nach Kategorie"
-            android:textAppearance="?attr/textAppearanceTitleMedium" />
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:visibility="gone" />
         <com.github.mikephil.charting.charts.PieChart
             android:id="@+id/pie_chart"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:id="@+id/layout_pie_categories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

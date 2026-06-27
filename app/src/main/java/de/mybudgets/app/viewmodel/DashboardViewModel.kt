@@ -23,13 +23,17 @@ enum class TimeRange { LAST_MONTH, LAST_3_MONTHS, ALL }
 
 data class CategoryChartData(
     val pieEntries: List<PieEntry>,
-    val categoryLabels: Map<Long, String>
+    val categoryLabels: Map<Long, String>,
+    val categoryAmounts: Map<Long, Float> = emptyMap(),
+    val drillDownParentName: String? = null
 )
 
 data class MonthlyTrendPoint(
     val label: String, // e.g. "Jan", "Feb"
     val income: Float,
-    val expense: Float
+    val expense: Float,
+    val balance: Float = 0f,
+    val categoryExpenses: Map<String, Float> = emptyMap()
 )
 
 data class ForecastPoint(
@@ -72,12 +76,22 @@ class DashboardViewModel @Inject constructor(
     // ── Chart State ──
 
     val selectedTimeRange = MutableStateFlow(TimeRange.LAST_MONTH)
+    val hiddenCategoryIds = MutableStateFlow<Set<Long>>(emptySet())
+    val drillDownCategoryId = MutableStateFlow<Long?>(null)
+
+    fun toggleHideCategory(id: Long) {
+        hiddenCategoryIds.value = if (id in hiddenCategoryIds.value)
+            hiddenCategoryIds.value - id else hiddenCategoryIds.value + id
+    }
+    fun drillDownCategory(id: Long?) { drillDownCategoryId.value = id }
 
     val categoryChartData: StateFlow<CategoryChartData> = combine(
         transactions,
         categoryRepo.observeAll(),
-        selectedTimeRange
-    ) { txs, cats, range ->
+        selectedTimeRange,
+        hiddenCategoryIds,
+        drillDownCategoryId
+    ) { txs, cats, range, hiddenIds, drillId ->
         val cutoff = when (range) {
             TimeRange.LAST_MONTH -> cutoffMillis(1)
             TimeRange.LAST_3_MONTHS -> cutoffMillis(3)
@@ -86,11 +100,9 @@ class DashboardViewModel @Inject constructor(
         val filtered = if (cutoff > 0L) txs.filter { it.date >= cutoff } else txs
         val expenses = filtered.filter { it.type == TransactionType.EXPENSE }
         
-        // Build category hierarchy: catId -> parentId
         val categoryMap = cats.associateBy { it.id }
         val labels = cats.associate { it.id to it.name }
         
-        // Get root category (walk up to level 1)
         fun getRootCategory(catId: Long?): Long? {
             if (catId == null) return null
             var current = categoryMap[catId] ?: return catId
@@ -100,46 +112,98 @@ class DashboardViewModel @Inject constructor(
             return current.id
         }
         
-        // Group expenses by root (L1) category
-        val byRootCategory = expenses.groupBy { getRootCategory(it.categoryId) }
-        val total = expenses.sumOf { it.amount }.toFloat().coerceAtLeast(1f)
-
-        val entries = byRootCategory.entries
-            .sortedByDescending { it.value.sumOf { t -> t.amount } }
-            .map { (rootCatId, txList) ->
-                val sum = txList.sumOf { it.amount }.toFloat()
-                val label = labels[rootCatId] ?: "Sonstige"
-                PieEntry(sum / total * 100f, label, rootCatId?.toInt() ?: 0)
-            }
-        CategoryChartData(entries, labels)
+        val allExpenseCatIds = expenses.mapNotNull { it.categoryId }.toSet()
+        fun hasChildrenInData(catId: Long): Boolean =
+            cats.any { it.parentCategoryId == catId && it.id in allExpenseCatIds }
+        
+        val (entries, amounts, drillParentName) = if (drillId == null) {
+            // L1: group by root category, filter hidden
+            val byRoot = expenses.groupBy { getRootCategory(it.categoryId) }
+                .filterKeys { it != null && it !in hiddenIds }
+            val total = byRoot.values.sumOf { it.sumOf { t -> t.amount } }.toFloat().coerceAtLeast(1f)
+            val ent = byRoot.entries
+                .sortedByDescending { it.value.sumOf { t -> t.amount } }
+                .map { (catId, txList) ->
+                    val sum = txList.sumOf { it.amount }.toFloat()
+                    PieEntry(sum / total * 100f, labels[catId] ?: "Sonstige", catId?.toInt() ?: 0)
+                }
+            val amt = byRoot.mapValues { (_, txs) -> txs.sumOf { it.amount }.toFloat() }.filterKeys { it != null }.mapKeys { it.key!! }
+            Triple(ent, amt, null as String?)
+        } else {
+            // Drill-down: show children of drillId, filter hidden
+            val childIds = cats.filter { it.parentCategoryId == drillId }.map { it.id }.toSet()
+            val byChild = expenses.filter { getRootCategory(it.categoryId) == drillId || it.categoryId in childIds }
+                .groupBy { if (it.categoryId in childIds) it.categoryId else getRootCategory(it.categoryId) }
+                .filterKeys { it != null && it !in hiddenIds }
+            val total = byChild.values.sumOf { it.sumOf { t -> t.amount } }.toFloat().coerceAtLeast(1f)
+            val ent = byChild.entries
+                .sortedByDescending { it.value.sumOf { t -> t.amount } }
+                .map { (catId, txList) ->
+                    val sum = txList.sumOf { it.amount }.toFloat()
+                    PieEntry(sum / total * 100f, labels[catId] ?: "Sonstige", catId?.toInt() ?: 0)
+                }
+            val amt = byChild.mapValues { (_, txs) -> txs.sumOf { it.amount }.toFloat() }.filterKeys { it != null }.mapKeys { it.key!! }
+            val parentName = labels[drillId] ?: ""
+            Triple(ent, amt, parentName)
+        }
+        CategoryChartData(entries, labels, amounts, drillParentName)
     }.stateIn(viewModelScope, SharingStarted.Lazily, CategoryChartData(emptyList(), emptyMap()))
 
-    val monthlyTrend: StateFlow<List<MonthlyTrendPoint>> = transactions
-        .map { txs ->
-            if (txs.isEmpty()) return@map emptyList()
-            
-            val grouped = groupByMonth(txs)
-            val sorted = grouped.entries.sortedBy { parseMonthLabel(it.key) }
-            if (sorted.isEmpty()) return@map emptyList()
-            
-            val firstMonthKey = parseMonthLabel(sorted.first().key)
-            val lastMonthKey = parseMonthLabel(sorted.last().key)
-            
-            (firstMonthKey..lastMonthKey).map { monthKey ->
-                val cal = Calendar.getInstance().apply {
-                    val year = 2000 + monthKey / 12
-                    val month = monthKey % 12
-                    set(year, month, 1, 0, 0, 0)
-                }
-                val label = monthLabel(cal)
-                val monthTxs = grouped[label] ?: emptyList()
-                MonthlyTrendPoint(
-                    label = label,
-                    income = monthTxs.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }.toFloat(),
-                    expense = monthTxs.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }.toFloat()
-                )
+    val monthlyTrend: StateFlow<List<MonthlyTrendPoint>> = combine(
+        transactions,
+        totalBalance,
+        categoryRepo.observeAll()
+    ) { txs, totalBal, cats ->
+        if (txs.isEmpty()) return@combine emptyList()
+        
+        val grouped = groupByMonth(txs)
+        val sorted = grouped.entries.sortedBy { parseMonthLabel(it.key) }
+        if (sorted.isEmpty()) return@combine emptyList()
+        
+        val firstMonthKey = parseMonthLabel(sorted.first().key)
+        val lastMonthKey = parseMonthLabel(sorted.last().key)
+        
+        val categoryMap = cats.associateBy { it.id }
+        val catLabels = cats.associate { it.id to it.name }
+        fun getRootCategory(catId: Long?): Long? {
+            if (catId == null) return null
+            var current = categoryMap[catId] ?: return catId
+            while (current.parentCategoryId != null) {
+                current = categoryMap[current.parentCategoryId] ?: return catId
             }
-        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            return current.id
+        }
+        
+        val monthlyPoints = (firstMonthKey..lastMonthKey).map { monthKey ->
+            val cal = Calendar.getInstance().apply {
+                val year = 2000 + monthKey / 12
+                val month = monthKey % 12
+                set(year, month, 1, 0, 0, 0)
+            }
+            val label = monthLabel(cal)
+            val monthTxs = grouped[label] ?: emptyList()
+            val income = monthTxs.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }.toFloat()
+            val expense = monthTxs.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }.toFloat()
+            val byRoot = monthTxs.filter { it.type == TransactionType.EXPENSE }
+                .groupBy { getRootCategory(it.categoryId) }
+                .mapValues { (_, txs) -> txs.sumOf { it.amount }.toFloat() }
+            val categoryExpenses = byRoot.mapKeys { (id, _) -> catLabels[id] ?: "Sonstige" }
+            MonthlyTrendPoint(
+                label = label,
+                income = income,
+                expense = expense,
+                categoryExpenses = categoryExpenses
+            )
+        }
+        
+        val totalNet = monthlyPoints.sumByDouble { (it.income - it.expense).toDouble() }.toFloat()
+        val startBalance = (totalBal?.toFloat() ?: 0f) - totalNet
+        var cumNet = 0f
+        monthlyPoints.map { point ->
+            cumNet += point.income - point.expense
+            point.copy(balance = startBalance + cumNet)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val forecast: StateFlow<List<ForecastPoint>> = combine(
         transactions,

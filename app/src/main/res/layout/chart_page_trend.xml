@@ -13,7 +13,7 @@
             android:layout_height="wrap_content"
             android:text="Monatlicher Verlauf"
             android:textAppearance="?attr/textAppearanceTitleMedium" />
-        <com.github.mikephil.charting.charts.BarChart
+        <com.github.mikephil.charting.charts.CombinedChart
             android:id="@+id/bar_chart_trend"
             android:layout_width="match_parent"
             android:layout_height="200dp"
