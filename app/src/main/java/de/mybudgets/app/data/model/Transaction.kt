@@ -20,5 +20,6 @@ data class Transaction(
     val recurringIntervalDays: Int = 0,
     val recurrencePatternId: Long? = null, // FK to RecurrencePattern
     val remoteId: String? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val originalDescription: String = ""
 )

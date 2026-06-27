@@ -208,7 +208,8 @@ class ChartPageFragment : Fragment() {
         chart.setNoDataText(getString(R.string.chart_trend_empty))
         chart.setNoDataTextColor(Color.GRAY)
         chart.setPinchZoom(true)
-        chart.setScaleEnabled(true)
+        chart.setScaleXEnabled(true)
+        chart.setScaleYEnabled(false)
 
         chart.setOnChartGestureListener(object : OnChartGestureListener {
             override fun onChartGestureStart(event: MotionEvent?, lastPerformedGesture: ChartTouchListener.ChartGesture?) {}

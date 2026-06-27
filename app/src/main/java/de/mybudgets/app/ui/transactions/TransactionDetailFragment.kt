@@ -89,7 +89,13 @@ class TransactionDetailFragment : Fragment() {
                     .show()
                 return@launch
             }
+            val existingPatternValue = if (tx.categoryId != null) {
+                categoryPatternRepository.observeByCategory(tx.categoryId).first()
+                    .firstOrNull { it.patternType == "TEXT" }?.patternValue
+            } else null
+
             PatternPickerDialogFragment.newInstance(tx, cats)
+                .setExistingPatternValue(existingPatternValue)
                 .setOnPatternSelectedListener { type, value, categoryId, matchedName ->
                     if (categoryId != null) {
                         savePatternAndCategorize(type, value, categoryId, matchedName)
@@ -116,7 +122,12 @@ class TransactionDetailFragment : Fragment() {
             }
 
             val patchedDescription = matchedName ?: tx.description
-            vm.save(tx.copy(categoryId = selectedCat.id, description = patchedDescription))
+            val origDesc = if (matchedName != null && tx.originalDescription.isBlank()) tx.description else tx.originalDescription
+            vm.save(tx.copy(
+                categoryId = selectedCat.id,
+                description = patchedDescription,
+                originalDescription = origDesc
+            ))
 
             if (patternType != null && patternValue != null) {
                 val allTxs = vm.transactions.value
@@ -160,7 +171,11 @@ class TransactionDetailFragment : Fragment() {
         matchedName: String? = null
     ) {
         val applyName: (Transaction) -> Transaction = { tx ->
-            tx.copy(categoryId = selectedCat.id, description = matchedName ?: tx.description)
+            tx.copy(
+                categoryId = selectedCat.id,
+                description = matchedName ?: tx.description,
+                originalDescription = if (matchedName != null && tx.originalDescription.isBlank()) tx.description else tx.originalDescription
+            )
         }
         val uncategorized = matchingTxs.filter { it.categoryId == null }
         val categorized = matchingTxs.filter { it.categoryId != null }

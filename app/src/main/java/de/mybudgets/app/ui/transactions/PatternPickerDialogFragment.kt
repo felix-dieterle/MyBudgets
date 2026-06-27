@@ -23,6 +23,7 @@ class PatternPickerDialogFragment : DialogFragment() {
     private var allCategories: List<Category> = emptyList()
     private var expandedCategories = mutableSetOf<Long>()
     private var selectedCategoryId: Long? = null
+    private var existingPatternValue: String? = null
     private var onPatternSelected: ((patternType: String?, patternValue: String?, categoryId: Long?, matchedName: String?) -> Unit)? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -56,7 +57,10 @@ class PatternPickerDialogFragment : DialogFragment() {
     }
 
     private fun setupTextOption(tx: Transaction) {
-        val keywords = extractKeywords(tx.description)
+        val sourceText = tx.originalDescription.ifBlank { tx.description }
+        val keywords = extractKeywords(sourceText)
+
+        val savedKeywords = existingPatternValue?.split("|")?.map { it.trim().lowercase() }.orEmpty()
 
         if (keywords.isNotEmpty()) {
             binding.chipGroupKeywords.removeAllViews()
@@ -64,7 +68,7 @@ class PatternPickerDialogFragment : DialogFragment() {
                 val chip = Chip(requireContext()).apply {
                     text = keyword
                     isCheckable = true
-                    isChecked = false
+                    isChecked = keyword.lowercase() in savedKeywords
                 }
                 binding.chipGroupKeywords.addView(chip)
             }
@@ -231,6 +235,11 @@ class PatternPickerDialogFragment : DialogFragment() {
 
     fun setCategories(categories: List<Category>): PatternPickerDialogFragment {
         this.allCategories = categories
+        return this
+    }
+
+    fun setExistingPatternValue(value: String?): PatternPickerDialogFragment {
+        this.existingPatternValue = value
         return this
     }
 
