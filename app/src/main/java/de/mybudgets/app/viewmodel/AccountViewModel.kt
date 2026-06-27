@@ -369,15 +369,18 @@ class AccountViewModel @Inject constructor(
             // Auto-Mode: fromDateMillis == NO_FROM_DATE
             // Wenn DB leer → Voll-Sync (fromDate=null)
             // Wenn DB hat TX → Normal-Sync ab neuester TX - 7 Tage (um Lücken zu schließen)
+            // Limit: max 90 Tage rückwärts, damit Normal-Sync nicht nach langer Pause
+            // stillschweigend nur einen Teil der alten Buchungen holt (Bank-Limit ~150 TX).
+            // Größere Lücken schließt continueSyncOlder (historischer Sync chunkweise).
             if (fromDateMillis == NO_FROM_DATE && !isHistorical) {
                 val newestTxDate = txRepo.getLatestDateForAccount(accountId)
                 if (newestTxDate != null) {
-                    // Normal-Sync: Lade ab neuester TX - 7 Tage
-                    val fromMillis = newestTxDate - 7L * 24 * 60 * 60 * 1000
+                    val maxLookback = System.currentTimeMillis() - 90L * 24 * 60 * 60 * 1000
+                    val fromMillis = maxOf(newestTxDate - 7L * 24 * 60 * 60 * 1000, maxLookback)
                     fromDate = java.util.Date(fromMillis)
                     val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY)
                     syncTypeMessage = "Lade ab ${sdf.format(fromDate)}..."
-                    AppLogger.i(TAG, "  Sync-Typ: NORMAL (DB hat TX, lade ab neueste - 7 Tage)")
+                    AppLogger.i(TAG, "  Sync-Typ: NORMAL (DB hat TX, lade ab neueste - 7 Tage, gecappt auf 90 Tage)")
                 } else {
                     // Voll-Sync: DB leer, lade alles
                     fromDate = null

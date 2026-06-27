@@ -97,8 +97,27 @@ class SyncIntervalRepository @Inject constructor(
                 return gapStart
             }
             
-            // Lücke geschlossen
-            de.mybudgets.app.util.AppLogger.i(TAG, "  → RETURN null (Lücke geschlossen)")
+            // Intervall-Prüfung sagt "Lücke zu Normal-Daten geschlossen".
+            // Aber: Prüfe ob Normal-Syncs bis heute reichen.
+            // Wenn User z.B. 5 Monate keinen Sync gemacht hat, gibt's eine Lücke
+            // zwischen dem letzten Normal-Sync und heute.
+            val newestNormal = normalIntervals.maxByOrNull { it.endDate }!!
+            val today = System.currentTimeMillis()
+            val ONE_DAY_MS = 24 * 60 * 60 * 1000L
+            de.mybudgets.app.util.AppLogger.i(TAG, "  newestNormal.endDate=${sdf.format(newestNormal.endDate)}")
+
+            if (newestNormal.endDate < today - ONE_DAY_MS) {
+                // Normal-Syncs veraltet → historischer Sync vorwärts bis heute
+                if (gapStart < today) {
+                    de.mybudgets.app.util.AppLogger.i(TAG, "  → RETURN ${sdf.format(gapStart)} (Normal-Sync veraltet, Lücke bis heute)")
+                    return gapStart
+                }
+                de.mybudgets.app.util.AppLogger.i(TAG, "  → RETURN null (Historie bei heute angekommen)")
+                return null
+            }
+
+            // Lücke wirklich geschlossen
+            de.mybudgets.app.util.AppLogger.i(TAG, "  → RETURN null (Lücke geschlossen, Normal-Syncs aktuell)")
             return null
         } else {
             // Kein Normal-Sync vorhanden → Lade bis heute

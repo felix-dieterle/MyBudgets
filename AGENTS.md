@@ -112,6 +112,36 @@ Bundle-Argumente: `putLong("id", entity.id)` (nie SafeArgs).
 - Job-Reihenfolge: `KUmsAllCamt` → `KUmsZeitSEPA` → `KUmsAll` → `KUmsNew`.
 - Testen via App-Build: `scripts/202-build-apk.cmd`.
 
+### DB Migration Rule (CRITICAL — zwei Stellen!)
+
+**Jede DB-Migration muss an BEIDEN Stellen registriert werden, sonst stürzt die App ab:**
+
+```kotlin
+// 1. AppDatabase.kt — Migration definieren
+val MIGRATION_X_Y = object : Migration(X, Y) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE ... ADD COLUMN ...")
+        lastMigrationVersion = "vX→vY"
+    }
+}
+
+// 2. DatabaseModule.kt — Migration in addMigrations() aufnehmen
+.addMigrations(
+    ...
+    AppDatabase.MIGRATION_X_Y
+)
+```
+
+**Checkliste bei neuen Entities/Columns:**
+- [ ] `@Entity` in `AppDatabase.kt` `@Database(entities = [...])` aufnehmen
+- [ ] `Migration`-Objekt definieren (ALTER TABLE CREATE TABLE)
+- [ ] `lastMigrationVersion = "vX→vY"` setzen
+- [ ] `version = Y` in `@Database` hochzählen
+- [ ] **`AppDatabase.MIGRATION_X_Y` in `DatabaseModule.kt` registrieren** ← oft vergessen!
+- [ ] DAO-Interface + Impl (kapt generiert automatisch)
+- [ ] Repository + Business-Logik
+- [ ] `assembleDebug` bauen und testen
+
 ## UI/UX Standards
 
 **Theme:** `Theme.Material3.DayNight.NoActionBar`. Karten via `MaterialCardView` (16dp padding/bottomMargin, eckig). Buttons: `MaterialButton` (filled = primary, `?attr/materialButtonOutlinedStyle` = secondary). Chips via `ChipGroup` (singleSelection=true, `Widget.Material3.Chip.Assist.Elevated` oder `.Filter`).
@@ -238,6 +268,8 @@ scripts\300-workflow.cmd
 - Always use `scripts/202-build-apk.cmd` when producing APKs for distribution. It matches CI and produces versioned filenames.
 - When copying to NAS, use a new versioned filename (example: `MyBudgets-v<versionName>-<versionCode>-<timestamp>.apk`) instead of overwriting `MyBudgets-latest.apk`. The copy step sometimes does not overwrite remote files when using the same filename.
 - The build script still writes `MyBudgets-latest.apk` for convenience, but for reliable installs pick the versioned file.
+- **NAS APK-Pfad:** `\\secure-storage\home\Downloads\MyBudgets\` (nicht root `Downloads\`)
+- **Windows Downloads (Logs/Exporte):** `F:\Downloads\`
 
 **Download-URLs:**
 - **NAS (direkt):** `\\secure-storage\home\Downloads\MyBudgets\MyBudgets-latest.apk` (vom Handy via File-Manager)
@@ -314,6 +346,20 @@ FAILURE: SDK location not found
 - **Issues:** GitHub Issues für Bug-Reports
 - **Entwickler:** Felix Dieterle
 
+## Windows/PowerShell (Dev-Environment)
+
+**Entwicklung läuft auf Windows mit PowerShell 5.1** – Unix-Kommandos nicht verfügbar.
+
+| Unix | PowerShell Ersatz |
+|------|-------------------|
+| `tail -30` | `Select-Object -Last 30` |
+| `grep -r` | `Select-String -Path` (oder Grep Tool) |
+| `cat file` | `Get-Content file` (oder Read Tool) |
+| `&&` | `; if ($?) { }` |
+
+**Build:** `scripts\202-build-apk.cmd` (CMD, nicht PowerShell – nutzt `call gradlew.bat`).
+**Gradle-Befehle:** Immer `.\gradlew.bat` (mit `.bat`), nie `./gradlew`.
+
 ---
 
-**Zuletzt aktualisiert:** 2026-05-17
+**Zuletzt aktualisiert:** 2026-06-27

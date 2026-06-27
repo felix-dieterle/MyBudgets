@@ -5,29 +5,26 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioButton
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.chip.Chip
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import de.mybudgets.app.R
 import de.mybudgets.app.databinding.DialogPatternPickerBinding
+import de.mybudgets.app.data.model.Category
 import de.mybudgets.app.data.model.Transaction
 
-/**
- * Dialog for selecting categorization pattern when user assigns category.
- * Offers:
- * 1. IBAN pattern (from tx.note if available)
- * 2. Text keyword pattern (extracted from tx.description)
- * 3. No pattern (one-time categorization only)
- */
 class PatternPickerDialogFragment : DialogFragment() {
 
     private var _binding: DialogPatternPickerBinding? = null
     private val binding get() = _binding!!
-    
+
     private var transaction: Transaction? = null
-    private var onPatternSelected: ((patternType: String?, patternValue: String?) -> Unit)? = null
-    
+    private var allCategories: List<Category> = emptyList()
+    private var expandedCategories = mutableSetOf<Long>()
+    private var selectedCategoryId: Long? = null
+    private var onPatternSelected: ((patternType: String?, patternValue: String?, categoryId: Long?, matchedName: String?) -> Unit)? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogPatternPickerBinding.inflate(inflater, container, false)
         return binding.root
@@ -35,14 +32,13 @@ class PatternPickerDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
-        val tx = transaction ?: run {
-            dismiss()
-            return
-        }
-        
+
+        val tx = transaction ?: run { dismiss(); return }
+
         setupIbanOption(tx)
         setupTextOption(tx)
+        setupCategoryList()
+        setupRadioBehavior()
         setupButtons()
     }
 
@@ -51,18 +47,17 @@ class PatternPickerDialogFragment : DialogFragment() {
         if (iban != null) {
             binding.radioIban.isEnabled = true
             binding.tvIbanValue.text = maskIban(iban)
+            binding.tvIbanValue.isVisible = true
             binding.tvIbanHint.text = "Alle Buchungen von diesem Empfänger"
+            binding.tvIbanHint.isVisible = true
         } else {
             binding.radioIban.isEnabled = false
-            binding.tvIbanValue.text = "Keine IBAN verfügbar"
-            binding.tvIbanHint.isVisible = false
         }
     }
 
     private fun setupTextOption(tx: Transaction) {
-        // Extract keywords from description
         val keywords = extractKeywords(tx.description)
-        
+
         if (keywords.isNotEmpty()) {
             binding.chipGroupKeywords.removeAllViews()
             keywords.forEach { keyword ->
@@ -73,37 +68,122 @@ class PatternPickerDialogFragment : DialogFragment() {
                 }
                 binding.chipGroupKeywords.addView(chip)
             }
-            binding.radioText.isEnabled = true
         } else {
             binding.radioText.isEnabled = false
-            binding.tvTextHint.text = "Keine Schlüsselwörter gefunden"
+        }
+    }
+
+    private fun setupCategoryList() {
+        if (allCategories.isEmpty()) {
+            binding.categoryGroup.visibility = View.GONE
+            return
+        }
+        rebuildCategoryList()
+    }
+
+    private fun rebuildCategoryList() {
+        binding.categoryGroup.removeAllViews()
+        selectedCategoryId?.let { prevId ->
+            if (allCategories.none { it.id == prevId }) selectedCategoryId = null
+        }
+
+        val topLevel = allCategories.filter { it.parentCategoryId == null }.sortedBy { it.name }
+
+        fun addItems(cat: Category, indent: Int) {
+            val hasChildren = allCategories.any { it.parentCategoryId == cat.id }
+            val isExpanded = expandedCategories.contains(cat.id)
+
+            val rb = RadioButton(requireContext()).apply {
+                layoutParams = ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).also { it.marginStart = indent * 32 }
+
+                val prefix = if (hasChildren) {
+                    if (isExpanded) "\u25BC " else "\u25B6 "
+                } else ""
+
+                text = "$prefix${cat.name}"
+                tag = cat.id
+
+                if (hasChildren) {
+                    setOnClickListener {
+                        if (isExpanded) expandedCategories.remove(cat.id)
+                        else expandedCategories.add(cat.id)
+                        rebuildCategoryList()
+                    }
+                } else {
+                    setOnClickListener {
+                        selectedCategoryId = cat.id
+                        binding.btnSave.isEnabled = true
+                        updateCategorySelection()
+                    }
+                }
+            }
+            binding.categoryGroup.addView(rb)
+
+            if (hasChildren && isExpanded) {
+                val children = allCategories
+                    .filter { it.parentCategoryId == cat.id }
+                    .sortedBy { it.name }
+                children.forEach { child -> addItems(child, indent + 1) }
+            }
+        }
+
+        topLevel.forEach { addItems(it, 0) }
+        updateCategorySelection()
+    }
+
+    private fun updateCategorySelection() {
+        for (i in 0 until binding.categoryGroup.childCount) {
+            val rb = binding.categoryGroup.getChildAt(i) as? RadioButton ?: continue
+            rb.isChecked = rb.tag == selectedCategoryId
+        }
+    }
+
+    private fun setupRadioBehavior() {
+        binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            val showKeywords = checkedId == R.id.radioText
+            binding.keywordsSection.visibility = if (showKeywords) View.VISIBLE else View.GONE
         }
     }
 
     private fun setupButtons() {
-        binding.btnCancel.setOnClickListener {
-            dismiss()
-        }
-        
-        binding.btnConfirm.setOnClickListener {
+        binding.btnCancel.setOnClickListener { dismiss() }
+
+        binding.btnSave.setOnClickListener {
+            val catId = selectedCategoryId ?: return@setOnClickListener
+
+            val tx = transaction ?: return@setOnClickListener
+
+            val patternType: String?
+            val patternValue: String?
+
             when {
                 binding.radioIban.isChecked -> {
-                    val iban = extractIban(transaction?.note ?: "")
-                    if (iban != null) {
-                        onPatternSelected?.invoke("IBAN", iban)
-                    }
+                    val iban = extractIban(tx.note)
+                    patternType = if (iban != null) "IBAN" else null
+                    patternValue = iban
                 }
                 binding.radioText.isChecked -> {
-                    val selectedKeywords = getSelectedKeywords()
-                    if (selectedKeywords.isNotEmpty()) {
-                        val pattern = selectedKeywords.joinToString("|")
-                        onPatternSelected?.invoke("TEXT", pattern)
+                    val keywords = getSelectedKeywords()
+                    if (keywords.isNotEmpty()) {
+                        patternType = "TEXT"
+                        patternValue = keywords.joinToString("|")
+                    } else {
+                        patternType = null
+                        patternValue = null
                     }
                 }
-                binding.radioNone.isChecked -> {
-                    onPatternSelected?.invoke(null, null)
+                else -> {
+                    patternType = null
+                    patternValue = null
                 }
             }
+
+            val matchedName = binding.etMatchedName.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+
+            onPatternSelected?.invoke(patternType, patternValue, catId, matchedName)
             dismiss()
         }
     }
@@ -129,19 +209,19 @@ class PatternPickerDialogFragment : DialogFragment() {
         return "${iban.take(4)}****${iban.takeLast(4)}"
     }
 
-    private fun extractKeywords(description: String): List<String> {
+    internal fun extractKeywords(description: String): List<String> {
         val stopwords = setOf(
             "sagt", "danke", "ihr", "einkauf", "bei", "fuer", "fur",
             "von", "an", "mit", "der", "die", "das", "den", "dem"
         )
-        
+
         return description
-            .split(" ", "-", "/", ".")
+            .replace(".", " ")
+            .split(" ", "-", "/")
             .map { it.trim().lowercase() }
-            .filter { it.length >= 4 && it !in stopwords }
-            .filter { it.any { c -> c.isLetter() } }
+            .filter { it.length >= 3 && it !in stopwords }
+            .filter { it.any { c -> c.isLetterOrDigit() } }
             .distinct()
-            .take(5)
     }
 
     fun setTransaction(tx: Transaction): PatternPickerDialogFragment {
@@ -149,7 +229,12 @@ class PatternPickerDialogFragment : DialogFragment() {
         return this
     }
 
-    fun setOnPatternSelectedListener(listener: (patternType: String?, patternValue: String?) -> Unit): PatternPickerDialogFragment {
+    fun setCategories(categories: List<Category>): PatternPickerDialogFragment {
+        this.allCategories = categories
+        return this
+    }
+
+    fun setOnPatternSelectedListener(listener: (patternType: String?, patternValue: String?, categoryId: Long?, matchedName: String?) -> Unit): PatternPickerDialogFragment {
         this.onPatternSelected = listener
         return this
     }
@@ -160,8 +245,10 @@ class PatternPickerDialogFragment : DialogFragment() {
     }
 
     companion object {
-        fun newInstance(tx: Transaction): PatternPickerDialogFragment {
-            return PatternPickerDialogFragment().setTransaction(tx)
+        fun newInstance(tx: Transaction, categories: List<Category>): PatternPickerDialogFragment {
+            return PatternPickerDialogFragment()
+                .setTransaction(tx)
+                .setCategories(categories)
         }
     }
 }

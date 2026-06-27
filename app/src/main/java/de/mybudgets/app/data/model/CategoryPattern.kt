@@ -29,5 +29,6 @@ data class CategoryPattern(
     val confidence: Double = 0.7, // 0.0 - 1.0
     val usageCount: Int = 0,
     val lastUsed: Long? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val matchedName: String = ""
 )
