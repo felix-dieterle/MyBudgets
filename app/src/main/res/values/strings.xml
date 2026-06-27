@@ -181,6 +181,11 @@
     <!-- Version info in settings -->
     <string name="app_version_info">Version %1$s (Build %2$d)</string>
 
+    <!-- Chart empty states -->
+    <string name="chart_pie_empty">Keine Ausgaben in diesem Zeitraum</string>
+    <string name="chart_trend_empty">Keine Umsätze vorhanden</string>
+    <string name="chart_forecast_empty">Nicht genug Daten für Prognose\n(3+ Monate erforderlich)</string>
+
     <!-- Dashboard / Account detail transaction sections -->
     <string name="recent_transactions">Letzte Buchungen</string>
     <string name="see_all_transactions">Alle anzeigen</string>

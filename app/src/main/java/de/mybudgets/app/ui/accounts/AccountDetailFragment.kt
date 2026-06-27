@@ -14,6 +14,7 @@ import de.mybudgets.app.R
 import de.mybudgets.app.data.banking.FintsService
 import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.AccountType
+import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.databinding.FragmentAccountDetailBinding
 import de.mybudgets.app.ui.transactions.TransactionAdapter
 import de.mybudgets.app.ui.transactions.RecurringPatternDialog
@@ -25,6 +26,7 @@ import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.util.RecurringPatternDetector
 import de.mybudgets.app.viewmodel.AccountViewModel
 import de.mybudgets.app.viewmodel.BankSyncState
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -41,6 +43,7 @@ class AccountDetailFragment : Fragment() {
 
     @Inject lateinit var fintsService: FintsService
     @Inject lateinit var syncSettings: de.mybudgets.app.data.repository.SyncSettingsRepository
+    @Inject lateinit var categoryRepository: CategoryRepository
 
     companion object {
         private const val TAG = "AccountDetailFragment"
@@ -302,36 +305,40 @@ class AccountDetailFragment : Fragment() {
             
             if (patterns.isNotEmpty()) {
                 val appCtx = requireActivity().applicationContext
-                AppLogger.i("AccountDetailFragment", "  → Zeige RecurringPatternDialog")
-                RecurringPatternDialog.newInstance(patterns)
-                    .setOnApplyListener { rules ->
-                        try {
-                            AppLogger.i("AccountDetailFragment", "applyRecurringRules: Speichere ${rules.size} Rules")
-                            rules.forEach { rule -> 
-                                try {
-                                    vm.saveRecurringRule(rule)
-                                    AppLogger.i("AccountDetailFragment", "  ✅ Rule gespeichert: ${rule.name}")
-                                } catch (e: Exception) {
-                                    AppLogger.e("AccountDetailFragment", "  ❌ Rule speichern fehlgeschlagen: ${rule.name}", e)
+                AppLogger.i(TAG, "  → Zeige RecurringPatternDialog")
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val cats = try { categoryRepository.observeAll().first() } catch (_: Exception) { emptyList() }
+                    RecurringPatternDialog.newInstance(patterns)
+                        .setCategories(cats)
+                        .setOnApplyListener { rules ->
+                            try {
+                                AppLogger.i(TAG, "applyRecurringRules: Speichere ${rules.size} Rules")
+                                rules.forEach { rule -> 
+                                    try {
+                                        vm.saveRecurringRule(rule)
+                                        AppLogger.i(TAG, "  ✅ Rule gespeichert: ${rule.name}")
+                                    } catch (e: Exception) {
+                                        AppLogger.e(TAG, "  ❌ Rule speichern fehlgeschlagen: ${rule.name}", e)
+                                    }
                                 }
+                                android.widget.Toast.makeText(appCtx,
+                                    appCtx.getString(R.string.recurring_patterns_apply, rules.size),
+                                    android.widget.Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                AppLogger.e(TAG, "applyRecurringRules failed", e)
+                                android.widget.Toast.makeText(appCtx, "Fehler beim Speichern: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                             }
-                            android.widget.Toast.makeText(appCtx,
-                                appCtx.getString(R.string.recurring_patterns_apply, rules.size),
-                                android.widget.Toast.LENGTH_SHORT).show()
-                        } catch (e: Exception) {
-                            AppLogger.e("AccountDetailFragment", "applyRecurringRules failed", e)
-                            android.widget.Toast.makeText(appCtx, "Fehler beim Speichern: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                         }
-                    }
-                    .setOnDismissListener { 
-                        AppLogger.i("AccountDetailFragment", "RecurringPatternDialog dismissed")
-                        try {
-                            onDismiss()
-                        } catch (e: Exception) {
-                            AppLogger.e("AccountDetailFragment", "onDismiss callback failed", e)
+                        .setOnDismissListener { 
+                            AppLogger.i(TAG, "RecurringPatternDialog dismissed")
+                            try {
+                                onDismiss()
+                            } catch (e: Exception) {
+                                AppLogger.e(TAG, "onDismiss callback failed", e)
+                            }
                         }
-                    }
-                    .show(childFragmentManager, RecurringPatternDialog.TAG)
+                        .show(childFragmentManager, RecurringPatternDialog.TAG)
+                }
             } else {
                 AppLogger.i("AccountDetailFragment", "  → Keine Patterns gefunden")
                 onDismiss()

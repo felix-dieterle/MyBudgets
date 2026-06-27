@@ -67,6 +67,8 @@ class ChartPageFragment : Fragment() {
         chart.setUsePercentValues(true)
         chart.setEntryLabelTextSize(10f)
         chart.legend.textSize = 11f
+        chart.setNoDataText(getString(R.string.chart_pie_empty))
+        chart.setNoDataTextColor(android.graphics.Color.GRAY)
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -88,6 +90,8 @@ class ChartPageFragment : Fragment() {
         chart.xAxis.granularity = 1f
         chart.axisLeft.textSize = 10f
         chart.axisRight.isEnabled = false
+        chart.setNoDataText(getString(R.string.chart_trend_empty))
+        chart.setNoDataTextColor(android.graphics.Color.GRAY)
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -109,6 +113,8 @@ class ChartPageFragment : Fragment() {
         chart.axisLeft.textSize = 10f
         chart.axisRight.isEnabled = false
         chart.setDrawGridBackground(false)
+        chart.setNoDataText(getString(R.string.chart_forecast_empty))
+        chart.setNoDataTextColor(android.graphics.Color.GRAY)
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

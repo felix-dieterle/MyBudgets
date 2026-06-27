@@ -5,10 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import kotlin.math.abs
 import de.mybudgets.app.R
+import de.mybudgets.app.data.model.Category
 import de.mybudgets.app.data.model.RecurringRule
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.databinding.DialogRecurringPatternsBinding
@@ -23,10 +26,13 @@ class RecurringPatternDialog : DialogFragment() {
     private var _binding: DialogRecurringPatternsBinding? = null
     private val binding get() = _binding!!
     private var patterns: List<RecurringPatternDetector.RecurringPattern> = emptyList()
+    private var categories: List<Category> = emptyList()
     private var onApply: ((List<RecurringRule>) -> Unit)? = null
     private var onDismiss: (() -> Unit)? = null
     private val checkedState = mutableMapOf<Int, Boolean>()
     private val keywordOverrides = mutableMapOf<Int, String>()
+    private val selectedCategoryId = mutableMapOf<Int, Long?>()
+    private val expandedCategories = mutableMapOf<Int, MutableSet<Long>>()
 
     fun setOnDismissListener(listener: () -> Unit): RecurringPatternDialog {
         onDismiss = listener
@@ -35,6 +41,11 @@ class RecurringPatternDialog : DialogFragment() {
 
     fun setPatterns(patterns: List<RecurringPatternDetector.RecurringPattern>): RecurringPatternDialog {
         this.patterns = patterns
+        return this
+    }
+
+    fun setCategories(categories: List<Category>): RecurringPatternDialog {
+        this.categories = categories
         return this
     }
 
@@ -62,13 +73,13 @@ class RecurringPatternDialog : DialogFragment() {
             patterns.indices.forEach { checkedState[it] = true }
 
             binding.tvEmpty.visibility = if (patterns.isEmpty()) View.VISIBLE else View.GONE
-            binding.btnDiscard.setOnClickListener { 
+            binding.btnDiscard.setOnClickListener {
                 AppLogger.i("RecurringPatternDialog", "btnDiscard clicked")
-                dismiss() 
+                dismiss()
             }
-            binding.btnApply.setOnClickListener { 
+            binding.btnApply.setOnClickListener {
                 AppLogger.i("RecurringPatternDialog", "btnApply clicked")
-                applySelected() 
+                applySelected()
             }
             buildPatternCards()
         } catch (e: Exception) {
@@ -87,12 +98,12 @@ class RecurringPatternDialog : DialogFragment() {
                 try {
                     AppLogger.i("RecurringPatternDialog", "  Pattern $idx: ${p.suggestedDescription}, ${p.transactions.size} TX")
                     val card = ItemRecurringPatternBinding.inflate(layoutInflater, binding.containerPatterns, true)
-                    
+
                     if (p.transactions.isEmpty()) {
                         AppLogger.w("RecurringPatternDialog", "  ⚠️ Pattern $idx hat keine Transaktionen, skip")
                         continue
                     }
-                    
+
                     val tx = p.transactions.first()
 
                     card.cbPattern.isChecked = checkedState[idx] ?: true
@@ -102,7 +113,7 @@ class RecurringPatternDialog : DialogFragment() {
                     card.tvPatternAmount.text = CurrencyFormatter.format(tx.amount, "EUR")
                     card.tvPatternInterval.text = p.intervalLabel ?: ""
                     card.tvPatternConfidence.text = "${(p.confidence * 100).toInt()}%"
-                    
+
                     val firstDate = p.transactions.firstOrNull()?.date
                     val lastDate = p.transactions.lastOrNull()?.date
                     if (firstDate != null && lastDate != null) {
@@ -112,34 +123,40 @@ class RecurringPatternDialog : DialogFragment() {
                     } else {
                         card.tvPatternDateRange.text = "Zeitraum unbekannt"
                     }
-                    
+
                     card.tvTransactionCount.text = getString(R.string.recurring_pattern_tx_count, p.transactions.size)
 
                     card.etPatternKeyword.setText(p.suggestedDescription ?: "")
                     card.etPatternAmountFilter.setText(CurrencyFormatter.format(abs(tx.amount), "EUR"))
-                    
+
                     try {
-                        addSuggestionChips(card.chipGroupSuggestions, p.transactions, card.etPatternKeyword, card.layoutDetail, p.transactions)
+                        addSuggestionChips(card.chipGroupSuggestions, p.transactions, card.etPatternKeyword, card.containerTxRows, p.transactions)
                     } catch (e: Exception) {
                         AppLogger.e("RecurringPatternDialog", "  addSuggestionChips fehlgeschlagen für Pattern $idx", e)
                     }
-                    
+
                     try {
-                        addTransactionRows(card.layoutDetail, p.transactions)
+                        addTransactionRows(card.containerTxRows, p.transactions)
                     } catch (e: Exception) {
                         AppLogger.e("RecurringPatternDialog", "  addTransactionRows fehlgeschlagen für Pattern $idx", e)
                     }
-                    
+
+                    try {
+                        buildCategoryList(card.categoryGroup, idx, p.transactions)
+                    } catch (e: Exception) {
+                        AppLogger.e("RecurringPatternDialog", "  buildCategoryList fehlgeschlagen für Pattern $idx", e)
+                    }
+
                     card.tvPatternReason.text = p.reasoning ?: ""
 
-                    card.ivExpand.setOnClickListener { 
+                    card.ivExpand.setOnClickListener {
                         try {
                             toggleDetail(card.layoutDetail, card.ivExpand)
                         } catch (e: Exception) {
                             AppLogger.e("RecurringPatternDialog", "toggleDetail fehlgeschlagen", e)
                         }
                     }
-                    card.root.setOnClickListener { 
+                    card.root.setOnClickListener {
                         try {
                             toggleDetail(card.layoutDetail, card.ivExpand)
                         } catch (e: Exception) {
@@ -154,6 +171,74 @@ class RecurringPatternDialog : DialogFragment() {
         } catch (e: Exception) {
             AppLogger.e("RecurringPatternDialog", "buildPatternCards CRASH", e)
         }
+    }
+
+    private fun buildCategoryList(categoryGroup: RadioGroup, patternIdx: Int, transactions: List<Transaction>) {
+        if (categories.isEmpty()) {
+            categoryGroup.visibility = View.GONE
+            return
+        }
+
+        val preSelected = transactions.map { it.categoryId }.distinct().singleOrNull()
+        selectedCategoryId[patternIdx] = preSelected
+
+        val perPatternExpanded = expandedCategories.getOrPut(patternIdx) { mutableSetOf() }
+
+        fun rebuild() {
+            categoryGroup.removeAllViews()
+            val topLevel = categories.filter { it.parentCategoryId == null }.sortedBy { it.name }
+
+            val currentSelected = selectedCategoryId[patternIdx]
+            if (currentSelected != null && categories.none { it.id == currentSelected }) {
+                selectedCategoryId[patternIdx] = null
+            }
+
+            fun addItems(cat: Category, indent: Int) {
+                val hasChildren = categories.any { it.parentCategoryId == cat.id }
+                val isExpanded = perPatternExpanded.contains(cat.id)
+
+                val rb = RadioButton(requireContext()).apply {
+                    layoutParams = ViewGroup.MarginLayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    ).also { it.marginStart = indent * 32 }
+                    textSize = 13f
+
+                    val prefix = if (hasChildren) {
+                        if (isExpanded) "\u25BC " else "\u25B6 "
+                    } else ""
+
+                    text = "$prefix${cat.name}"
+                    tag = cat.id
+                    isChecked = cat.id == currentSelected
+
+                    if (hasChildren) {
+                        setOnClickListener {
+                            if (isExpanded) perPatternExpanded.remove(cat.id)
+                            else perPatternExpanded.add(cat.id)
+                            rebuild()
+                        }
+                    } else {
+                        setOnClickListener {
+                            selectedCategoryId[patternIdx] = cat.id
+                            rebuild()
+                        }
+                    }
+                }
+                categoryGroup.addView(rb)
+
+                if (hasChildren && isExpanded) {
+                    val children = categories
+                        .filter { it.parentCategoryId == cat.id }
+                        .sortedBy { it.name }
+                    children.forEach { child -> addItems(child, indent + 1) }
+                }
+            }
+
+            topLevel.forEach { addItems(it, 0) }
+        }
+
+        rebuild()
     }
 
     private fun addSuggestionChips(
@@ -226,45 +311,44 @@ class RecurringPatternDialog : DialogFragment() {
         try {
             AppLogger.i("RecurringPatternDialog", "applySelected: START")
             val rules = mutableListOf<RecurringRule>()
-            
+
             for ((idx, p) in patterns.withIndex()) {
                 try {
                     if (checkedState[idx] != true) {
                         AppLogger.i("RecurringPatternDialog", "  Pattern $idx nicht ausgewählt, skip")
                         continue
                     }
-                    
+
                     if (idx >= binding.containerPatterns.childCount) {
                         AppLogger.w("RecurringPatternDialog", "  Pattern $idx hat kein Child-View, skip")
                         continue
                     }
-                    
+
                     val child = binding.containerPatterns.getChildAt(idx)
                     if (child == null) {
                         AppLogger.w("RecurringPatternDialog", "  Pattern $idx: Child-View ist null, skip")
                         continue
                     }
-                    
+
                     val card = ItemRecurringPatternBinding.bind(child)
                     val kw = card.etPatternKeyword.text?.toString()?.trim() ?: ""
                     if (kw.isEmpty()) {
                         AppLogger.w("RecurringPatternDialog", "  Pattern $idx: Keyword leer, skip")
                         continue
                     }
-                    
+
                     if (p.transactions.isEmpty()) {
                         AppLogger.w("RecurringPatternDialog", "  Pattern $idx: Keine Transaktionen, skip")
                         continue
                     }
-                    
+
                     val tx = p.transactions.first()
-                    val commonCategory = p.transactions.map { it.categoryId }.distinct().singleOrNull()
                     val iban = card.etPatternIban.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
                     val amountText = card.etPatternAmountFilter.text?.toString()?.trim()?.replace(",", ".")
                     val amountOverride = amountText?.toDoubleOrNull()
                     val toleranceText = card.etPatternTolerance.text?.toString()?.trim()?.replace(",", ".")
                     val toleranceOverride = toleranceText?.toDoubleOrNull()
-                    
+
                     val rule = RecurringRule(
                         name = kw,
                         matchKeyword = kw,
@@ -272,7 +356,7 @@ class RecurringPatternDialog : DialogFragment() {
                         matchIban = iban,
                         matchAmountTolerance = toleranceOverride,
                         intervalDays = p.detectedIntervalDays,
-                        categoryId = commonCategory,
+                        categoryId = selectedCategoryId[idx],
                         accountId = tx.accountId
                     )
                     rules.add(rule)
@@ -281,14 +365,14 @@ class RecurringPatternDialog : DialogFragment() {
                     AppLogger.e("RecurringPatternDialog", "  ❌ Pattern $idx: Fehler beim Erstellen der Rule", e)
                 }
             }
-            
+
             AppLogger.i("RecurringPatternDialog", "applySelected: ${rules.size} Rules erstellt")
             if (rules.isNotEmpty()) {
                 try {
                     onApply?.invoke(rules)
                 } catch (e: Exception) {
                     AppLogger.e("RecurringPatternDialog", "onApply callback CRASH", e)
-                    throw e // Re-throw damit User Fehler sieht
+                    throw e
                 }
             }
             dismiss()
