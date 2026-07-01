@@ -47,9 +47,12 @@ import de.mybudgets.app.util.AppLogger
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.viewmodel.CategoryChartData
 import de.mybudgets.app.viewmodel.DashboardViewModel
+import de.mybudgets.app.viewmodel.DonutDisplayMode
+import de.mybudgets.app.viewmodel.DonutSliceConfig
 import de.mybudgets.app.viewmodel.ForecastLineConfig
 import de.mybudgets.app.viewmodel.ForecastPoint
 import de.mybudgets.app.viewmodel.MonthlyTrendPoint
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -113,6 +116,9 @@ class ChartPageFragment : Fragment() {
         val chart = root.findViewById<PieChart>(R.id.pie_chart) ?: return
         val catContainer = root.findViewById<LinearLayout>(R.id.layout_pie_categories)
         val backBtn = root.findViewById<TextView>(R.id.tv_pie_back)
+        val modeBtn = root.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_donut_mode)
+        val resetBtn = root.findViewById<ImageButton>(R.id.btn_reset_donut_slices)
+        val addBtn = root.findViewById<ImageButton>(R.id.btn_add_donut_slice)
 
         chart.description.isEnabled = false
         chart.isDrawHoleEnabled = true
@@ -126,18 +132,55 @@ class ChartPageFragment : Fragment() {
         chart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
             override fun onValueSelected(e: Entry?, h: Highlight?) {
                 val pieEntry = e as? PieEntry ?: return
-                val catId = (pieEntry.data as? Int)?.toLong() ?: return
-                vm.drillDownCategory(catId)
+                if (vm.donutDisplayMode.value == DonutDisplayMode.CUSTOM_SETS && vm.drillFromSetId.value == null) {
+                    val configId = pieEntry.data as? String ?: return
+                    vm.setDrillFromSet(configId)
+                } else {
+                    val catId = (pieEntry.data as? Int)?.toLong() ?: return
+                    vm.drillDownCategory(catId)
+                }
             }
             override fun onNothingSelected() {}
         })
-        backBtn.setOnClickListener { vm.drillDownCategory(null) }
+
+        backBtn.setOnClickListener {
+            if (vm.donutDisplayMode.value == DonutDisplayMode.CUSTOM_SETS) {
+                if (vm.drillFromSetId.value != null) {
+                    vm.setDrillFromSet(null)
+                } else {
+                    vm.setDonutDisplayMode(DonutDisplayMode.CATEGORIES)
+                }
+            } else {
+                vm.drillDownCategory(null)
+            }
+        }
+
+        modeBtn.setOnClickListener { vm.setDonutDisplayMode(DonutDisplayMode.CUSTOM_SETS) }
+        resetBtn.setOnClickListener { vm.resetDonutConfigs() }
+        addBtn.setOnClickListener {
+            val config = DonutSliceConfig(
+                id = java.util.UUID.randomUUID().toString(),
+                label = "Neues Set",
+                categoryIds = emptySet()
+            )
+            vm.saveDonutSliceConfig(config)
+            DonutSliceEditDialogFragment.newInstance(
+                config = config,
+                allCategories = vm.allCategories.value,
+                allConfigs = vm.donutSliceConfigs.value
+            ).show(parentFragmentManager, "donut_slice_edit")
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.categoryChartData.collect { data ->
+                launch { vm.categoryChartData.collect { data ->
                     updatePieChart(chart, data, catContainer, backBtn)
-                }
+                } }
+                launch { combine(vm.donutDisplayMode, vm.donutSliceConfigs) { mode, configs -> Pair(mode, configs) }.collect { (mode, configs) ->
+                    modeBtn.visibility = if (mode != DonutDisplayMode.CUSTOM_SETS) View.VISIBLE else View.GONE
+                    addBtn.visibility = if (mode == DonutDisplayMode.CUSTOM_SETS) View.VISIBLE else View.GONE
+                    resetBtn.visibility = if (configs.isNotEmpty() && mode == DonutDisplayMode.CUSTOM_SETS) View.VISIBLE else View.GONE
+                } }
             }
         }
     }
@@ -165,7 +208,13 @@ class ChartPageFragment : Fragment() {
         chart.data = PieData(dataSet)
         chart.invalidate()
 
-        if (data.drillDownParentName != null) {
+        val isCustomMode = vm.donutDisplayMode.value == DonutDisplayMode.CUSTOM_SETS
+        val isDrillFromSet = vm.drillFromSetId.value != null
+
+        if (isCustomMode && !isDrillFromSet) {
+            backBtn.text = getString(R.string.chart_pie_back_categories)
+            backBtn.visibility = View.VISIBLE
+        } else if (data.drillDownParentName != null) {
             backBtn.text = "← ${data.drillDownParentName}"
             backBtn.visibility = View.VISIBLE
         } else {
@@ -173,6 +222,23 @@ class ChartPageFragment : Fragment() {
         }
 
         catContainer.removeAllViews()
+        if (isCustomMode && !isDrillFromSet) {
+            // Showing slices: show config labels
+            for ((cId, amount) in data.categoryAmounts.entries.sortedByDescending { it.value }) {
+                val name = data.categoryLabels[cId] ?: "Unbekannt"
+                val total = data.categoryAmounts.values.sum().coerceAtLeast(1f)
+                val pct = amount / total * 100f
+                val tv = TextView(requireContext()).apply {
+                    text = "$name: ${CurrencyFormatter.format(amount.toDouble())} (${"%.1f".format(pct)}%)"
+                    textSize = 13f
+                    setPadding(0, 4, 0, 4)
+                    setTextColor(ContextCompat.getColor(requireContext(), R.color.on_surface))
+                }
+                catContainer.addView(tv)
+            }
+            return
+        }
+
         val hiddenIds = vm.hiddenCategoryIds.value
         for (cId in data.levelCategoryIds) {
             val amount = data.categoryAmounts[cId] ?: 0f
@@ -187,9 +253,7 @@ class ChartPageFragment : Fragment() {
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
             }
-            cb.setOnCheckedChangeListener { _, checked ->
-                vm.toggleHideCategory(cId)
-            }
+            cb.setOnCheckedChangeListener { _, _ -> vm.toggleHideCategory(cId) }
             val nameTv = TextView(requireContext()).apply {
                 text = buildString {
                     append(name)

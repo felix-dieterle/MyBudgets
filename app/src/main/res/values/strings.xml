@@ -187,6 +187,9 @@
     <string name="chart_pie_empty">Keine Ausgaben in diesem Zeitraum</string>
     <string name="chart_trend_empty">Keine Umsätze vorhanden</string>
     <string name="chart_forecast_empty">Nicht genug Daten für Prognose\n(3+ Monate erforderlich)</string>
+    <string name="chart_pie_sets">Sets</string>
+    <string name="chart_pie_back_categories">← Kategorien</string>
+    <string name="chart_pie_empty_sets">Keine Daten für dieses Set</string>
 
     <!-- Dashboard / Account detail transaction sections -->
     <string name="recent_transactions">Letzte Buchungen</string>
@@ -217,4 +220,14 @@
     <string name="forecast_line_delete">Linie löschen</string>
     <string name="forecast_line_prev">❮ Vorherige</string>
     <string name="forecast_line_next">Nächste ❯</string>
+
+    <!-- Donut slice config dialog -->
+    <string name="donut_slice_edit_title">Set bearbeiten</string>
+    <string name="donut_slice_label_hint">Set-Bezeichnung</string>
+    <string name="donut_slice_select_categories">Kategorien auswählen:</string>
+    <string name="donut_slice_save">Speichern</string>
+    <string name="donut_slice_cancel">Abbrechen</string>
+    <string name="donut_slice_delete">Set löschen</string>
+    <string name="donut_slice_prev">❮ Vorheriges</string>
+    <string name="donut_slice_next">Nächstes ❯</string>
 </resources>

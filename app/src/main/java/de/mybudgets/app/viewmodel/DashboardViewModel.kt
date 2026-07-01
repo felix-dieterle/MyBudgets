@@ -67,6 +67,15 @@ data class ForecastLineConfig(
     val colorIndex: Int = 0
 )
 
+data class DonutSliceConfig(
+    val id: String,
+    val label: String,
+    val categoryIds: Set<Long>,
+    val colorIndex: Int = 0
+)
+
+enum class DonutDisplayMode { CATEGORIES, CUSTOM_SETS }
+
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val accountRepo: AccountRepository,
@@ -114,6 +123,70 @@ class DashboardViewModel @Inject constructor(
 
     // ── Forecast Line Configs ──
 
+    // ── Donut Custom Sets ──
+
+    private val _donutSliceConfigs = MutableStateFlow<List<DonutSliceConfig>>(emptyList())
+    val donutSliceConfigs: StateFlow<List<DonutSliceConfig>> = _donutSliceConfigs
+    val donutDisplayMode = MutableStateFlow(DonutDisplayMode.CATEGORIES)
+    val drillFromSetId = MutableStateFlow<String?>(null)
+
+    fun setDonutDisplayMode(mode: DonutDisplayMode) { donutDisplayMode.value = mode }
+    fun setDrillFromSet(id: String?) { drillFromSetId.value = id }
+
+    fun saveDonutSliceConfig(config: DonutSliceConfig) {
+        val updated = _donutSliceConfigs.value.map { if (it.id == config.id) config else it }
+        _donutSliceConfigs.value = updated
+        saveDonutToPrefs(updated)
+    }
+
+    fun removeDonutSliceConfig(id: String) {
+        val updated = _donutSliceConfigs.value.filter { it.id != id }
+        _donutSliceConfigs.value = updated
+        saveDonutToPrefs(updated)
+    }
+
+    fun resetDonutConfigs() {
+        _donutSliceConfigs.value = emptyList()
+        donutDisplayMode.value = DonutDisplayMode.CATEGORIES
+        drillFromSetId.value = null
+        chartPrefs.edit().remove("donut_slices").apply()
+    }
+
+    private fun saveDonutToPrefs(configs: List<DonutSliceConfig>) {
+        val arr = JSONArray()
+        configs.forEach { config ->
+            val catIdsArr = JSONArray()
+            config.categoryIds.forEach { catIdsArr.put(it) }
+            val obj = JSONObject().apply {
+                put("id", config.id)
+                put("label", config.label)
+                put("categoryIds", catIdsArr.toString())
+                put("colorIndex", config.colorIndex)
+            }
+            arr.put(obj)
+        }
+        chartPrefs.edit().putString("donut_slices", arr.toString()).apply()
+    }
+
+    private fun loadDonutFromPrefs() {
+        val json = chartPrefs.getString("donut_slices", null) ?: return
+        try {
+            val arr = JSONArray(json)
+            val configs = (0 until arr.length()).map { i ->
+                val obj = arr.getJSONObject(i)
+                val catIdsStr = obj.optString("categoryIds", "[]")
+                val catIdsArr = JSONArray(catIdsStr)
+                DonutSliceConfig(
+                    id = obj.getString("id"),
+                    label = obj.getString("label"),
+                    categoryIds = (0 until catIdsArr.length()).map { catIdsArr.getLong(it) }.toSet(),
+                    colorIndex = obj.optInt("colorIndex", 0)
+                )
+            }
+            _donutSliceConfigs.value = configs
+        } catch (_: Exception) {}
+    }
+
     private val chartPrefs: SharedPreferences =
         application.getSharedPreferences("chart_configs", Context.MODE_PRIVATE)
 
@@ -122,6 +195,7 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadConfigsFromPrefs()
+        loadDonutFromPrefs()
     }
 
     private fun loadConfigsFromPrefs() {
@@ -194,8 +268,21 @@ class DashboardViewModel @Inject constructor(
         categoryRepo.observeAll(),
         selectedTimeRange,
         hiddenCategoryIds,
-        drillDownCategoryId
-    ) { txs, cats, range, hiddenIds, drillId ->
+        drillDownCategoryId,
+        _donutSliceConfigs,
+        donutDisplayMode,
+        drillFromSetId
+    ) { flows: Array<*> ->
+        @Suppress("UNCHECKED_CAST")
+        val txs = flows[0] as List<Transaction>
+        val cats = flows[1] as List<Category>
+        val range = flows[2] as TimeRange
+        val hiddenIds = flows[3] as Set<Long>
+        val drillId = flows[4] as Long?
+        val sliceConfigs = flows[5] as List<DonutSliceConfig>
+        val displayMode = flows[6] as DonutDisplayMode
+        val drillSetId = flows[7] as String?
+        
         val cutoff = when (range) {
             TimeRange.LAST_MONTH -> cutoffMillis(1)
             TimeRange.LAST_3_MONTHS -> cutoffMillis(3)
@@ -216,12 +303,67 @@ class DashboardViewModel @Inject constructor(
             return current.id
         }
         
-        val allExpenseCatIds = expenses.mapNotNull { it.categoryId }.toSet()
-        fun hasChildrenInData(catId: Long): Boolean =
-            cats.any { it.parentCategoryId == catId && it.id in allExpenseCatIds }
+        fun descendantIds(catId: Long): Set<Long> =
+            cats.filter { it.parentCategoryId == catId }.flatMap { descendantIds(it.id) + it.id }.toSet()
         
-        val l1RootIds = cats.filter { it.parentCategoryId == null || it.level == 1 }
-            .map { it.id }
+        val l1RootIds = cats.filter { it.parentCategoryId == null || it.level == 1 }.map { it.id }
+
+        // ── Custom sets mode ──
+        if (displayMode == DonutDisplayMode.CUSTOM_SETS && sliceConfigs.isNotEmpty()) {
+            if (drillSetId != null) {
+                // Drill from set: show direct children of all categories in the set (flat)
+                val setConfig = sliceConfigs.find { it.id == drillSetId } ?: sliceConfigs.first()
+                val allSetCatIds = setConfig.categoryIds.flatMap { cid -> descendantIds(cid) + cid }.toSet()
+                val childCats = cats.filter { it.parentCategoryId in setConfig.categoryIds }
+                val drillFromTxs = expenses.filter { tx ->
+                    val cid = tx.categoryId ?: return@filter false
+                    cid in allSetCatIds
+                }
+                val allChildIds = childCats.map { it.id }.sorted()
+                if (allChildIds.isEmpty()) {
+                    return@combine CategoryChartData(emptyList(), emptyMap())
+                }
+                val byChild = drillFromTxs.groupBy { tx ->
+                    var cur = categoryMap[tx.categoryId] ?: return@groupBy tx.categoryId
+                    while (cur.parentCategoryId != null && cur.parentCategoryId !in setConfig.categoryIds) {
+                        cur = categoryMap[cur.parentCategoryId] ?: return@groupBy tx.categoryId
+                    }
+                    cur.id
+                }
+                val total = drillFromTxs.sumOf { it.amount }.toFloat().coerceAtLeast(1f)
+                val allAmounts = allChildIds.associateWith { cId ->
+                    byChild[cId]?.sumOf { it.amount }?.toFloat() ?: 0f
+                }
+                val visible = allAmounts.filterKeys { it !in hiddenIds && allAmounts[it]!! > 0f }
+                val ent = visible.entries
+                    .sortedByDescending { it.value }
+                    .map { (cId, sum) -> PieEntry(sum / total * 100f, labels[cId] ?: "Sonstige", cId.toInt()) }
+                return@combine CategoryChartData(ent, labels, allAmounts, allChildIds, setConfig.label)
+            }
+
+            // Aggregate by slices
+            val sliceAmounts = sliceConfigs.associate { config ->
+                val ids = config.categoryIds.flatMap { cid -> descendantIds(cid) + cid }.toSet()
+                val sum = expenses.filter { it.categoryId in ids }.sumOf { it.amount }.toFloat()
+                config.id to sum
+            }
+            val total = sliceAmounts.values.sum().coerceAtLeast(1f)
+            val visible = sliceAmounts.filter { it.value > 0f }
+            val ent = visible.entries
+                .map { (configId, sum) ->
+                    val config = sliceConfigs.find { it.id == configId }
+                    val label = config?.label ?: "Unbekannt"
+                    PieEntry(sum / total * 100f, label, config?.id ?: configId)
+                }
+                .sortedByDescending { it.value }
+            val sliceLabels = sliceConfigs.associate { it.id.hashCode().toLong() to it.label }
+            val sliceAmountsMap = sliceConfigs.associate { it.id.hashCode().toLong() to (sliceAmounts[it.id] ?: 0f) }
+            val sliceLevelIds = sliceConfigs.map { it.id.hashCode().toLong() }
+            return@combine CategoryChartData(ent, sliceLabels, sliceAmountsMap, sliceLevelIds, null)
+        }
+        
+        // ── Category mode (current behavior) ──
+        val allExpenseCatIds = expenses.mapNotNull { it.categoryId }.toSet()
         
         val pieResult = if (drillId == null) {
             // L1: all root categories (including hidden/zero), compute amounts for all
