@@ -333,7 +333,7 @@ class DashboardViewModel @Inject constructor(
         selectedTimeRange,
         categoryRepo.observeAll(),
         forecastLineConfigs
-    ) { txs, _, cats, configs ->
+    ) { txs, range, cats, configs ->
         val monthly = groupByMonth(txs)
         val sorted = monthly.entries.sortedBy { parseMonthLabel(it.key) }
         if (sorted.size < 3) return@combine emptyList()
@@ -351,8 +351,12 @@ class DashboardViewModel @Inject constructor(
             return current.id
         }
         
-        // Use at least 6 months for trend analysis (fallback to 3 if not available)
-        val historySize = if (sorted.size >= 6) 6 else 3
+        // Time range determines how many months to use for trend analysis
+        val historySize = when (range) {
+            TimeRange.ALL -> sorted.size.coerceAtMost(6)
+            TimeRange.LAST_3_MONTHS -> 3
+            TimeRange.LAST_MONTH -> 3
+        }
         val recentMonths = sorted.takeLast(historySize)
 
         if (configs.isEmpty()) {
