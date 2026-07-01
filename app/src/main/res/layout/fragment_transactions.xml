@@ -41,6 +41,15 @@
                 android:layout_marginStart="8dp"
                 android:contentDescription="Filter"
                 android:text="▼" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_export_csv"
+                style="@style/Widget.Material3.Button.IconButton.Filled"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:contentDescription="CSV exportieren"
+                android:text="CSV" />
         </LinearLayout>
 
         <LinearLayout

@@ -114,6 +114,27 @@ class TransactionViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    fun exportFilteredAsCsv(): String {
+        val list = searchedTransactions.value
+        val sb = StringBuilder()
+        sb.appendLine("Datum;Beschreibung;Betrag;Typ;Kategorie;Notiz")
+        val fmt = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY)
+        for ((tx, cat) in list) {
+            val date = fmt.format(java.util.Date(tx.date))
+            val desc = tx.description.replace(";", ",")
+            val amount = "%.2f €".format(tx.amount).replace(".", ",")
+            val type = when (tx.type) {
+                TransactionType.INCOME -> "Einnahme"
+                TransactionType.EXPENSE -> "Ausgabe"
+                TransactionType.TRANSFER -> "Transfer"
+            }
+            val category = cat?.name?.replace(";", ",") ?: ""
+            val note = tx.note.replace(";", ",")
+            sb.appendLine("$date;$desc;$amount;$type;$category;$note")
+        }
+        return sb.toString()
+    }
+
     suspend fun suggestCategoryId(description: String, amount: Double, type: TransactionType): Long? =
         repo.suggestCategoryId(description, amount, type)
 

@@ -51,6 +51,16 @@ class TransactionsFragment : Fragment() {
             findNavController().navigate(R.id.action_transactionsFragment_to_transferFragment)
         }
 
+        binding.btnExportCsv.setOnClickListener {
+            val csv = vm.exportFilteredAsCsv()
+            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/csv"
+                putExtra(android.content.Intent.EXTRA_TEXT, csv)
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "MyBudgets Export")
+            }
+            startActivity(android.content.Intent.createChooser(intent, "CSV exportieren"))
+        }
+
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
