@@ -1,9 +1,13 @@
 package de.mybudgets.app.viewmodel
 
+import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.mikephil.charting.data.PieEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.mybudgets.app.data.model.Category
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.data.repository.AccountRepository
@@ -16,7 +20,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
 import java.util.Calendar
+import java.util.UUID
 import javax.inject.Inject
 
 enum class TimeRange { LAST_MONTH, LAST_3_MONTHS, ALL }
@@ -47,15 +56,23 @@ private data class PieChartIntermediate(
 data class ForecastPoint(
     val label: String, // e.g. "Jun", "Jul", "Aug"
     val predicted: Float, // Total predicted expenses (legacy, kept for compatibility)
-    val categoryForecasts: Map<String, Float> = emptyMap(), // Category name -> amount
+    val categoryForecasts: Map<String, Float> = emptyMap(), // configId -> amount
     val fixedCosts: Float = 0f // Sum of all recurring/fixed expenses
+)
+
+data class ForecastLineConfig(
+    val id: String,
+    val label: String,
+    val categoryIds: Set<Long>,
+    val colorIndex: Int = 0
 )
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val accountRepo: AccountRepository,
     private val txRepo: TransactionRepository,
-    private val categoryRepo: CategoryRepository
+    private val categoryRepo: CategoryRepository,
+    private val application: Application
 ) : ViewModel() {
 
     val totalBalance = accountRepo.observeTotalBalance().stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
@@ -81,6 +98,8 @@ class DashboardViewModel @Inject constructor(
         DashboardInsights.buildPredictionWarnings(System.currentTimeMillis(), accs, categories, txs)
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val allCategories = categoryRepo.observeAll().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     // ── Chart State ──
 
     val selectedTimeRange = MutableStateFlow(TimeRange.LAST_MONTH)
@@ -92,6 +111,83 @@ class DashboardViewModel @Inject constructor(
             hiddenCategoryIds.value - id else hiddenCategoryIds.value + id
     }
     fun drillDownCategory(id: Long?) { drillDownCategoryId.value = id }
+
+    // ── Forecast Line Configs ──
+
+    private val chartPrefs: SharedPreferences =
+        application.getSharedPreferences("chart_configs", Context.MODE_PRIVATE)
+
+    private val _forecastLineConfigs = MutableStateFlow<List<ForecastLineConfig>>(emptyList())
+    val forecastLineConfigs: StateFlow<List<ForecastLineConfig>> = _forecastLineConfigs
+
+    init {
+        loadConfigsFromPrefs()
+    }
+
+    private fun loadConfigsFromPrefs() {
+        val json = chartPrefs.getString("forecast_lines", null) ?: return
+        try {
+            val arr = JSONArray(json)
+            val configs = (0 until arr.length()).map { i ->
+                val obj = arr.getJSONObject(i)
+                val catIdsStr = obj.optString("categoryIds", "[]")
+                val catIdsArr = JSONArray(catIdsStr)
+                ForecastLineConfig(
+                    id = obj.getString("id"),
+                    label = obj.getString("label"),
+                    categoryIds = (0 until catIdsArr.length()).map { catIdsArr.getLong(it) }.toSet(),
+                    colorIndex = obj.optInt("colorIndex", 0)
+                )
+            }
+            _forecastLineConfigs.value = configs
+        } catch (_: Exception) {}
+    }
+
+    private fun saveToPrefs(configs: List<ForecastLineConfig>) {
+        val arr = JSONArray()
+        configs.forEach { config ->
+            val catIdsArr = JSONArray()
+            config.categoryIds.forEach { catIdsArr.put(it) }
+            val obj = JSONObject().apply {
+                put("id", config.id)
+                put("label", config.label)
+                put("categoryIds", catIdsArr.toString())
+                put("colorIndex", config.colorIndex)
+            }
+            arr.put(obj)
+        }
+        chartPrefs.edit().putString("forecast_lines", arr.toString()).apply()
+    }
+
+    fun resetForecastConfigs() {
+        _forecastLineConfigs.value = emptyList()
+        chartPrefs.edit().remove("forecast_lines").apply()
+    }
+
+    fun saveLineConfig(config: ForecastLineConfig) {
+        val updated = _forecastLineConfigs.value.map { if (it.id == config.id) config else it }
+        _forecastLineConfigs.value = updated
+        saveToPrefs(updated)
+    }
+
+    fun removeLineConfig(id: String) {
+        val updated = _forecastLineConfigs.value.filter { it.id != id }
+        _forecastLineConfigs.value = updated
+        saveToPrefs(updated)
+    }
+
+    fun initializeDefaultConfigs() {
+        if (_forecastLineConfigs.value.isNotEmpty()) return
+        viewModelScope.launch {
+            val txs = txRepo.observeAll().first()
+            val cats = categoryRepo.observeAll().first()
+            val defaults = generateDefaultConfigs(txs, cats)
+            if (defaults.isNotEmpty()) {
+                _forecastLineConfigs.value = defaults
+                saveToPrefs(defaults)
+            }
+        }
+    }
 
     val categoryChartData: StateFlow<CategoryChartData> = combine(
         transactions,
@@ -235,8 +331,9 @@ class DashboardViewModel @Inject constructor(
     val forecast: StateFlow<List<ForecastPoint>> = combine(
         transactions,
         selectedTimeRange,
-        categoryRepo.observeAll()
-    ) { txs, _, cats ->
+        categoryRepo.observeAll(),
+        forecastLineConfigs
+    ) { txs, _, cats, configs ->
         val monthly = groupByMonth(txs)
         val sorted = monthly.entries.sortedBy { parseMonthLabel(it.key) }
         if (sorted.size < 3) return@combine emptyList()
@@ -257,83 +354,195 @@ class DashboardViewModel @Inject constructor(
         // Use at least 6 months for trend analysis (fallback to 3 if not available)
         val historySize = if (sorted.size >= 6) 6 else 3
         val recentMonths = sorted.takeLast(historySize)
-        
-        // Calculate trends per ROOT category using linear regression
-        val categoryTrends = mutableMapOf<Long?, Pair<Float, Float>>() // rootCatId -> (avg, trend)
-        
-        txs.filter { it.type == TransactionType.EXPENSE }
-            .groupBy { getRootCategory(it.categoryId) }
-            .forEach { (rootCatId, catTxs) ->
-                val monthlyAmounts = recentMonths.map { (monthKey, monthTxs) ->
-                    monthTxs.filter { getRootCategory(it.categoryId) == rootCatId && it.type == TransactionType.EXPENSE }
-                        .sumOf { it.amount }.toFloat()
-                }
-                
-                // Linear regression: y = avg + trend * x
-                val avg = monthlyAmounts.average().toFloat()
-                val trend = if (monthlyAmounts.size >= 2) {
-                    val n = monthlyAmounts.size
-                    val sumX = (0 until n).sum().toFloat()
-                    val sumY = monthlyAmounts.sum()
-                    val sumXY = monthlyAmounts.mapIndexed { i, y -> i * y }.sum()
-                    val sumX2 = (0 until n).sumOf { it * it }.toFloat()
-                    
-                    // trend = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX^2)
-                    val numerator = n * sumXY - sumX * sumY
-                    val denominator = n * sumX2 - sumX * sumX
-                    if (denominator != 0f) numerator / denominator else 0f
-                } else 0f
-                
-                categoryTrends[rootCatId] = Pair(avg, trend)
-            }
-        
-        // Fixed costs (recurring): use simple average (more stable)
-        val fixedCostsAvg = recentMonths.map { (_, monthTxs) ->
-            monthTxs.filter { it.type == TransactionType.EXPENSE && it.isRecurring }
-                .sumOf { it.amount }.toFloat()
-        }.average().toFloat()
-        
-        val lastLabel = sorted.last().key
-        val lastMonthIdx = historySize - 1
 
-        (1..3).map { offset ->
-            val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
-            val label = monthLabel(nextCal)
+        if (configs.isEmpty()) {
+            // ── Legacy fallback: top 5 root categories (original behavior) ──
+            val categoryTrends = mutableMapOf<Long?, Pair<Float, Float>>()
             
-            // Apply trend to top ROOT categories
-            val topCategories = categoryTrends.entries
-                .sortedByDescending { it.value.first } // Sort by average
-                .take(5)
-                .associate { (rootCatId, pair) ->
-                    val (avg, trend) = pair
-                    val catName = categoryLabels[rootCatId] ?: "Sonstige"
-                    
-                    // Predict: avg + trend * (lastMonthIdx + offset)
-                    val predicted = (avg + trend * (lastMonthIdx + offset)).coerceAtLeast(0f)
-                    catName to predicted
+            txs.filter { it.type == TransactionType.EXPENSE }
+                .groupBy { getRootCategory(it.categoryId) }
+                .forEach { (rootCatId, _) ->
+                    val monthlyAmounts = recentMonths.map { (_, monthTxs) ->
+                        monthTxs.filter { getRootCategory(it.categoryId) == rootCatId && it.type == TransactionType.EXPENSE }
+                            .sumOf { it.amount }.toFloat()
+                    }
+                    val avg = monthlyAmounts.average().toFloat()
+                    val trend = if (monthlyAmounts.size >= 2) {
+                        val n = monthlyAmounts.size
+                        val sumX = (0 until n).sum().toFloat()
+                        val sumY = monthlyAmounts.sum()
+                        val sumXY = monthlyAmounts.mapIndexed { i, y -> i * y }.sum()
+                        val sumX2 = (0 until n).sumOf { it * it }.toFloat()
+                        val numerator = n * sumXY - sumX * sumY
+                        val denominator = n * sumX2 - sumX * sumX
+                        if (denominator != 0f) numerator / denominator else 0f
+                    } else 0f
+                    categoryTrends[rootCatId] = Pair(avg, trend)
                 }
             
-            // Total predicted (sum of all category trends)
-            val totalPredicted = categoryTrends.values.sumOf { (avg, trend) ->
-                (avg + trend * (lastMonthIdx + offset)).toDouble()
-            }.toFloat().coerceAtLeast(0f)
+            val fixedCostsAvg = recentMonths.map { (_, monthTxs) ->
+                monthTxs.filter { it.type == TransactionType.EXPENSE && it.isRecurring }
+                    .sumOf { it.amount }.toFloat()
+            }.average().toFloat()
             
-            ForecastPoint(
-                label = label,
-                predicted = totalPredicted,
-                categoryForecasts = topCategories,
-                fixedCosts = fixedCostsAvg // Fixkosten bleiben stabil
-            )
+            val lastLabel = sorted.last().key
+            val lastMonthIdx = historySize - 1
+
+            (1..3).map { offset ->
+                val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
+                val label = monthLabel(nextCal)
+                val topCategories = categoryTrends.entries
+                    .sortedByDescending { it.value.first }
+                    .take(5)
+                    .associate { (rootCatId, pair) ->
+                        val (avg, trend) = pair
+                        val catName = categoryLabels[rootCatId] ?: "Sonstige"
+                        val predicted = (avg + trend * (lastMonthIdx + offset)).coerceAtLeast(0f)
+                        catName to predicted
+                    }
+                val totalPredicted = categoryTrends.values.sumOf { (avg, trend) ->
+                    (avg + trend * (lastMonthIdx + offset)).toDouble()
+                }.toFloat().coerceAtLeast(0f)
+                ForecastPoint(
+                    label = label,
+                    predicted = totalPredicted,
+                    categoryForecasts = topCategories,
+                    fixedCosts = fixedCostsAvg
+                )
+            }
+        } else {
+            // ── Config-driven: per-category trends → aggregate per config ──
+            computeConfigForecast(cats, configs, categoryMap, recentMonths, sorted.last().key, historySize)
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun selectTimeRange(range: TimeRange) { selectedTimeRange.value = range }
+
+    // ── Forecast Line Config Helpers ──
+
+    private fun generateDefaultConfigs(txs: List<Transaction>, cats: List<Category>): List<ForecastLineConfig> {
+        val monthly = groupByMonth(txs)
+        val sorted = monthly.entries.sortedBy { parseMonthLabel(it.key) }
+        if (sorted.size < 3) return emptyList()
+        val historySize = if (sorted.size >= 6) 6 else 3
+        val recentMonths = sorted.takeLast(historySize)
+        val categoryMap = cats.associateBy { it.id }
+        val rootCats = cats.filter { it.parentCategoryId == null || it.level == 1 }
+
+        val rootAvgs = rootCats.map { cat ->
+            val ids = getAllDescendantIds(cat.id, cats) + cat.id
+            val avg = recentMonths.map { (_, monthTxs) ->
+                monthTxs.filter { tx ->
+                    tx.type == TransactionType.EXPENSE && tx.categoryId in ids
+                }.sumOf { it.amount }.toFloat()
+            }.average().toFloat()
+            cat.id to avg
+        }
+
+        return rootAvgs.sortedByDescending { it.second }.take(5)
+            .mapIndexed { idx, (catId, _) ->
+                ForecastLineConfig(
+                    id = UUID.randomUUID().toString(),
+                    label = categoryMap[catId]?.name ?: "Kategorie ${idx + 1}",
+                    categoryIds = setOf(catId),
+                    colorIndex = idx
+                )
+            }
+    }
+
+    private fun computeConfigForecast(
+        cats: List<Category>,
+        configs: List<ForecastLineConfig>,
+        categoryMap: Map<Long, Category>,
+        recentMonths: List<Map.Entry<String, List<Transaction>>>,
+        lastLabel: String,
+        historySize: Int
+    ): List<ForecastPoint> {
+        // Compute per-category trends (each category including all descendants)
+        val categoryTrends = mutableMapOf<Long, Pair<Float, Float>>()
+        cats.forEach { cat ->
+            val childIds = getAllDescendantIds(cat.id, cats) + cat.id
+            val monthlyAmounts = recentMonths.map { (_, monthTxs) ->
+                monthTxs.filter { tx ->
+                    tx.type == TransactionType.EXPENSE && tx.categoryId in childIds
+                }.sumOf { it.amount }.toFloat()
+            }
+            categoryTrends[cat.id] = linearRegression(monthlyAmounts)
+        }
+
+        // Fixed costs
+        val fixedCostsAvg = recentMonths.map { (_, monthTxs) ->
+            monthTxs.filter { it.type == TransactionType.EXPENSE && it.isRecurring }
+                .sumOf { it.amount }.toFloat()
+        }.average().toFloat()
+
+        val lastMonthIdx = historySize - 1
+
+        return (1..3).map { offset ->
+            val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
+            val label = monthLabel(nextCal)
+
+            val configForecasts = mutableMapOf<String, Float>()
+            for (config in configs) {
+                if (config.categoryIds.isEmpty()) continue
+
+                // Only include topmost selected categories (avoid double-count if parent+child selected)
+                val effectiveIds = config.categoryIds.filter { catId ->
+                    var parent = categoryMap[catId]?.parentCategoryId
+                    var hasParent = false
+                    while (parent != null) {
+                        if (parent in config.categoryIds) { hasParent = true; break }
+                        parent = categoryMap[parent]?.parentCategoryId
+                    }
+                    !hasParent
+                }
+
+                val total = effectiveIds.sumOf { catId ->
+                    val (avg, trend) = categoryTrends[catId] ?: Pair(0f, 0f)
+                    (avg + trend * (lastMonthIdx + offset)).coerceAtLeast(0f).toDouble()
+                }.toFloat()
+
+                configForecasts[config.id] = total
+            }
+
+            val totalPredicted = configForecasts.values.sum()
+
+            ForecastPoint(
+                label = label,
+                predicted = totalPredicted,
+                categoryForecasts = configForecasts,
+                fixedCosts = fixedCostsAvg
+            )
+        }
+    }
 
     // ── Helpers ──
 
     private fun cutoffMillis(monthsAgo: Int): Long {
         val cal = Calendar.getInstance().apply { add(Calendar.MONTH, -monthsAgo) }
         return cal.timeInMillis
+    }
+
+    private fun linearRegression(monthlyAmounts: List<Float>): Pair<Float, Float> {
+        val avg = monthlyAmounts.average().toFloat()
+        val trend = if (monthlyAmounts.size >= 2) {
+            val n = monthlyAmounts.size
+            val sumX = (0 until n).sum().toFloat()
+            val sumY = monthlyAmounts.sum()
+            val sumXY = monthlyAmounts.mapIndexed { i, y -> i * y }.sum()
+            val sumX2 = (0 until n).sumOf { it * it }.toFloat()
+            val numerator = n * sumXY - sumX * sumY
+            val denominator = n * sumX2 - sumX * sumX
+            if (denominator != 0f) numerator / denominator else 0f
+        } else 0f
+        return Pair(avg, trend)
+    }
+
+    private fun getAllDescendantIds(catId: Long, cats: List<Category>): Set<Long> {
+        val children = cats.filter { it.parentCategoryId == catId }
+        return children.flatMap { child ->
+            getAllDescendantIds(child.id, cats) + child.id
+        }.toSet()
     }
 
     private fun groupByMonth(txs: List<Transaction>): Map<String, List<Transaction>> =

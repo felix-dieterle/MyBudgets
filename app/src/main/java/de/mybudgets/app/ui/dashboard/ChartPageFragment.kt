@@ -2,11 +2,15 @@ package de.mybudgets.app.ui.dashboard
 
 import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -39,9 +43,11 @@ import com.github.mikephil.charting.utils.ColorTemplate
 import com.github.mikephil.charting.highlight.Highlight
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.R
+import de.mybudgets.app.util.AppLogger
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.viewmodel.CategoryChartData
 import de.mybudgets.app.viewmodel.DashboardViewModel
+import de.mybudgets.app.viewmodel.ForecastLineConfig
 import de.mybudgets.app.viewmodel.ForecastPoint
 import de.mybudgets.app.viewmodel.MonthlyTrendPoint
 import kotlinx.coroutines.launch
@@ -52,6 +58,24 @@ class ChartPageFragment : Fragment() {
     private val vm: DashboardViewModel by activityViewModels()
     private var _pageIndex: Int = 0
     private var currentTrend: List<MonthlyTrendPoint> = emptyList()
+    private var currentForecast: List<ForecastPoint> = emptyList()
+    private var configOrder: List<String> = emptyList()
+    private var pendingTapLabel: String? = null
+
+    private val configColors: List<Int> by lazy {
+        listOf(
+            ContextCompat.getColor(requireContext(), R.color.recurring_purple),
+            ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark),
+            ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark),
+            ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark),
+            ContextCompat.getColor(requireContext(), R.color.income_green),
+            ContextCompat.getColor(requireContext(), R.color.expense_red),
+            0xFF5C6BC0.toInt(),
+            0xFF66BB6A.toInt(),
+            0xFF42A5F5.toInt(),
+            0xFFFF7043.toInt()
+        )
+    }
 
     private val catColors = listOf(
         0xFF5C6BC0.toInt(), 0xFF66BB6A.toInt(), 0xFF42A5F5.toInt(),
@@ -335,6 +359,7 @@ class ChartPageFragment : Fragment() {
 
     private fun setupForecastChart(root: View) {
         val chart = root.findViewById<LineChart>(R.id.line_chart_forecast) ?: return
+        val legendContainer = root.findViewById<LinearLayout>(R.id.layout_forecast_legend)
         val warnings = root.findViewById<TextView>(R.id.tv_prediction_warnings)
         chart.description.isEnabled = false
         chart.legend.textSize = 10f
@@ -345,50 +370,181 @@ class ChartPageFragment : Fragment() {
         chart.axisLeft.textSize = 10f
         chart.axisRight.isEnabled = false
         chart.setDrawGridBackground(false)
+        chart.setHighlightPerTapEnabled(true)
         chart.setNoDataText(getString(R.string.chart_forecast_empty))
         chart.setNoDataTextColor(Color.GRAY)
 
+        chart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+            override fun onValueSelected(e: Entry?, h: Highlight?) {
+                val idx = h?.dataSetIndex ?: return
+                // dataSetIndex 0 = fixed costs line (skip)
+                if (idx == 0) return
+
+                val configs = vm.forecastLineConfigs.value
+                if (configs.isEmpty()) {
+                    // Legacy mode → get category name from forecast keys
+                    val allNames = currentForecast.flatMap { it.categoryForecasts.keys }.distinct()
+                    val tappedName = allNames.getOrNull(idx - 1) ?: return
+                    pendingTapLabel = tappedName
+                    vm.initializeDefaultConfigs()
+                    return
+                }
+
+                val configIdx = idx - 1
+                if (configIdx < 0 || configIdx >= configOrder.size) return
+                val configId = configOrder[configIdx]
+                val config = configs.find { it.id == configId }
+                if (config != null) {
+                    showLineEditor(config)
+                }
+            }
+            override fun onNothingSelected() {}
+        })
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { vm.forecast.collect { f -> updateForecastChart(chart, f) } }
+                launch { vm.forecast.collect { f ->
+                    currentForecast = f
+                    updateForecastChart(chart, legendContainer)
+                } }
+                launch { vm.forecastLineConfigs.collect { configs ->
+                    val hadPending = pendingTapLabel != null
+                    if (configs.isNotEmpty() && pendingTapLabel != null) {
+                        val label = pendingTapLabel!!
+                        pendingTapLabel = null
+                        AppLogger.d("ForecastCfg", "pendingTap label=$label")
+                        val config = configs.find { it.label == label }
+                        AppLogger.d("ForecastCfg", "found by label=${config?.label} id=${config?.id}")
+                        if (config != null) {
+                            showLineEditor(config)
+                        }
+                    }
+                    if (!hadPending) updateForecastChart(chart, legendContainer)
+                } }
                 launch { vm.predictionWarnings.collect { list ->
                     warnings?.text = list.joinToString("\n").ifBlank { getString(R.string.dashboard_no_warnings) }
                 } }
             }
+            root.findViewById<ImageButton>(R.id.btn_reset_forecast_lines)?.setOnClickListener {
+                vm.resetForecastConfigs()
         }
     }
 
-    private fun updateForecastChart(chart: LineChart, forecast: List<ForecastPoint>) {
+    }
+
+    private fun updateForecastChart(chart: LineChart, legendContainer: LinearLayout?) {
+        val forecast = currentForecast
+        legendContainer?.removeAllViews()
         if (forecast.isEmpty()) { chart.data = null; chart.invalidate(); return }
 
+        val ctx = requireContext()
+        val configs = vm.forecastLineConfigs.value
+        val isConfigDriven = configs.isNotEmpty()
         val dataSets = mutableListOf<LineDataSet>()
-        val colors = listOf(
-            ContextCompat.getColor(requireContext(), R.color.expense_red),
-            ContextCompat.getColor(requireContext(), R.color.recurring_purple),
-            ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark),
-            ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark),
-            ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark),
-            ContextCompat.getColor(requireContext(), R.color.income_green)
-        )
+        configOrder = emptyList()
 
-        val fixedCostsEntries = forecast.mapIndexed { i, p -> Entry(i.toFloat(), p.fixedCosts) }
-        if (fixedCostsEntries.any { it.y > 0 }) {
-            dataSets.add(LineDataSet(fixedCostsEntries, "Fixkosten").apply {
-                color = colors[0]; lineWidth = 3f
-                setDrawCircles(true); circleRadius = 4f; setCircleColor(colors[0])
-                setDrawValues(false); enableDashedLine(10f, 5f, 0f)
-            })
+        // Helper: add legend row
+        //   configId = UUID → config-driven click (opens editor for that config)
+        //   configId = catName (not a UUID) → legacy click (inits configs, then opens editor)
+        //   configId = null → not clickable (fixed costs)
+        fun addLegendRow(color: Int, label: String, amount: Float, configId: String?) {
+            val ss = SpannableString("●  $label: ${CurrencyFormatter.format(amount.toDouble())}")
+            ss.setSpan(ForegroundColorSpan(color), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            val tv = TextView(ctx).apply {
+                text = ss
+                textSize = 13f
+                setPadding(0, 4, 0, 4)
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                tag = configId
+                if (configId != null) {
+                    setTextColor(ContextCompat.getColor(ctx, R.color.on_surface))
+                    setOnClickListener { v ->
+                        val id = v?.tag as? String ?: return@setOnClickListener
+                        val allConfigs = vm.forecastLineConfigs.value
+                        AppLogger.d("LegendClick", "tag=$id configs=${allConfigs.size} ids=${allConfigs.map{it.id}} labels=${allConfigs.map{it.label}}")
+                        val config = allConfigs.find { it.id == id }
+                        AppLogger.d("LegendClick", "found=${config?.label}")
+                        if (config != null) {
+                            showLineEditor(config)
+                        } else {
+                            pendingTapLabel = id
+                            vm.initializeDefaultConfigs()
+                        }
+                    }
+                } else {
+                    setTextColor(ContextCompat.getColor(ctx, android.R.color.darker_gray))
+                }
+            }
+            legendContainer?.addView(tv)
         }
 
-        val allCategoryNames = forecast.flatMap { it.categoryForecasts.keys }.distinct()
-        allCategoryNames.take(5).forEachIndexed { idx, catName ->
-            val entries = forecast.mapIndexed { i, p -> Entry(i.toFloat(), p.categoryForecasts[catName] ?: 0f) }
-            if (entries.any { it.y > 0 }) {
-                dataSets.add(LineDataSet(entries, catName).apply {
-                    color = colors.getOrElse(idx + 1) { colors.last() }; lineWidth = 2f
-                    setDrawCircles(true); circleRadius = 3f; setCircleColor(color)
-                    setDrawValues(false)
-                })
+        // ── Fixed costs line (always first, dataSetIndex=0) ──
+        val fixedCostsColor = ContextCompat.getColor(ctx, R.color.expense_red)
+        val fixedCostsEntries = forecast.mapIndexed { i, p -> Entry(i.toFloat(), p.fixedCosts) }
+        val hasFixedCosts = fixedCostsEntries.any { it.y > 0 }
+        if (hasFixedCosts) {
+            dataSets.add(LineDataSet(fixedCostsEntries, "Fixkosten").apply {
+                color = fixedCostsColor; lineWidth = 3f
+                setDrawCircles(true); circleRadius = 4f; setCircleColor(fixedCostsColor)
+                setDrawValues(false); enableDashedLine(10f, 5f, 0f)
+                setHighlightEnabled(false)
+            })
+            addLegendRow(fixedCostsColor, "Fixkosten", forecast.maxOf { it.fixedCosts }, null)
+        }
+
+        // ── Config-driven lines ──
+        if (isConfigDriven) {
+            val configOrderList = mutableListOf<String>()
+            for (config in configs) {
+                if (config.categoryIds.isEmpty()) continue
+                val cfgId = config.id
+                val cfgLabel = config.label
+                val cfgColorIdx = config.colorIndex
+                val entries = forecast.mapIndexed { i, p ->
+                    Entry(i.toFloat(), p.categoryForecasts[cfgId] ?: 0f).apply { data = cfgId }
+                }
+                if (entries.any { it.y > 0 }) {
+                    val color = configColors[cfgColorIdx % configColors.size]
+                    dataSets.add(LineDataSet(entries, cfgLabel).apply {
+                        this.color = color; lineWidth = 2f
+                        setDrawCircles(true); circleRadius = 3f; setCircleColor(color)
+                        setDrawValues(false)
+                    })
+                    configOrderList.add(cfgId)
+                    val latestVal = forecast.lastOrNull()?.categoryForecasts?.get(cfgId) ?: 0f
+                    addLegendRow(color, cfgLabel, latestVal, cfgId)
+                }
+            }
+            configOrder = configOrderList
+        } else {
+            // ── Legacy fallback: top 5 from categoryForecasts keys ──
+            val allNames = forecast.flatMap { it.categoryForecasts.keys }.distinct()
+            val legacyColors = listOf(
+                ContextCompat.getColor(ctx, R.color.recurring_purple),
+                ContextCompat.getColor(ctx, android.R.color.holo_orange_dark),
+                ContextCompat.getColor(ctx, android.R.color.holo_green_dark),
+                ContextCompat.getColor(ctx, android.R.color.holo_blue_dark),
+                ContextCompat.getColor(ctx, R.color.income_green)
+            )
+            val namesList = allNames.take(5)
+            for (idx in namesList.indices) {
+                val catName = namesList[idx]
+                val entries = forecast.mapIndexed { i, p ->
+                    Entry(i.toFloat(), p.categoryForecasts[catName] ?: 0f)
+                }
+                if (entries.any { it.y > 0 }) {
+                    val color = legacyColors.getOrElse(idx) { legacyColors.last() }
+                    dataSets.add(LineDataSet(entries, catName).apply {
+                        this.color = color; lineWidth = 2f
+                        setDrawCircles(true); circleRadius = 3f; setCircleColor(color)
+                        setDrawValues(false)
+                    })
+                    val latestVal = forecast.lastOrNull()?.categoryForecasts?.get(catName) ?: 0f
+                    addLegendRow(color, catName, latestVal, catName)
+                }
             }
         }
 
@@ -400,5 +556,30 @@ class ChartPageFragment : Fragment() {
         }
         chart.data = LineData(dataSets as List<com.github.mikephil.charting.interfaces.datasets.ILineDataSet>)
         chart.invalidate()
+    }
+
+    private fun showLineEditor(config: ForecastLineConfig) {
+        val cats = vm.allCategories.value
+        val allConfigs = vm.forecastLineConfigs.value
+        val idx = allConfigs.indexOfFirst { it.id == config.id }
+        ForecastLineEditDialogFragment.newInstance(
+            config = config,
+            allCategories = cats,
+            allConfigs = allConfigs,
+            currentIndex = idx
+        ).apply {
+            setOnSaveListener { updatedConfig ->
+                vm.saveLineConfig(updatedConfig)
+            }
+            setOnDeleteListener { configId ->
+                vm.removeLineConfig(configId)
+            }
+            setOnNavigateListener { newIndex ->
+                val fresh = vm.forecastLineConfigs.value
+                if (newIndex in fresh.indices) {
+                    showLineEditor(fresh[newIndex])
+                }
+            }
+        }.show(parentFragmentManager, "edit_forecast_line")
     }
 }
