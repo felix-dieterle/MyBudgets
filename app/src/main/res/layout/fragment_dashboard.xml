@@ -83,19 +83,19 @@
                     app:checkedChip="@id/chip_month">
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_month"
-                        style="@style/Widget.Material3.Chip.Assist.Elevated"
+                        style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="1 Monat" />
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_3_months"
-                        style="@style/Widget.Material3.Chip.Assist.Elevated"
+                        style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="3 Monate" />
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_all"
-                        style="@style/Widget.Material3.Chip.Assist.Elevated"
+                        style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Alle" />
