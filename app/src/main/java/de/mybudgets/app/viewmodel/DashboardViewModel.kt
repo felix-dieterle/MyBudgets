@@ -497,7 +497,7 @@ class DashboardViewModel @Inject constructor(
         val historySize = when (range) {
             TimeRange.ALL -> sorted.size.coerceAtMost(6)
             TimeRange.LAST_3_MONTHS -> 3
-            TimeRange.LAST_MONTH -> 3
+            TimeRange.LAST_MONTH -> sorted.size.coerceAtMost(6)
         }
         val recentMonths = sorted.takeLast(historySize)
 
@@ -537,17 +537,18 @@ class DashboardViewModel @Inject constructor(
             (1..3).map { offset ->
                 val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
                 val label = monthLabel(nextCal)
+                val stepsFromMid = lastMonthIdx / 2f + offset
                 val topCategories = categoryTrends.entries
                     .sortedByDescending { it.value.first }
                     .take(5)
                     .associate { (rootCatId, pair) ->
                         val (avg, trend) = pair
                         val catName = categoryLabels[rootCatId] ?: "Sonstige"
-                        val predicted = (avg + trend * (lastMonthIdx + offset)).coerceAtLeast(0f)
+                        val predicted = (avg + trend * stepsFromMid).coerceAtLeast(0f)
                         catName to predicted
                     }
                 val totalPredicted = categoryTrends.values.sumOf { (avg, trend) ->
-                    (avg + trend * (lastMonthIdx + offset)).toDouble()
+                    (avg + trend * stepsFromMid).toDouble()
                 }.toFloat().coerceAtLeast(0f)
                 ForecastPoint(
                     label = label,
@@ -627,6 +628,7 @@ class DashboardViewModel @Inject constructor(
         return (1..3).map { offset ->
             val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
             val label = monthLabel(nextCal)
+            val stepsFromMid = lastMonthIdx / 2f + offset
 
             val configForecasts = mutableMapOf<String, Float>()
             for (config in configs) {
@@ -645,7 +647,7 @@ class DashboardViewModel @Inject constructor(
 
                 val total = effectiveIds.sumOf { catId ->
                     val (avg, trend) = categoryTrends[catId] ?: Pair(0f, 0f)
-                    (avg + trend * (lastMonthIdx + offset)).coerceAtLeast(0f).toDouble()
+                    (avg + trend * stepsFromMid).coerceAtLeast(0f).toDouble()
                 }.toFloat()
 
                 configForecasts[config.id] = total
