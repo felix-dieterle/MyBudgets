@@ -505,6 +505,7 @@ class ChartPageFragment : Fragment() {
         val configs = vm.forecastLineConfigs.value
         val isConfigDriven = configs.isNotEmpty()
         val dataSets = mutableListOf<LineDataSet>()
+        val historicalCount = forecast.count { it.isHistorical }
         configOrder = emptyList()
 
         // Helper: add legend row
@@ -552,7 +553,11 @@ class ChartPageFragment : Fragment() {
         if (hasFixedCosts) {
             dataSets.add(LineDataSet(fixedCostsEntries, "Fixkosten").apply {
                 color = fixedCostsColor; lineWidth = 3f
-                setDrawCircles(true); circleRadius = 4f; setCircleColor(fixedCostsColor)
+                setDrawCircles(true); circleRadius = 4f
+                setCircleColors(List(fixedCostsEntries.size) { i ->
+                    if (i < historicalCount) fixedCostsColor
+                    else Color.argb(80, Color.red(fixedCostsColor), Color.green(fixedCostsColor), Color.blue(fixedCostsColor))
+                })
                 setDrawValues(false); enableDashedLine(10f, 5f, 0f)
                 setHighlightEnabled(false)
             })
@@ -574,8 +579,11 @@ class ChartPageFragment : Fragment() {
                     val color = configColors[cfgColorIdx % configColors.size]
                     dataSets.add(LineDataSet(entries, cfgLabel).apply {
                         this.color = color; lineWidth = 2f
-                        setDrawCircles(true); circleRadius = 3f; setCircleColor(color)
-                        setDrawValues(false)
+                        setDrawCircles(true); circleRadius = 3f
+                        setCircleColors(List(entries.size) { i ->
+                            if (i < historicalCount) color
+                            else Color.argb(80, Color.red(color), Color.green(color), Color.blue(color))
+                        })
                     })
                     configOrderList.add(cfgId)
                     val latestVal = forecast.lastOrNull()?.categoryForecasts?.get(cfgId) ?: 0f
@@ -603,7 +611,11 @@ class ChartPageFragment : Fragment() {
                     val color = legacyColors.getOrElse(idx) { legacyColors.last() }
                     dataSets.add(LineDataSet(entries, catName).apply {
                         this.color = color; lineWidth = 2f
-                        setDrawCircles(true); circleRadius = 3f; setCircleColor(color)
+                        setDrawCircles(true); circleRadius = 3f
+                        setCircleColors(List(entries.size) { i ->
+                            if (i < historicalCount) color
+                            else Color.argb(80, Color.red(color), Color.green(color), Color.blue(color))
+                        })
                         setDrawValues(false)
                     })
                     val latestVal = forecast.lastOrNull()?.categoryForecasts?.get(catName) ?: 0f

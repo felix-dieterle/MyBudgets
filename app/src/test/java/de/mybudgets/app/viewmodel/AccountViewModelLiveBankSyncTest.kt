@@ -7,6 +7,9 @@ import de.mybudgets.app.data.model.Account
 import de.mybudgets.app.data.model.AccountType
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.repository.AccountRepository
+import de.mybudgets.app.data.repository.RecurringRuleRepository
+import de.mybudgets.app.data.repository.SyncIntervalRepository
+import de.mybudgets.app.data.repository.SyncSettingsRepository
 import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.util.AppLogger
 import io.mockk.coEvery
@@ -43,6 +46,9 @@ class AccountViewModelLiveBankSyncTest {
 
     private val accountRepo: AccountRepository = mockk(relaxed = true)
     private val txRepo: TransactionRepository = mockk(relaxed = true)
+    private val ruleRepo: RecurringRuleRepository = mockk(relaxed = true)
+    private val syncIntervalRepo: SyncIntervalRepository = mockk(relaxed = true)
+    private val syncSettingsRepo: SyncSettingsRepository = mockk(relaxed = true)
 
     private lateinit var fintsService: FintsService
     private lateinit var viewModel: AccountViewModel
@@ -53,14 +59,14 @@ class AccountViewModelLiveBankSyncTest {
         AppLogger.clear()
 
         val context = ApplicationProvider.getApplicationContext<Context>()
-        fintsService = FintsService(context)
+        fintsService = FintsService(context, syncSettingsRepo)
 
         every { accountRepo.observeAll() } returns kotlinx.coroutines.flow.flowOf(emptyList())
         every { accountRepo.observeRealAccounts() } returns kotlinx.coroutines.flow.flowOf(emptyList())
         every { accountRepo.observeTotalBalance() } returns kotlinx.coroutines.flow.flowOf(0.0)
         every { txRepo.observeByAccount(any()) } returns kotlinx.coroutines.flow.flowOf(emptyList())
 
-        viewModel = AccountViewModel(accountRepo, txRepo, fintsService)
+        viewModel = AccountViewModel(accountRepo, txRepo, ruleRepo, syncIntervalRepo, syncSettingsRepo, fintsService)
     }
 
     @After

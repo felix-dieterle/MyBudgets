@@ -2,10 +2,9 @@ package de.mybudgets.app.ui.transactions
 
 import android.app.Dialog
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatCheckBox
 import androidx.core.view.setPadding
@@ -45,9 +44,17 @@ class CategoryFilterDialogFragment : DialogFragment() {
 
         buildHierarchicalUI(container, null, 0)
 
+        val scrollView = ScrollView(requireContext()).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            addView(container)
+        }
+
         return MaterialAlertDialogBuilder(requireContext())
             .setTitle("Kategorien wählen")
-            .setView(container)
+            .setView(scrollView)
             .setPositiveButton("OK") { _, _ ->
                 onSaveListener?.invoke(selectedIds)
             }
@@ -93,9 +100,9 @@ class CategoryFilterDialogFragment : DialogFragment() {
                             expandedParents.add(cat.id)
                             text = "▼"
                         }
-                        // Rebuild UI
+                        // Rebuild UI from root
                         container.removeAllViews()
-                        buildHierarchicalUI(container, parentId, level)
+                        buildHierarchicalUI(container, null, 0)
                     }
                 }
                 row.addView(expandBtn)

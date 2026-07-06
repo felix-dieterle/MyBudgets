@@ -57,7 +57,8 @@ data class ForecastPoint(
     val label: String, // e.g. "Jun", "Jul", "Aug"
     val predicted: Float, // Total predicted expenses (legacy, kept for compatibility)
     val categoryForecasts: Map<String, Float> = emptyMap(), // configId -> amount
-    val fixedCosts: Float = 0f // Sum of all recurring/fixed expenses
+    val fixedCosts: Float = 0f, // Sum of all recurring/fixed expenses
+    val isHistorical: Boolean = false // true = actual data, false = projected
 )
 
 data class ForecastLineConfig(
@@ -533,8 +534,33 @@ class DashboardViewModel @Inject constructor(
             
             val lastLabel = sorted.last().key
             val lastMonthIdx = historySize - 1
+            val lastMonthTxs = sorted.last().value
 
-            (1..3).map { offset ->
+            // Historical point: actual values from last complete month
+            val actualTopCategories = categoryTrends.entries
+                .sortedByDescending { it.value.first }
+                .take(5)
+                .associate { (rootCatId, _) ->
+                    val catName = categoryLabels[rootCatId] ?: "Sonstige"
+                    val actualAmount = lastMonthTxs
+                        .filter { getRootCategory(it.categoryId) == rootCatId && it.type == TransactionType.EXPENSE }
+                        .sumOf { it.amount }.toFloat()
+                    catName to actualAmount
+                }
+            val actualTotalExpenses = lastMonthTxs
+                .filter { it.type == TransactionType.EXPENSE }
+                .sumOf { it.amount }.toFloat()
+            val actualFixedCosts = lastMonthTxs
+                .filter { it.type == TransactionType.EXPENSE && it.isRecurring }
+                .sumOf { it.amount }.toFloat()
+
+            listOf(ForecastPoint(
+                label = lastLabel,
+                predicted = actualTotalExpenses,
+                categoryForecasts = actualTopCategories,
+                fixedCosts = actualFixedCosts,
+                isHistorical = true
+            )) + (1..3).map { offset ->
                 val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
                 val label = monthLabel(nextCal)
                 val stepsFromMid = lastMonthIdx / 2f + offset
@@ -625,7 +651,47 @@ class DashboardViewModel @Inject constructor(
 
         val lastMonthIdx = historySize - 1
 
-        return (1..3).map { offset ->
+        // Helper to resolve effective (topmost) category ids for a config
+        fun resolveEffectiveIds(config: ForecastLineConfig): List<Long> =
+            config.categoryIds.filter { catId ->
+                var parent = categoryMap[catId]?.parentCategoryId
+                var hasParent = false
+                while (parent != null) {
+                    if (parent in config.categoryIds) { hasParent = true; break }
+                    parent = categoryMap[parent]?.parentCategoryId
+                }
+                !hasParent
+            }
+
+        // Historical point: actual values from last complete month
+        val lastMonthEntry = recentMonths.last()
+        val lastMonthTxs = lastMonthEntry.value
+
+        val historicalConfigForecasts = mutableMapOf<String, Float>()
+        for (config in configs) {
+            if (config.categoryIds.isEmpty()) continue
+            val effectiveIds = resolveEffectiveIds(config)
+            val total = effectiveIds.sumOf { catId ->
+                val childIds = getAllDescendantIds(catId, cats) + catId
+                lastMonthTxs.filter { tx ->
+                    tx.type == TransactionType.EXPENSE && tx.categoryId in childIds
+                }.sumOf { it.amount }
+            }.toFloat()
+            historicalConfigForecasts[config.id] = total
+        }
+
+        val actualTotal = historicalConfigForecasts.values.sum()
+        val actualFixedCosts = lastMonthTxs
+            .filter { it.type == TransactionType.EXPENSE && it.isRecurring }
+            .sumOf { it.amount }.toFloat()
+
+        return listOf(ForecastPoint(
+            label = lastLabel,
+            predicted = actualTotal,
+            categoryForecasts = historicalConfigForecasts,
+            fixedCosts = actualFixedCosts,
+            isHistorical = true
+        )) + (1..3).map { offset ->
             val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
             val label = monthLabel(nextCal)
             val stepsFromMid = lastMonthIdx / 2f + offset
@@ -633,23 +699,11 @@ class DashboardViewModel @Inject constructor(
             val configForecasts = mutableMapOf<String, Float>()
             for (config in configs) {
                 if (config.categoryIds.isEmpty()) continue
-
-                // Only include topmost selected categories (avoid double-count if parent+child selected)
-                val effectiveIds = config.categoryIds.filter { catId ->
-                    var parent = categoryMap[catId]?.parentCategoryId
-                    var hasParent = false
-                    while (parent != null) {
-                        if (parent in config.categoryIds) { hasParent = true; break }
-                        parent = categoryMap[parent]?.parentCategoryId
-                    }
-                    !hasParent
-                }
-
+                val effectiveIds = resolveEffectiveIds(config)
                 val total = effectiveIds.sumOf { catId ->
                     val (avg, trend) = categoryTrends[catId] ?: Pair(0f, 0f)
                     (avg + trend * stepsFromMid).coerceAtLeast(0f).toDouble()
                 }.toFloat()
-
                 configForecasts[config.id] = total
             }
 
@@ -669,21 +723,6 @@ class DashboardViewModel @Inject constructor(
     private fun cutoffMillis(monthsAgo: Int): Long {
         val cal = Calendar.getInstance().apply { add(Calendar.MONTH, -monthsAgo) }
         return cal.timeInMillis
-    }
-
-    private fun linearRegression(monthlyAmounts: List<Float>): Pair<Float, Float> {
-        val avg = monthlyAmounts.average().toFloat()
-        val trend = if (monthlyAmounts.size >= 2) {
-            val n = monthlyAmounts.size
-            val sumX = (0 until n).sum().toFloat()
-            val sumY = monthlyAmounts.sum()
-            val sumXY = monthlyAmounts.mapIndexed { i, y -> i * y }.sum()
-            val sumX2 = (0 until n).sumOf { it * it }.toFloat()
-            val numerator = n * sumXY - sumX * sumY
-            val denominator = n * sumX2 - sumX * sumX
-            if (denominator != 0f) numerator / denominator else 0f
-        } else 0f
-        return Pair(avg, trend)
     }
 
     private fun getAllDescendantIds(catId: Long, cats: List<Category>): Set<Long> {
@@ -719,4 +758,20 @@ class DashboardViewModel @Inject constructor(
         val year = (parts.getOrNull(1)?.toIntOrNull() ?: 0) + 2000
         return Calendar.getInstance().apply { set(year, monthIdx, 1, 0, 0, 0) }
     }
+}
+
+internal fun linearRegression(monthlyAmounts: List<Float>): Pair<Float, Float> {
+    if (monthlyAmounts.isEmpty()) return Pair(0f, 0f)
+    val avg = monthlyAmounts.average().toFloat()
+    val trend = if (monthlyAmounts.size >= 2) {
+        val n = monthlyAmounts.size
+        val sumX = (0 until n).sum().toFloat()
+        val sumY = monthlyAmounts.sum()
+        val sumXY = monthlyAmounts.mapIndexed { i, y -> i * y }.sum()
+        val sumX2 = (0 until n).sumOf { it * it }.toFloat()
+        val numerator = n * sumXY - sumX * sumY
+        val denominator = n * sumX2 - sumX * sumX
+        if (denominator != 0f) numerator / denominator else 0f
+    } else 0f
+    return Pair(avg, trend)
 }
