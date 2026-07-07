@@ -35,7 +35,10 @@ data class CategoryChartData(
     val categoryLabels: Map<Long, String>,
     val categoryAmounts: Map<Long, Float> = emptyMap(),
     val levelCategoryIds: List<Long> = emptyList(),
-    val drillDownParentName: String? = null
+    val drillDownParentName: String? = null,
+    val incomeTotal: Float = 0f,
+    val expenseTotal: Float = 0f,
+    val monthCount: Int = 1
 )
 
 data class MonthlyTrendPoint(
@@ -92,10 +95,6 @@ class DashboardViewModel @Inject constructor(
         .map { it.take(5) }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val virtualOverview = combine(accounts, transactions) { accs, txs ->
-        DashboardInsights.buildVirtualOverview(accs, txs)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
     val trendSummary = transactions
         .map { DashboardInsights.buildTrendSummary(System.currentTimeMillis(), it) }
         .stateIn(viewModelScope, SharingStarted.Lazily, "")
@@ -115,6 +114,16 @@ class DashboardViewModel @Inject constructor(
     val selectedTimeRange = MutableStateFlow(TimeRange.LAST_MONTH)
     val hiddenCategoryIds = MutableStateFlow<Set<Long>>(emptySet())
     val drillDownCategoryId = MutableStateFlow<Long?>(null)
+
+    val virtualOverview = combine(accounts, transactions, selectedTimeRange) { accs, txs, range ->
+        val cutoff = when (range) {
+            TimeRange.LAST_MONTH -> cutoffMillis(1)
+            TimeRange.LAST_3_MONTHS -> cutoffMillis(3)
+            TimeRange.ALL -> 0L
+        }
+        val filtered = if (cutoff > 0L) txs.filter { it.date >= cutoff } else txs
+        DashboardInsights.buildVirtualOverview(accs, filtered)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun toggleHideCategory(id: Long) {
         hiddenCategoryIds.value = if (id in hiddenCategoryIds.value)
@@ -291,7 +300,22 @@ class DashboardViewModel @Inject constructor(
         }
         val filtered = if (cutoff > 0L) txs.filter { it.date >= cutoff } else txs
         val expenses = filtered.filter { it.type == TransactionType.EXPENSE }
-        
+
+        val incomeTotal = filtered.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }.toFloat()
+        val expenseTotal = expenses.sumOf { it.amount }.toFloat()
+        val monthCount = when (range) {
+            TimeRange.LAST_MONTH -> 1
+            TimeRange.LAST_3_MONTHS -> 3
+            TimeRange.ALL -> {
+                if (filtered.isEmpty()) 1
+                else {
+                    val dates = filtered.map { it.date }
+                    val months = ((System.currentTimeMillis() - dates.min()) / (30L * 24 * 60 * 60 * 1000)).toInt().coerceAtLeast(1)
+                    months
+                }
+            }
+        }
+
         val categoryMap = cats.associateBy { it.id }
         val labels = cats.associate { it.id to it.name }
         
@@ -339,7 +363,7 @@ class DashboardViewModel @Inject constructor(
                 val ent = visible.entries
                     .sortedByDescending { it.value }
                     .map { (cId, sum) -> PieEntry(sum / total * 100f, labels[cId] ?: "Sonstige", cId.toInt()) }
-                return@combine CategoryChartData(ent, labels, allAmounts, allChildIds, setConfig.label)
+                return@combine CategoryChartData(ent, labels, allAmounts, allChildIds, setConfig.label, incomeTotal, expenseTotal, monthCount)
             }
 
             // Aggregate by slices
@@ -360,7 +384,7 @@ class DashboardViewModel @Inject constructor(
             val sliceLabels = sliceConfigs.associate { it.id.hashCode().toLong() to it.label }
             val sliceAmountsMap = sliceConfigs.associate { it.id.hashCode().toLong() to (sliceAmounts[it.id] ?: 0f) }
             val sliceLevelIds = sliceConfigs.map { it.id.hashCode().toLong() }
-            return@combine CategoryChartData(ent, sliceLabels, sliceAmountsMap, sliceLevelIds, null)
+            return@combine CategoryChartData(ent, sliceLabels, sliceAmountsMap, sliceLevelIds, null, incomeTotal, expenseTotal, monthCount)
         }
         
         // ── Category mode (current behavior) ──
@@ -412,7 +436,7 @@ class DashboardViewModel @Inject constructor(
             val parentName = labels[drillId] ?: ""
             PieChartIntermediate(ent, allAmounts, allLevelIds, parentName)
         }
-        CategoryChartData(pieResult.entries, labels, pieResult.amounts, pieResult.levelIds, pieResult.drillParentName)
+        CategoryChartData(pieResult.entries, labels, pieResult.amounts, pieResult.levelIds, pieResult.drillParentName, incomeTotal, expenseTotal, monthCount)
     }.stateIn(viewModelScope, SharingStarted.Lazily, CategoryChartData(emptyList(), emptyMap()))
 
     val monthlyTrend: StateFlow<List<MonthlyTrendPoint>> = combine(
@@ -496,8 +520,8 @@ class DashboardViewModel @Inject constructor(
         
         // Time range determines how many months to use for trend analysis
         val historySize = when (range) {
-            TimeRange.ALL -> sorted.size.coerceAtMost(6)
-            TimeRange.LAST_3_MONTHS -> 3
+            TimeRange.ALL -> sorted.size
+            TimeRange.LAST_3_MONTHS -> sorted.size.coerceAtMost(12)
             TimeRange.LAST_MONTH -> sorted.size.coerceAtMost(6)
         }
         val recentMonths = sorted.takeLast(historySize)

@@ -3,6 +3,7 @@ package de.mybudgets.app.ui.dashboard
 import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
@@ -119,6 +120,7 @@ class ChartPageFragment : Fragment() {
         val modeBtn = root.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_donut_mode)
         val resetBtn = root.findViewById<ImageButton>(R.id.btn_reset_donut_slices)
         val addBtn = root.findViewById<ImageButton>(R.id.btn_add_donut_slice)
+        val totalSumView = root.findViewById<TextView>(R.id.tv_pie_total_sum)
 
         chart.description.isEnabled = false
         chart.isDrawHoleEnabled = true
@@ -174,7 +176,7 @@ class ChartPageFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { vm.categoryChartData.collect { data ->
-                    updatePieChart(chart, data, catContainer, backBtn)
+                    updatePieChart(chart, data, catContainer, backBtn, totalSumView)
                 } }
                 launch { combine(vm.donutDisplayMode, vm.donutSliceConfigs) { mode, configs -> Pair(mode, configs) }.collect { (mode, configs) ->
                     modeBtn.visibility = if (mode != DonutDisplayMode.CUSTOM_SETS) View.VISIBLE else View.GONE
@@ -189,12 +191,14 @@ class ChartPageFragment : Fragment() {
         chart: PieChart,
         data: CategoryChartData,
         catContainer: LinearLayout,
-        backBtn: TextView
+        backBtn: TextView,
+        totalSumView: TextView
     ) {
         val entries = data.pieEntries
         if (entries.isEmpty()) {
             chart.data = null; chart.invalidate()
             catContainer.removeAllViews()
+            totalSumView.text = ""
             return
         }
         val colors = catColors.toMutableList()
@@ -219,6 +223,35 @@ class ChartPageFragment : Fragment() {
             backBtn.visibility = View.VISIBLE
         } else {
             backBtn.visibility = View.GONE
+        }
+
+        // Income/expense total
+        if (data.incomeTotal > 0f || data.expenseTotal > 0f) {
+            val incColor = ContextCompat.getColor(requireContext(), R.color.income_green)
+            val expColor = ContextCompat.getColor(requireContext(), R.color.expense_red)
+            val net = data.incomeTotal - data.expenseTotal
+            val netColor = ContextCompat.getColor(requireContext(), if (net >= 0) R.color.income_green else R.color.expense_red)
+            val sb = SpannableStringBuilder()
+            val incStr = "Einnahmen: +${CurrencyFormatter.format(data.incomeTotal.toDouble())} €"
+            val startInc = sb.length
+            sb.append(incStr)
+            sb.setSpan(ForegroundColorSpan(incColor), startInc, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.append(" | ")
+            val expStr = "Ausgaben: -${CurrencyFormatter.format(data.expenseTotal.toDouble())} €"
+            val startExp = sb.length
+            sb.append(expStr)
+            sb.setSpan(ForegroundColorSpan(expColor), startExp, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.append(" | ")
+            val netStr = "Saldo: ${CurrencyFormatter.format(net.toDouble())} €"
+            val startNet = sb.length
+            sb.append(netStr)
+            sb.setSpan(ForegroundColorSpan(netColor), startNet, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            if (data.monthCount > 1) {
+                sb.append(" | Ø/Monat: ${CurrencyFormatter.format((net / data.monthCount).toDouble())} €")
+            }
+            totalSumView.text = sb
+        } else {
+            totalSumView.text = ""
         }
 
         catContainer.removeAllViews()
