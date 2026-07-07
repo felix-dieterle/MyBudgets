@@ -31,7 +31,7 @@
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/line_chart_forecast"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
+            android:layout_height="240dp"
             android:layout_marginTop="8dp" />
         <LinearLayout
             android:id="@+id/layout_forecast_legend"
