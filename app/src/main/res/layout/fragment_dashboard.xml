@@ -106,7 +106,7 @@
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/viewpager_charts"
             android:layout_width="match_parent"
-            android:layout_height="380dp"
+            android:layout_height="440dp"
             android:layout_marginBottom="8dp" />
 
         <LinearLayout

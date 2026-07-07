@@ -8,15 +8,30 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Monatlicher Verlauf"
-            android:textAppearance="?attr/textAppearanceTitleMedium" />
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Monatlicher Verlauf"
+                android:textAppearance="?attr/textAppearanceTitleMedium" />
+            <ImageButton
+                android:id="@+id/btn_export_trend"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_menu_share"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Verlauf exportieren"
+                android:scaleType="centerInside"
+                android:padding="4dp" />
+        </LinearLayout>
         <com.github.mikephil.charting.charts.CombinedChart
             android:id="@+id/bar_chart_trend"
             android:layout_width="match_parent"
-            android:layout_height="240dp"
+            android:layout_height="300dp"
             android:layout_marginTop="8dp" />
         <TextView
             android:id="@+id/tv_trend_summary"

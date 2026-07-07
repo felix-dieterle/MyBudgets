@@ -27,11 +27,20 @@
                 android:contentDescription="Linien zurücksetzen"
                 android:scaleType="centerInside"
                 android:padding="4dp" />
+            <ImageButton
+                android:id="@+id/btn_export_forecast"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_menu_share"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Prognose exportieren"
+                android:scaleType="centerInside"
+                android:padding="4dp" />
         </LinearLayout>
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/line_chart_forecast"
             android:layout_width="match_parent"
-            android:layout_height="240dp"
+            android:layout_height="300dp"
             android:layout_marginTop="8dp" />
         <LinearLayout
             android:id="@+id/layout_forecast_legend"

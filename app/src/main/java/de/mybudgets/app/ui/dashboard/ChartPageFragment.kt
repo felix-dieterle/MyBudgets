@@ -1,5 +1,6 @@
 package de.mybudgets.app.ui.dashboard
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableString
@@ -352,6 +353,8 @@ class ChartPageFragment : Fragment() {
                 launch { vm.trendSummary.collect { t -> summary?.text = t } }
             }
         }
+
+        root.findViewById<ImageButton>(R.id.btn_export_trend)?.setOnClickListener { exportTrendData() }
     }
 
     private fun renderTrendChart(chart: CombinedChart) {
@@ -524,7 +527,8 @@ class ChartPageFragment : Fragment() {
             }
             root.findViewById<ImageButton>(R.id.btn_reset_forecast_lines)?.setOnClickListener {
                 vm.resetForecastConfigs()
-        }
+            }
+            root.findViewById<ImageButton>(R.id.btn_export_forecast)?.setOnClickListener { exportForecastData() }
     }
 
     }
@@ -690,5 +694,64 @@ class ChartPageFragment : Fragment() {
                 }
             }
         }.show(parentFragmentManager, "edit_forecast_line")
+    }
+
+    // ── Export ──
+
+    private fun exportTrendData() {
+        val trend = currentTrend
+        if (trend.isEmpty()) return
+        val allCats = trend.flatMap { it.categoryExpenses.keys }.distinct().sorted()
+        val header = buildString {
+            append("Monat;Einnahmen;Ausgaben;Saldo")
+            for (cat in allCats) append(";$cat")
+            appendLine()
+        }
+        val rows = trend.joinToString("") { p ->
+            buildString {
+                append(p.label)
+                append(";${CurrencyFormatter.format(p.income.toDouble())}")
+                append(";${CurrencyFormatter.format(p.expense.toDouble())}")
+                append(";${CurrencyFormatter.format(p.balance.toDouble())}")
+                for (cat in allCats) {
+                    append(";${CurrencyFormatter.format((p.categoryExpenses[cat] ?: 0f).toDouble())}")
+                }
+                appendLine()
+            }
+        }
+        shareCsv("Monatlicher-Verlauf.csv", header + rows)
+    }
+
+    private fun exportForecastData() {
+        val forecast = currentForecast
+        if (forecast.isEmpty()) return
+        val allCats = forecast.flatMap { it.categoryForecasts.keys }.distinct().sorted()
+        val header = buildString {
+            append("Monat;Fixkosten")
+            for (cat in allCats) append(";$cat")
+            append(";Typ")
+            appendLine()
+        }
+        val rows = forecast.joinToString("") { p ->
+            buildString {
+                append(p.label)
+                append(";${CurrencyFormatter.format(p.fixedCosts.toDouble())}")
+                for (cat in allCats) {
+                    append(";${CurrencyFormatter.format((p.categoryForecasts[cat] ?: 0f).toDouble())}")
+                }
+                append(";${if (p.isHistorical) "Historisch" else "Prognose"}")
+                appendLine()
+            }
+        }
+        shareCsv("Prognose.csv", header + rows)
+    }
+
+    private fun shareCsv(filename: String, csv: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/csv"
+            putExtra(Intent.EXTRA_SUBJECT, filename)
+            putExtra(Intent.EXTRA_TEXT, csv)
+        }
+        startActivity(Intent.createChooser(intent, "Export: $filename"))
     }
 }
