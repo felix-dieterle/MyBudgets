@@ -96,16 +96,16 @@ class TransactionDetailFragment : Fragment() {
 
             PatternPickerDialogFragment.newInstance(tx, cats)
                 .setExistingPatternValue(existingPatternValue)
-                .setOnPatternSelectedListener { type, value, categoryId, matchedName ->
+                .setOnPatternSelectedListener { type, value, categoryId, matchedName, amountMin, amountMax, filterIncome ->
                     if (categoryId != null) {
-                        savePatternAndCategorize(type, value, categoryId, matchedName)
+                        savePatternAndCategorize(type, value, categoryId, matchedName, amountMin, amountMax, filterIncome)
                     }
                 }
                 .show(childFragmentManager, "PatternPicker")
         }
     }
 
-    private fun savePatternAndCategorize(patternType: String?, patternValue: String?, categoryId: Long, matchedName: String? = null) {
+    private fun savePatternAndCategorize(patternType: String?, patternValue: String?, categoryId: Long, matchedName: String? = null, amountMin: Double? = null, amountMax: Double? = null, filterIncome: Boolean? = null) {
         val tx = currentTx ?: return
         val selectedCat = allCategoriesCache.find { it.id == categoryId } ?: return
 
@@ -116,7 +116,10 @@ class TransactionDetailFragment : Fragment() {
                         categoryId = selectedCat.id,
                         patternType = patternType,
                         patternValue = patternValue,
-                        matchedName = matchedName ?: ""
+                        matchedName = matchedName ?: "",
+                        amountMin = amountMin,
+                        amountMax = amountMax,
+                        filterIncome = filterIncome
                     )
                 )
             }

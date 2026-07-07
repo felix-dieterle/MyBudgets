@@ -23,7 +23,7 @@ import de.mybudgets.app.data.model.*
         SyncInterval::class,
         RecurrencePattern::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -262,6 +262,15 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE category_patterns ADD COLUMN amountMin REAL")
+                database.execSQL("ALTER TABLE category_patterns ADD COLUMN amountMax REAL")
+                database.execSQL("ALTER TABLE category_patterns ADD COLUMN filterIncome INTEGER")
+                lastMigrationVersion = "v16→v17"
+            }
+        }
+
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -307,7 +316,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_12_13,
                     MIGRATION_13_14,
                     MIGRATION_14_15,
-                    MIGRATION_15_16
+                    MIGRATION_15_16,
+                    MIGRATION_16_17
                 ).build().also { INSTANCE = it }
             }
     }

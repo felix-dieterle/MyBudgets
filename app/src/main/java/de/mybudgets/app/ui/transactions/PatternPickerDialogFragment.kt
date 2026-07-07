@@ -24,7 +24,7 @@ class PatternPickerDialogFragment : DialogFragment() {
     private var expandedCategories = mutableSetOf<Long>()
     private var selectedCategoryId: Long? = null
     private var existingPatternValue: String? = null
-    private var onPatternSelected: ((patternType: String?, patternValue: String?, categoryId: Long?, matchedName: String?) -> Unit)? = null
+    private var onPatternSelected: ((patternType: String?, patternValue: String?, categoryId: Long?, matchedName: String?, amountMin: Double?, amountMax: Double?, filterIncome: Boolean?) -> Unit)? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogPatternPickerBinding.inflate(inflater, container, false)
@@ -187,7 +187,15 @@ class PatternPickerDialogFragment : DialogFragment() {
 
             val matchedName = binding.etMatchedName.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
 
-            onPatternSelected?.invoke(patternType, patternValue, catId, matchedName)
+            val amountMin = binding.etAmountMin.text?.toString()?.toDoubleOrNull()
+            val amountMax = binding.etAmountMax.text?.toString()?.toDoubleOrNull()
+            val filterIncome = when (binding.chipGroupSign.checkedChipId) {
+                R.id.chipSignIncome -> true
+                R.id.chipSignExpense -> false
+                else -> null
+            }
+
+            onPatternSelected?.invoke(patternType, patternValue, catId, matchedName, amountMin, amountMax, filterIncome)
             dismiss()
         }
     }
@@ -243,7 +251,7 @@ class PatternPickerDialogFragment : DialogFragment() {
         return this
     }
 
-    fun setOnPatternSelectedListener(listener: (patternType: String?, patternValue: String?, categoryId: Long?, matchedName: String?) -> Unit): PatternPickerDialogFragment {
+    fun setOnPatternSelectedListener(listener: (patternType: String?, patternValue: String?, categoryId: Long?, matchedName: String?, amountMin: Double?, amountMax: Double?, filterIncome: Boolean?) -> Unit): PatternPickerDialogFragment {
         this.onPatternSelected = listener
         return this
     }

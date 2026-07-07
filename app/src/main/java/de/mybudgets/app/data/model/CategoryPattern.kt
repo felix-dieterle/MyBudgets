@@ -30,5 +30,8 @@ data class CategoryPattern(
     val usageCount: Int = 0,
     val lastUsed: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
-    val matchedName: String = ""
+    val matchedName: String = "",
+    val amountMin: Double? = null,
+    val amountMax: Double? = null,
+    val filterIncome: Boolean? = null
 )
