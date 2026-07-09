@@ -129,6 +129,7 @@ class ChartPageFragment : Fragment() {
         chart.setUsePercentValues(true)
         chart.setEntryLabelTextSize(10f)
         chart.legend.textSize = 11f
+        chart.setExtraBottomOffset(15f)
         chart.setNoDataText(getString(R.string.chart_pie_empty))
         chart.setNoDataTextColor(Color.GRAY)
 
@@ -323,6 +324,7 @@ class ChartPageFragment : Fragment() {
 
         chart.description.isEnabled = false
         chart.legend.textSize = 11f
+        chart.setExtraBottomOffset(15f)
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         chart.xAxis.granularity = 1f
         chart.axisLeft.textSize = 10f
@@ -464,6 +466,7 @@ class ChartPageFragment : Fragment() {
         chart.description.isEnabled = false
         chart.legend.textSize = 10f
         chart.legend.isWordWrapEnabled = true
+        chart.setExtraBottomOffset(15f)
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         chart.xAxis.granularity = 1f
         chart.xAxis.textSize = 10f
@@ -525,12 +528,12 @@ class ChartPageFragment : Fragment() {
                     warnings?.text = list.joinToString("\n").ifBlank { getString(R.string.dashboard_no_warnings) }
                 } }
             }
-            root.findViewById<ImageButton>(R.id.btn_reset_forecast_lines)?.setOnClickListener {
-                vm.resetForecastConfigs()
-            }
-            root.findViewById<ImageButton>(R.id.btn_export_forecast)?.setOnClickListener { exportForecastData() }
-    }
+        }
 
+        root.findViewById<ImageButton>(R.id.btn_reset_forecast_lines)?.setOnClickListener {
+            vm.resetForecastConfigs()
+        }
+        root.findViewById<ImageButton>(R.id.btn_export_forecast)?.setOnClickListener { exportForecastData() }
     }
 
     private fun updateForecastChart(chart: LineChart, legendContainer: LinearLayout?) {
