@@ -466,7 +466,7 @@ class ChartPageFragment : Fragment() {
         chart.description.isEnabled = false
         chart.legend.textSize = 10f
         chart.legend.isWordWrapEnabled = true
-        chart.setExtraBottomOffset(15f)
+        chart.setExtraBottomOffset(25f)
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         chart.xAxis.granularity = 1f
         chart.xAxis.textSize = 10f
