@@ -527,13 +527,31 @@ class ChartPageFragment : Fragment() {
                 launch { vm.predictionWarnings.collect { list ->
                     warnings?.text = list.joinToString("\n").ifBlank { getString(R.string.dashboard_no_warnings) }
                 } }
+                launch { vm.forecastMonths.collect { updateForecastTitle() } }
             }
         }
+
+        updateForecastTitle()
 
         root.findViewById<ImageButton>(R.id.btn_reset_forecast_lines)?.setOnClickListener {
             vm.resetForecastConfigs()
         }
         root.findViewById<ImageButton>(R.id.btn_export_forecast)?.setOnClickListener { exportForecastData() }
+        root.findViewById<ImageButton>(R.id.btn_forecast_minus)?.setOnClickListener {
+            val old = vm.forecastMonths.value
+            if (old > 1) vm.setForecastMonths(old - 1)
+        }
+        root.findViewById<ImageButton>(R.id.btn_forecast_plus)?.setOnClickListener {
+            val old = vm.forecastMonths.value
+            if (old < 12) vm.setForecastMonths(old + 1)
+        }
+    }
+
+    private fun updateForecastTitle() {
+        val root = view ?: return
+        val tvTitle = root.findViewById<TextView>(R.id.tv_forecast_title) ?: return
+        val n = vm.forecastMonths.value
+        tvTitle.text = if (n == 1) "Prognose (1 Monat)" else "Prognose (1-$n Monate)"
     }
 
     private fun updateForecastChart(chart: LineChart, legendContainer: LinearLayout?) {
@@ -600,6 +618,7 @@ class ChartPageFragment : Fragment() {
                 })
                 setDrawValues(false); enableDashedLine(10f, 5f, 0f)
                 setHighlightEnabled(false)
+                mode = LineDataSet.Mode.CUBIC_BEZIER
             })
             addLegendRow(fixedCostsColor, "Fixkosten", forecast.maxOf { it.fixedCosts }, null)
         }
@@ -624,6 +643,7 @@ class ChartPageFragment : Fragment() {
                             if (i < historicalCount) color
                             else Color.argb(80, Color.red(color), Color.green(color), Color.blue(color))
                         })
+                        mode = LineDataSet.Mode.CUBIC_BEZIER
                     })
                     configOrderList.add(cfgId)
                     val latestVal = forecast.lastOrNull()?.categoryForecasts?.get(cfgId) ?: 0f
@@ -657,6 +677,7 @@ class ChartPageFragment : Fragment() {
                             else Color.argb(80, Color.red(color), Color.green(color), Color.blue(color))
                         })
                         setDrawValues(false)
+                        mode = LineDataSet.Mode.CUBIC_BEZIER
                     })
                     val latestVal = forecast.lastOrNull()?.categoryForecasts?.get(catName) ?: 0f
                     addLegendRow(color, catName, latestVal, catName)

@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Calendar
@@ -112,6 +113,15 @@ class DashboardViewModel @Inject constructor(
     // ── Chart State ──
 
     val selectedTimeRange = MutableStateFlow(TimeRange.LAST_MONTH)
+    private val chartPrefs: SharedPreferences =
+        application.getSharedPreferences("chart_configs", Context.MODE_PRIVATE)
+    private val _forecastMonths = MutableStateFlow(chartPrefs.getInt("forecast_months", 3).coerceIn(1, 12))
+    val forecastMonths: StateFlow<Int> = _forecastMonths
+    fun setForecastMonths(n: Int) {
+        val clamped = n.coerceIn(1, 12)
+        _forecastMonths.value = clamped
+        chartPrefs.edit().putInt("forecast_months", clamped).apply()
+    }
     val hiddenCategoryIds = MutableStateFlow<Set<Long>>(emptySet())
     val drillDownCategoryId = MutableStateFlow<Long?>(null)
 
@@ -196,9 +206,6 @@ class DashboardViewModel @Inject constructor(
             _donutSliceConfigs.value = configs
         } catch (_: Exception) {}
     }
-
-    private val chartPrefs: SharedPreferences =
-        application.getSharedPreferences("chart_configs", Context.MODE_PRIVATE)
 
     private val _forecastLineConfigs = MutableStateFlow<List<ForecastLineConfig>>(emptyList())
     val forecastLineConfigs: StateFlow<List<ForecastLineConfig>> = _forecastLineConfigs
@@ -499,8 +506,9 @@ class DashboardViewModel @Inject constructor(
         transactions,
         selectedTimeRange,
         categoryRepo.observeAll(),
-        forecastLineConfigs
-    ) { txs, range, cats, configs ->
+        forecastLineConfigs,
+        _forecastMonths
+    ) { txs, range, cats, configs, fMonths ->
         val monthly = groupByMonth(txs)
         val sorted = monthly.entries.sortedBy { parseMonthLabel(it.key) }
         if (sorted.size < 3) return@combine emptyList()
@@ -534,26 +542,13 @@ class DashboardViewModel @Inject constructor(
                 .groupBy { getRootCategory(it.categoryId) }
                 .forEach { (rootCatId, _) ->
                     val monthlyAmounts = recentMonths.map { (_, monthTxs) ->
-                        monthTxs.filter { getRootCategory(it.categoryId) == rootCatId && it.type == TransactionType.EXPENSE }
-                            .sumOf { it.amount }.toFloat()
+                        seasonalAdjustedSum(monthTxs) { getRootCategory(it.categoryId) == rootCatId && it.type == TransactionType.EXPENSE }
                     }
-                    val avg = monthlyAmounts.average().toFloat()
-                    val trend = if (monthlyAmounts.size >= 2) {
-                        val n = monthlyAmounts.size
-                        val sumX = (0 until n).sum().toFloat()
-                        val sumY = monthlyAmounts.sum()
-                        val sumXY = monthlyAmounts.mapIndexed { i, y -> i * y }.sum()
-                        val sumX2 = (0 until n).sumOf { it * it }.toFloat()
-                        val numerator = n * sumXY - sumX * sumY
-                        val denominator = n * sumX2 - sumX * sumX
-                        if (denominator != 0f) numerator / denominator else 0f
-                    } else 0f
-                    categoryTrends[rootCatId] = Pair(avg, trend)
+                    categoryTrends[rootCatId] = huberRegression(monthlyAmounts)
                 }
             
             val fixedCostsAvg = recentMonths.map { (_, monthTxs) ->
-                monthTxs.filter { it.type == TransactionType.EXPENSE && it.isRecurring }
-                    .sumOf { it.amount }.toFloat()
+                seasonalAdjustedSum(monthTxs) { it.type == TransactionType.EXPENSE && it.isRecurring }
             }.average().toFloat()
             
             val lastLabel = sorted.last().key
@@ -584,7 +579,7 @@ class DashboardViewModel @Inject constructor(
                 categoryForecasts = actualTopCategories,
                 fixedCosts = actualFixedCosts,
                 isHistorical = true
-            )) + (1..3).map { offset ->
+            )) + (1..fMonths).map { offset ->
                 val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
                 val label = monthLabel(nextCal)
                 val stepsFromMid = lastMonthIdx / 2f + offset
@@ -609,7 +604,7 @@ class DashboardViewModel @Inject constructor(
             }
         } else {
             // ── Config-driven: per-category trends → aggregate per config ──
-            computeConfigForecast(cats, configs, categoryMap, recentMonths, sorted.last().key, historySize)
+            computeConfigForecast(cats, configs, categoryMap, recentMonths, sorted.last().key, historySize, fMonths)
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -653,24 +648,24 @@ class DashboardViewModel @Inject constructor(
         categoryMap: Map<Long, Category>,
         recentMonths: List<Map.Entry<String, List<Transaction>>>,
         lastLabel: String,
-        historySize: Int
+        historySize: Int,
+        forecastMonths: Int = 3
     ): List<ForecastPoint> {
         // Compute per-category trends (each category including all descendants)
         val categoryTrends = mutableMapOf<Long, Pair<Float, Float>>()
         cats.forEach { cat ->
             val childIds = getAllDescendantIds(cat.id, cats) + cat.id
             val monthlyAmounts = recentMonths.map { (_, monthTxs) ->
-                monthTxs.filter { tx ->
+                seasonalAdjustedSum(monthTxs) { tx ->
                     tx.type == TransactionType.EXPENSE && tx.categoryId in childIds
-                }.sumOf { it.amount }.toFloat()
+                }
             }
-            categoryTrends[cat.id] = linearRegression(monthlyAmounts)
+            categoryTrends[cat.id] = huberRegression(monthlyAmounts)
         }
 
         // Fixed costs
         val fixedCostsAvg = recentMonths.map { (_, monthTxs) ->
-            monthTxs.filter { it.type == TransactionType.EXPENSE && it.isRecurring }
-                .sumOf { it.amount }.toFloat()
+            seasonalAdjustedSum(monthTxs) { it.type == TransactionType.EXPENSE && it.isRecurring }
         }.average().toFloat()
 
         val lastMonthIdx = historySize - 1
@@ -715,7 +710,7 @@ class DashboardViewModel @Inject constructor(
             categoryForecasts = historicalConfigForecasts,
             fixedCosts = actualFixedCosts,
             isHistorical = true
-        )) + (1..3).map { offset ->
+        )) + (1..forecastMonths).map { offset ->
             val nextCal = parseMonthToCalendar(lastLabel).apply { add(Calendar.MONTH, offset) }
             val label = monthLabel(nextCal)
             val stepsFromMid = lastMonthIdx / 2f + offset
@@ -784,18 +779,51 @@ class DashboardViewModel @Inject constructor(
     }
 }
 
-internal fun linearRegression(monthlyAmounts: List<Float>): Pair<Float, Float> {
+internal fun huberRegression(monthlyAmounts: List<Float>): Pair<Float, Float> {
     if (monthlyAmounts.isEmpty()) return Pair(0f, 0f)
-    val avg = monthlyAmounts.average().toFloat()
-    val trend = if (monthlyAmounts.size >= 2) {
-        val n = monthlyAmounts.size
-        val sumX = (0 until n).sum().toFloat()
-        val sumY = monthlyAmounts.sum()
-        val sumXY = monthlyAmounts.mapIndexed { i, y -> i * y }.sum()
-        val sumX2 = (0 until n).sumOf { it * it }.toFloat()
-        val numerator = n * sumXY - sumX * sumY
-        val denominator = n * sumX2 - sumX * sumX
-        if (denominator != 0f) numerator / denominator else 0f
+    val n = monthlyAmounts.size
+    val indices = (0 until n).toList()
+    val sumX = indices.sum().toFloat()
+    val sumX2 = indices.sumOf { it * it }.toFloat()
+    val denom = n * sumX2 - sumX * sumX
+    if (denom == 0f) return Pair(monthlyAmounts.average().toFloat(), 0f)
+
+    val weights = MutableList(n) { 1f }
+    repeat(3) {
+        val weightedSumY = monthlyAmounts.mapIndexed { i, y -> weights[i] * y }.sum()
+        val weightedSumXY = monthlyAmounts.mapIndexed { i, y -> i * weights[i] * y }.sum()
+        val sumW = weights.sum()
+        val sumWX = indices.mapIndexed { i, x -> weights[i] * x }.sum()
+        val sumWX2 = indices.mapIndexed { i, x -> weights[i] * x * x }.sum()
+        val slope = if (sumW * sumWX2 - sumWX * sumWX != 0f) {
+            (sumW * weightedSumXY - sumWX * weightedSumY) / (sumW * sumWX2 - sumWX * sumWX)
+        } else 0f
+        val intercept = (weightedSumY - slope * sumWX) / sumW
+        monthlyAmounts.forEachIndexed { i, y ->
+            val resid = kotlin.math.abs(y - (intercept + slope * i))
+            weights[i] = if (resid > 0f) 1f / (resid + 1f) else 1f
+        }
+    }
+    val finalWeightedSumY = monthlyAmounts.mapIndexed { i, y -> weights[i] * y }.sum()
+    val finalWeightedSumXY = monthlyAmounts.mapIndexed { i, y -> i * weights[i] * y }.sum()
+    val sumW = weights.sum()
+    val sumWX = indices.mapIndexed { i, x -> weights[i] * x }.sum()
+    val sumWX2 = indices.mapIndexed { i, x -> weights[i] * x * x }.sum()
+    val slope = if (sumW * sumWX2 - sumWX * sumWX != 0f) {
+        (sumW * finalWeightedSumXY - sumWX * finalWeightedSumY) / (sumW * sumWX2 - sumWX * sumWX)
     } else 0f
-    return Pair(avg, trend)
+    val intercept = (finalWeightedSumY - slope * sumWX) / sumW
+    val avgAtMidpoint = intercept + slope * ((n - 1) / 2f)
+    return Pair(avgAtMidpoint, slope)
+}
+
+private fun seasonalAdjustedSum(txs: List<Transaction>, predicate: (Transaction) -> Boolean): Float {
+    return txs.filter(predicate).sumOf { tx ->
+        if (tx.isRecurring && tx.recurringIntervalDays >= 60) {
+            val months = ceil(tx.recurringIntervalDays / 30.44).toDouble()
+            (tx.amount.toDouble() / months)
+        } else {
+            tx.amount.toDouble()
+        }
+    }.toFloat()
 }
