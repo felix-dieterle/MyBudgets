@@ -5,6 +5,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <View
+        android:id="@+id/v_status_lamp"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="end"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/bg_status_lamp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/status_lamp_desc" />
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"

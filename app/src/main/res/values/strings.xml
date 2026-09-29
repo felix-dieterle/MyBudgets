@@ -52,6 +52,11 @@
     <string name="category_name">Kategoriename</string>
     <string name="pattern_hint">Muster (Regex)</string>
 
+    <string name="status_lamp_desc">Backend-Status: %1$s</string>
+    <string name="status_lamp_disabled">deaktiviert</string>
+    <string name="status_lamp_ok">erreichbar</string>
+    <string name="status_lamp_unreachable">nicht erreichbar</string>
+
     <string name="settings_backend_url">Backend-URL</string>
     <string name="settings_api_key">API-Schlüssel</string>
     <string name="settings_openrouter_key">OpenRouter API-Key</string>
