@@ -15,6 +15,7 @@ import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.databinding.FragmentTransactionDetailBinding
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.util.DateFormatter
+import de.mybudgets.app.worker.BackendSyncScheduler
 import de.mybudgets.app.viewmodel.TransactionViewModel
 import de.mybudgets.app.viewmodel.CategoryViewModel
 import kotlinx.coroutines.launch
@@ -123,6 +124,8 @@ class TransactionDetailFragment : Fragment() {
                     )
                 )
             }
+
+            BackendSyncScheduler.enqueue(requireContext())
 
             val patchedDescription = matchedName ?: tx.description
             val origDesc = if (matchedName != null && tx.originalDescription.isBlank()) tx.description else tx.originalDescription

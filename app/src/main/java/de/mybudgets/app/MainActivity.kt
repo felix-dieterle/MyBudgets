@@ -9,6 +9,7 @@ import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.databinding.ActivityMainBinding
 import de.mybudgets.app.util.AppLogger
+import de.mybudgets.app.worker.BackendSyncScheduler
 
 private const val TAG = "MainActivity"
 
@@ -43,6 +44,8 @@ class MainActivity : AppCompatActivity() {
                     showOnboardingDialog(prefs)
                 }
             }
+
+            BackendSyncScheduler.enqueue(this)
         }.onFailure { e ->
             AppLogger.e(TAG, "MainActivity konnte beim Start nicht vollständig initialisiert werden: ${e.message}", e)
             showStartupErrorDialog()

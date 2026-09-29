@@ -10,6 +10,7 @@ import de.mybudgets.app.data.repository.AccountRepository
 import de.mybudgets.app.data.repository.RecurringRuleRepository
 import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.util.AppLogger
+import de.mybudgets.app.worker.BackendSyncScheduler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
@@ -52,6 +53,7 @@ enum class SyncPhase(val displayName: String) {
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
     private val repo: AccountRepository,
     private val txRepo: TransactionRepository,
     private val ruleRepo: RecurringRuleRepository,
@@ -519,6 +521,7 @@ class AccountViewModel @Inject constructor(
                 
                 val updatedAccount = repo.getById(accountId)
                 _bankSyncState.value = BankSyncState.Success(newTx.size, updatedAccount?.balance, dateRangeMsg)
+                BackendSyncScheduler.enqueue(appContext)
                 AppLogger.i(TAG, "  🎉 SYNC ERFOLG: ${newTx.size} neue Buchungen, Saldo=${updatedAccount?.balance}, Zeitraum=$dateRangeMsg")
                 AppLogger.i(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             }.onFailure { e ->
