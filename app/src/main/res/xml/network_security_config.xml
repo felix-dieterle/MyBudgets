@@ -21,4 +21,18 @@
             <certificates src="user" />
         </trust-anchors>
     </debug-overrides>
+
+    <!--
+        Das eigene Backend im Heimnetz ist bewusst nur ueber http:// erreichbar.
+        Die domain-config gilt unabhaengig vom Buildtyp - damit kann die App das Backend
+        auch dann erreichen, wenn sie ohne debuggable-Flag ausgeliefert wurde.
+        Bewusst auf einzelne Hosts beschraenkt: alles andere bleibt auf HTTPS festgenagelt.
+        Aendert sich die IP des Servers, muss sie hier ergaenzt werden.
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">192.168.178.37</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
 </network-security-config>

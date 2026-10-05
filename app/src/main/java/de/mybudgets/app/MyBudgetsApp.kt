@@ -1,6 +1,7 @@
 package de.mybudgets.app
 
 import android.app.Application
+import android.content.pm.ApplicationInfo
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
@@ -78,6 +79,14 @@ class MyBudgetsApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         installXmlParserFactoryOverrides()
+
+        // Persistente Logdatei als Erstes: alles, was danach schiefgeht, ist hinterher lesbar.
+        AppLogger.installFilePersistence(this, BuildConfig.VERSION_CODE)
+        AppLogger.i(
+            TAG,
+            "Programmstart: ${BuildConfig.VERSION_NAME} (versionCode ${BuildConfig.VERSION_CODE}), " +
+                "debug=${BuildConfig.DEBUG}, Application-Debuggable=${(applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0}"
+        )
 
         startupProtectionUntilElapsedRealtime = SystemClock.elapsedRealtime() + STARTUP_GRACE_PERIOD_MILLIS
         installGlobalExceptionHandler()

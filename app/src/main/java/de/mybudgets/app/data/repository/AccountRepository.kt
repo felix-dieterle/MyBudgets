@@ -14,6 +14,7 @@ class AccountRepository @Inject constructor(
     fun observeRealAccounts(): Flow<List<Account>> = dao.observeRealAccounts()
     fun observeVirtualAccounts(parentId: Long): Flow<List<Account>> = dao.observeVirtualAccounts(parentId)
     fun observeTotalBalance(): Flow<Double?> = dao.observeTotalBalance()
+    fun observeCount(): Flow<Int> = dao.observeCount()
     suspend fun getVirtualAccountsWithPatterns(): List<Account> = dao.getVirtualAccountsWithPatterns()
 
     suspend fun getById(id: Long): Account? = dao.getById(id)

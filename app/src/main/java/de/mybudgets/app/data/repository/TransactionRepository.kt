@@ -29,6 +29,19 @@ class TransactionRepository @Inject constructor(
 
     suspend fun getAllRemoteIds(): Set<String> = dao.getAllRemoteIds().toHashSet()
 
+    /**
+     * remoteIds zuruecksetzen, damit die Buchungen erneut gesendet werden. Gefährlich, wenn
+     * die IDs im Backend doch existieren - dann entstehen Duplikate. Deshalb ruft das nur
+     * der Sync-Worker auf, und der wiederum nur nach expliziter Nutzeraktion.
+     */
+    suspend fun clearRemoteIds(remoteIds: List<String>): Int = dao.clearRemoteIds(remoteIds)
+
+    /** Anzahl lokaler Buchungen ohne remoteId - also noch nicht zum Backend hochgeladen. */
+    fun observeUnsyncedCount(): Flow<Int> = dao.observeUnsyncedCount()
+
+    /** Gesamtzahl lokaler Buchungen, reaktiv. */
+    fun observeCount(): Flow<Int> = dao.observeCount()
+
     suspend fun getLatestDateForAccount(accountId: Long): Long? = dao.getLatestDateForAccount(accountId)
     suspend fun getEarliestDateForAccount(accountId: Long): Long? = dao.getEarliestDateForAccount(accountId)
     suspend fun getTransactionCountForAccount(accountId: Long): Int = dao.getTransactionCountForAccount(accountId)

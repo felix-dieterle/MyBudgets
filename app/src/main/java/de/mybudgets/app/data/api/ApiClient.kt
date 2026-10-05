@@ -8,6 +8,13 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
+/** Stellt sicher, dass eine Backend-URL ein Schema enthaelt (`http://`/`https://`). */
+fun normalizeBaseUrl(raw: String): String {
+    val trimmed = raw.trim()
+    if (trimmed.isEmpty() || trimmed.contains("://")) return trimmed
+    return "http://$trimmed"
+}
+
 object ApiClient {
 
     private var retrofit: Retrofit? = null
@@ -43,9 +50,10 @@ object ApiClient {
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
 
-        val url = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+        val url = normalizeBaseUrl(baseUrl)
+        val retrofitBase = if (url.endsWith("/")) url else "$url/"
         return Retrofit.Builder()
-            .baseUrl(url)
+            .baseUrl(retrofitBase)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

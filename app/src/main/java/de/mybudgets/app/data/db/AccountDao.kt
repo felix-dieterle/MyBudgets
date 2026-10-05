@@ -24,6 +24,10 @@ interface AccountDao {
     @Query("SELECT SUM(balance) FROM accounts WHERE isVirtual = 0")
     fun observeTotalBalance(): Flow<Double?>
 
+    /** Reaktiv: Gesamtzahl lokaler Konten - Grundlage fuer den Vergleich mit dem Backend. */
+    @Query("SELECT COUNT(*) FROM accounts")
+    fun observeCount(): Flow<Int>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(account: Account): Long
 

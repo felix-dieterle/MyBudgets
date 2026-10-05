@@ -32,6 +32,22 @@ interface TransactionDao {
     @Query("SELECT remoteId FROM transactions WHERE remoteId IS NOT NULL")
     suspend fun getAllRemoteIds(): List<String>
 
+    /**
+     * Setzt die remoteId der uebergebenen Buchungen zurueck, damit sie beim naechsten Sync
+     * erneut gesendet werden. Nur fuer "verwaiste" IDs gedacht: der Nutzer loest das aus,
+     * wenn das Backend die Buchung nicht (mehr) kennt und die Zaehler sonst dauerhaft auseinander bleiben.
+     */
+    @Query("UPDATE transactions SET remoteId = NULL WHERE remoteId IN (:remoteIds)")
+    suspend fun clearRemoteIds(remoteIds: List<String>): Int
+
+    /** Reactiv: emittiert neu, sobald eine Buchung hochgeladen oder geloescht wurde. */
+    @Query("SELECT COUNT(*) FROM transactions WHERE remoteId IS NULL")
+    fun observeUnsyncedCount(): Flow<Int>
+
+    /** Reaktiv: Gesamtzahl lokaler Buchungen - Grundlage fuer den Vergleich mit dem Backend. */
+    @Query("SELECT COUNT(*) FROM transactions")
+    fun observeCount(): Flow<Int>
+
     @Query("SELECT MAX(date) FROM transactions WHERE accountId = :accountId")
     suspend fun getLatestDateForAccount(accountId: Long): Long?
 

@@ -284,7 +284,23 @@ cd F:\CascadeProjects\mama-razzi
 ### Versioning
 
 - **versionName:** `app/build.gradle.kts` (Zeile 24-25)
-- **versionCode:** Automatisch via Git commit count (`git rev-list --count HEAD`)
+- **versionCode:** Automatisch via Git commit count über **alle** Refs (`git rev-list --count --all`), Override via `-PversionCode=N`
+
+**KRITISCH - versionCode niemals senken:**
+Android verweigert die Installation mit `INSTALL_FAILED_VERSION_DOWNGRADE`
+(UI: "App kann nicht installiert werden"), wenn der neue versionCode **kleiner**
+ist als der installierte. Ein Downgrade erzwingt `Uninstall` - dabei geht die
+Room-Datenbank verloren. Deshalb:
+
+- [ ] Vor dem Verteilen den versionCode der **installierten** APK prüfen, nicht nur den der neuen
+      (höchster jemals verteilter Stand: `ls -l /volume1/homes/felix.dieterle/Downloads/*.apk` auf der DS,
+      Dateiname enthält den versionCode)
+- [ ] Bei `-PversionCode=N`: N muss **größer** sein als alle bisher verteilten Codes
+- [ ] Nicht auf `HEAD` alone als Untergrenze verlassen (siehe Vorfall 03.10.2026: frischer Build
+      lieferte 366, installiert war 369 → Downgrade, APK nicht installierbar)
+- [ ] Der Fehler ist **nicht** an Signatur/Transfer zu suchen: Signatur ist
+      `keystore/debug.keystore` für debug *und* release, cert SHA-256 `7e8fad4d…3543b`
+
 
 ## Entwicklungs-Workflow
 
