@@ -95,16 +95,19 @@ if "%VERSION_NAME%"=="" (
 echo [OK] versionName: %VERSION_NAME%
 
 REM Extract or generate versionCode
+REM WICHTIG: "--all" (alle Refs), NICHT "HEAD" - und der Wert muss auch wirklich
+REM an Gradle durchgereicht werden. Sonst liefert der naechste Fresh-Build einen
+KLEINEREN versionCode als die installierte APK und Android verweigert die
+Installation (INSTALL_FAILED_VERSION_DOWNGRADE).
 if not "%VERSION_CODE%"=="" (
     echo [OK] versionCode: %VERSION_CODE% (manuell gesetzt)
 ) else (
-    REM Try git rev-list count
-    for /f %%i in ('git rev-list --count HEAD 2^>nul') do set VERSION_CODE=%%i
+    for /f %%i in ('git rev-list --count --all 2^>nul') do set VERSION_CODE=%%i
     if "!VERSION_CODE!"=="" (
         echo [!] Warnung: Konnte versionCode nicht per Git ermitteln, nutze 1
         set VERSION_CODE=1
     ) else (
-        echo [OK] versionCode: !VERSION_CODE! (via Git)
+        echo [OK] versionCode: !VERSION_CODE! (via Git, --all)
     )
 )
 
@@ -126,7 +129,7 @@ if "%BUILD_TYPE%"=="release" (
     set APK_PATH=app\build\outputs\apk\release\app-release.apk
 ) else (
     echo Building DEBUG APK...
-    call gradlew.bat assembleDebug --no-daemon
+    call gradlew.bat assembleDebug --no-daemon -PversionCode=%VERSION_CODE%
     set APK_PATH=app\build\outputs\apk\debug\app-debug.apk
 )
 
@@ -157,7 +160,7 @@ if "%BUILD_TYPE%"=="release" (
     set APK_NAME=MyBudgets-%VERSION_CODE%-%VERSION_NAME%.apk
     set APK_DIR=app\build\outputs\apk\release
 ) else (
-    set APK_NAME=MyBudgets-debug-%VERSION_NAME%.apk
+    set APK_NAME=MyBudgets-debug-%VERSION_NAME%-%VERSION_CODE%.apk
     set APK_DIR=app\build\outputs\apk\debug
 )
 
@@ -174,7 +177,7 @@ echo.
 echo [6/7] APK Distribution...
 
 SET MAMA_RAZZI_DIR=F:\CascadeProjects\mama-razzi\public\apps\mybudgets
-SET SECURE_STORAGE_DIR=\\secure-storage\home\Downloads
+SET SECURE_STORAGE_DIR=\\secure-storage\home\Downloads\MyBudgets
 
 REM Timestamp for versioned copy
 for /f "tokens=2 delims==" %%i in ('wmic os get localdatetime /value') do set datetime=%%i
@@ -189,12 +192,22 @@ if exist "%MAMA_RAZZI_DIR%" (
     echo [!] mama-razzi nicht gefunden, uebersprungen
 )
 
-REM 2. Copy to secure-storage Downloads (für direkten Handy-Zugriff)
-if exist "%SECURE_STORAGE_DIR%" (
-    copy "%APK_DIR%\%APK_NAME%" "%SECURE_STORAGE_DIR%\MyBudgets-latest.apk" >nul 2>&1
-    echo [OK] APK kopiert nach secure-storage Downloads
+REM 2. Copy to secure-storage Downloads (fuer direkten Handy-Zugriff)
+REM    WICHTIG 1: versionierten Dateinamen nehmen, NICHT "latest" - der Copy-Schritt
+REM    ueberschreibt auf dem NAS nicht immer denselben Namen (steht so in AGENTS.md).
+REM    WICHTIG 2: Ziel ist der Unterordner MyBudgets\, nicht root Downloads\.
+REM    WICHTIG 3: errorlevel pruefen - sonst meldet das Skript "[OK]", obwohl nichts
+REM    angekommen ist (der UNC-Share ist nicht immer angemeldet).
+if exist "\\secure-storage\home\Downloads\" (
+    if not exist "%SECURE_STORAGE_DIR%" mkdir "%SECURE_STORAGE_DIR%" >nul 2>&1
+    copy "%APK_DIR%\%APK_NAME%" "%SECURE_STORAGE_DIR%\" >nul 2>&1
+    if errorlevel 1 (
+        echo [!] secure-storage: Kopie FEHLGESCHLAGEN - bitte manuell pruefen
+    ) else (
+        echo [OK] APK kopiert nach %SECURE_STORAGE_DIR%
+    )
 ) else (
-    echo [!] secure-storage nicht gefunden, uebersprungen
+    echo [!] secure-storage nicht erreichbar, uebersprungen
 )
 
 REM ============================================================================

@@ -10,9 +10,15 @@ android {
     namespace = "de.mybudgets.app"
     compileSdk = 34
 
+    // versionCode MUSS monoton steigen: Android verweigert einen Downgrade mit
+    // INSTALL_FAILED_VERSION_DOWNGRADE ("App kann nicht installiert werden").
+    // Der Commit-Count von HEAD allein ist als Untergrenze NICHT ausreichend -
+    // explizit per -PversionCode gesetzte Builds "ueberholen" ihn, und der naechste
+    // Fresh-Build faellt dann auf den niedrigeren HEAD-Stand zurueck.
+    // Deshalb "--all" (alle Refs, inkl. Remote-Branches) als Untergrenze.
     val buildVersionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull()
         ?: try {
-            ProcessBuilder("git", "rev-list", "--count", "HEAD")
+            ProcessBuilder("git", "rev-list", "--count", "--all")
                 .directory(rootDir)
                 .start()
                 .inputStream.bufferedReader().readText().trim().toInt()
