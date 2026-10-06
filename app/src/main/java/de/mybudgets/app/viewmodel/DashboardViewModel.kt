@@ -812,9 +812,7 @@ internal fun huberRegression(monthlyAmounts: List<Float>): Pair<Float, Float> {
     val slope = if (sumW * sumWX2 - sumWX * sumWX != 0f) {
         (sumW * finalWeightedSumXY - sumWX * finalWeightedSumY) / (sumW * sumWX2 - sumWX * sumWX)
     } else 0f
-    val intercept = (finalWeightedSumY - slope * sumWX) / sumW
-    val avgAtMidpoint = intercept + slope * ((n - 1) / 2f)
-    return Pair(avgAtMidpoint, slope)
+    return Pair(monthlyAmounts.average().toFloat(), slope)
 }
 
 private fun seasonalAdjustedSum(txs: List<Transaction>, predicate: (Transaction) -> Boolean): Float {
