@@ -23,14 +23,19 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.util.Date
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 class AccountViewModelBankSyncTest {
 
     private val testDispatcher: TestDispatcher = StandardTestDispatcher()
@@ -53,7 +58,8 @@ class AccountViewModelBankSyncTest {
         every { accountRepo.observeTotalBalance() } returns flowOf(0.0)
         every { txRepo.observeByAccount(any()) } returns flowOf(emptyList())
 
-        viewModel = AccountViewModel(accountRepo, txRepo, ruleRepo, syncIntervalRepo, syncSettingsRepo, fintsService)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        viewModel = AccountViewModel(context, accountRepo, txRepo, ruleRepo, syncIntervalRepo, syncSettingsRepo, fintsService)
     }
 
     @After
@@ -76,6 +82,7 @@ class AccountViewModelBankSyncTest {
         )
         coEvery { txRepo.getAllRemoteIds() } returns setOf(existingRemote)
         coEvery { txRepo.save(any()) } returns 1L
+        coEvery { txRepo.getLatestDateForAccount(any()) } returns null
 
         viewModel.syncBankTransactions(account.id, AccountViewModel.NO_FROM_DATE)
         advanceUntilIdle()
@@ -109,6 +116,7 @@ class AccountViewModelBankSyncTest {
         coEvery { fintsService.fetchAccountStatement(account, null) } returns Result.failure(
             IllegalStateException(errorMessage)
         )
+        coEvery { txRepo.getLatestDateForAccount(any()) } returns null
 
         viewModel.syncBankTransactions(account.id, AccountViewModel.NO_FROM_DATE)
         advanceUntilIdle()

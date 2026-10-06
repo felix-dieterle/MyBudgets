@@ -1,5 +1,8 @@
 package de.mybudgets.app.data.api
 
+import com.google.gson.FieldNamingPolicy
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import de.mybudgets.app.util.AppLogger
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -7,6 +10,27 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+
+/**
+ * Einzige Gson-Konfiguration fuer Requests UND Antworten.
+ *
+ * Das PHP-Backend antwortet mit snake_case - die Endpoints geben `SELECT *`
+ * zurueck, also die Spaltennamen. Die DTOs sind camelCase. Ohne diese Policy
+ * erreichte `account_id` das Feld `accountId` nie: der Abruf importierte
+ * Buchungen mit accountId = 0, categoryId = null, isRecurring = false,
+ * createdAt = 0. Dass nichts davon auffiel, liegt daran, dass die
+ * Transaction-Entitaet keinen Room-Fremdschluessel hat.
+ *
+ * Requests waren bis 10.2026 ebenfalls camelCase; dort fing
+ * `snakeCaseKeys()` in api.php die Abweichung ab. Mit der Policy laufen beide
+ * Richtungen auf dieselben Feldnamen zu, dort ist es nur noch ein No-Op.
+ *
+ * Die Policy wirkt auf Felder, NICHT auf Map-Schluessel - Antworten wie
+ * `{"id": 4711}` lesen sich also unveraendert.
+ */
+internal val apiGson: Gson = GsonBuilder()
+    .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+    .create()
 
 /** Stellt sicher, dass eine Backend-URL ein Schema enthaelt (`http://`/`https://`). */
 fun normalizeBaseUrl(raw: String): String {
@@ -55,7 +79,7 @@ object ApiClient {
         return Retrofit.Builder()
             .baseUrl(retrofitBase)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(apiGson))
             .build()
     }
 }

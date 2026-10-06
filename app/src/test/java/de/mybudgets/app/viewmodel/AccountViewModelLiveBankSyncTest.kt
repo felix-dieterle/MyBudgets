@@ -66,7 +66,7 @@ class AccountViewModelLiveBankSyncTest {
         every { accountRepo.observeTotalBalance() } returns kotlinx.coroutines.flow.flowOf(0.0)
         every { txRepo.observeByAccount(any()) } returns kotlinx.coroutines.flow.flowOf(emptyList())
 
-        viewModel = AccountViewModel(accountRepo, txRepo, ruleRepo, syncIntervalRepo, syncSettingsRepo, fintsService)
+        viewModel = AccountViewModel(context, accountRepo, txRepo, ruleRepo, syncIntervalRepo, syncSettingsRepo, fintsService)
     }
 
     @After

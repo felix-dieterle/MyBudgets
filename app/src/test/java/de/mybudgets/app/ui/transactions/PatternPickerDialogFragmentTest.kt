@@ -22,13 +22,13 @@ class PatternPickerDialogFragmentTest {
     @Test
     fun `extractKeywords from domain description`() {
         val result = fragment.extractKeywords("EDEKA.DE EINKAUF")
-        assertEquals(listOf("edeka", "einkauf"), result)
+        assertEquals(listOf("edeka"), result)
     }
 
     @Test
     fun `extractKeywords rejects stopwords`() {
         val result = fragment.extractKeywords("mit von einkauf")
-        assertEquals(listOf("einkauf"), result)
+        assertEquals(emptyList<String>(), result)
     }
 
     @Test

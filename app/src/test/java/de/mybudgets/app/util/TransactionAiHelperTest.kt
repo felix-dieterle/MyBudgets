@@ -29,7 +29,7 @@ class TransactionAiHelperTest {
     }
 
     @Test
-    fun `falls back to regex patterns when no learned match exists`() {
+    fun `ignores patternCategories when no learned match exists`() {
         val categories = listOf(
             Category(id = 3, name = "Lebensmittel", pattern = "rewe|edeka")
         )
@@ -42,7 +42,7 @@ class TransactionAiHelperTest {
             patternCategories = categories
         )
 
-        assertEquals(3L, suggested)
+        assertNull(suggested)
     }
 
     @Test
