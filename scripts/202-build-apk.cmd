@@ -97,17 +97,20 @@ echo [OK] versionName: %VERSION_NAME%
 REM Extract or generate versionCode
 REM WICHTIG: "--all" (alle Refs), NICHT "HEAD" - und der Wert muss auch wirklich
 REM an Gradle durchgereicht werden. Sonst liefert der naechste Fresh-Build einen
-KLEINEREN versionCode als die installierte APK und Android verweigert die
-Installation (INSTALL_FAILED_VERSION_DOWNGRADE).
+REM KLEINEREN versionCode als die installierte APK und Android verweigert die
+REM Installation (INSTALL_FAILED_VERSION_DOWNGRADE).
+REM ACHTUNG: Kein echo mit abschliessender Klammer innerhalb eines Blocks -
+REM das ")" schliesst den Block vorzeitig. Beide Zweige laufen dann, der
+REM else-Zweig setzt VERSION_CODE auf den Git-Wert zurueck (Downgrade-Build).
 if not "%VERSION_CODE%"=="" (
-    echo [OK] versionCode: %VERSION_CODE% (manuell gesetzt)
+    echo [OK] versionCode: %VERSION_CODE% [manuell gesetzt]
 ) else (
     for /f %%i in ('git rev-list --count --all 2^>nul') do set VERSION_CODE=%%i
     if "!VERSION_CODE!"=="" (
         echo [!] Warnung: Konnte versionCode nicht per Git ermitteln, nutze 1
         set VERSION_CODE=1
     ) else (
-        echo [OK] versionCode: !VERSION_CODE! (via Git, --all)
+        echo [OK] versionCode: !VERSION_CODE! [via Git, --all]
     )
 )
 
@@ -138,9 +141,9 @@ if errorlevel 1 (
     echo [X] Build fehlgeschlagen!
     echo.
     echo Haeufige Fehlerursachen:
-    echo   - Java-Version zu alt (braucht JDK 17)
+    echo   - Java-Version zu alt [braucht JDK 17]
     echo   - Android SDK nicht installiert
-    echo   - Gradle-Cache korrupt (Loesung: gradlew.bat clean)
+    echo   - Gradle-Cache korrupt [Loesung: gradlew.bat clean]
     echo.
     pause
     exit /b 1
