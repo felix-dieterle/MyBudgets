@@ -189,6 +189,20 @@ dialog.execute();     // EINE TAN für alle!
 
 ---
 
+### 5. NEW: Pattern-Bewertung vom finn-Dashboard zurück in die App (Back-Sync)
+
+**Hintergrund:** Im `finn`-Dashboard (`mama-razzi/public/apps/finn/insights`) lassen sich
+Muster bewerten (Kategorie-Override, Kürzbarkeit). Diese Bewertungen landen in
+`pattern_evaluations` – die App liest sie aber **nicht** (Sync ist nur App → Server).
+
+**Ziel:** Ein Dashboard-Override soll in der App ankommen und passende Buchungen kategorisieren.
+
+**Betroffen:** `finn`-Backend (neuer Endpunkt) + App (Sync-Schritt; `data/model/PatternEvaluation.kt` vorhanden).
+**Planung:** siehe `F:\CascadeProjects\mama-razzi\public\apps\finn\userstories\US-004-back-sync-zur-app.md`
+**Status:** offen (Enabler für US-003: Edit-Button im Blindflug)
+
+---
+
 ## Debugging-Findings (heute)
 
 ### Button erscheint nicht nach historischem Sync

@@ -1,6 +1,6 @@
 # MyBudgets – Development Roadmap
 
-**Last Updated:** 2026-05-17  
+**Last Updated:** 2026-10-14  
 **Source:** Nutzer-Interview (features/Interview-2026-05-17.md)
 
 ---
@@ -85,6 +85,33 @@ Budget-App als **Frühwarnsystem + Entscheidungshilfe:**
 | RecurringRule Edit-Screen (nicht nur Deactivate) | Medium |
 | Interval-Labels in UI (vierteljährlich, halbjährlich) | Low |
 | Einnahmen-Überschuss automatisch verteilen (optional, sehr low) | Low |
+
+---
+
+## Phase 5 – Dashboard-Anbindung: Pattern-Bewertung Back-Sync (NEU 2026-10-14)
+
+**Ziel:** Im `finn`-Dashboard gesetzte Muster-Bewertungen (Kategorie-Override, Kürzbarkeit,
+Wichtigkeit) sollen **in der App ankommen** und dort auf passende Buchungen wirken.
+
+**Problem:** `pattern_evaluations` / `insights_dismissals` sind heute Dashboard-only; der Sync
+läuft nur **App → Server**. Ein Edit im Dashboard erreicht die App nie.
+
+| Task | Prio |
+|------|------|
+| Richtung festlegen (App zieht Regeln per Endpunkt vs. Push) | High |
+| Endpunkt/Format im `finn`-Backend definieren + implementieren | High |
+| App: Regeln laden und lokal auf Buchungen anwenden (Room-`PatternEvaluation` nutzen) | High |
+| Match-Regeln pro Muster (Keyword/IBAN/Betrag) – `muster_key` allein reicht nicht | High |
+| Konflikt: App-Kategorie vs. Dashboard-Override (Priorität/Warnung) | Medium |
+| Rücknahme/Löschen einer Bewertung propagieren | Medium |
+| `matcher_version`-Mismatch erkennen und sicher behandeln | Medium |
+| Round-Trip-Test: Override im Dashboard → App-Sync → Kategorie sitzt | High |
+
+**Randbedingung:** Das Dashboard schreibt **nie** an `transactions`/`categories` (finn-AGENTS.md) –
+es wirkt nur über die Bewertungsschicht. Skelett im App-Code: `data/model/PatternEvaluation.kt` + DAO.
+
+**Details:** `F:\CascadeProjects\mama-razzi\public\apps\finn\userstories\US-004-back-sync-zur-app.md`
+(abhängig: US-003 Blendflug-Edit-Button).
 
 ---
 
