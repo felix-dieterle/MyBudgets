@@ -9,6 +9,9 @@ interface CategoryDao {
     @Query("SELECT * FROM categories ORDER BY level, name")
     fun observeAll(): Flow<List<Category>>
 
+    @Query("SELECT * FROM categories")
+    suspend fun getAll(): List<Category>
+
     @Query("SELECT * FROM categories WHERE level = 1 ORDER BY name")
     suspend fun getTopLevel(): List<Category>
 

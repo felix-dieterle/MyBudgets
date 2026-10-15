@@ -27,6 +27,13 @@ class TransactionRepository @Inject constructor(
 
     suspend fun getRecent(limit: Int = 10): List<Transaction> = dao.getRecent(limit)
 
+    /**
+     * Alle noch nicht hochgeladenen Buchungen, ohne Fenster-Begrenzung.
+     * Wichtig fuer den Repush: ein Limit (z.B. 500) wuerde bei mehr Buchungen
+     * einen Teil unsichtbar lassen und der Sync meldete trotzdem Erfolg.
+     */
+    suspend fun getUnsynced(): List<Transaction> = dao.getUnsynced()
+
     suspend fun getAllRemoteIds(): Set<String> = dao.getAllRemoteIds().toHashSet()
 
     /**

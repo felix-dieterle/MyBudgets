@@ -8,20 +8,33 @@ import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
+import kotlinx.coroutines.launch
 import de.mybudgets.app.R
 import de.mybudgets.app.data.model.Category
+import de.mybudgets.app.data.model.PatternEvaluation
 import de.mybudgets.app.data.model.RecurringRule
 import de.mybudgets.app.data.model.Transaction
+import de.mybudgets.app.data.repository.PatternEvaluationRepository
 import de.mybudgets.app.databinding.DialogRecurringPatternsBinding
 import de.mybudgets.app.databinding.ItemRecurringPatternBinding
 import de.mybudgets.app.util.AppLogger
 import de.mybudgets.app.util.CurrencyFormatter
 import de.mybudgets.app.util.DateFormatter
+import de.mybudgets.app.util.PatternEvaluationSuggestion
 import de.mybudgets.app.util.RecurringPatternDetector
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RecurringPatternDialog : DialogFragment() {
+
+    @Inject lateinit var evaluationRepository: PatternEvaluationRepository
+    private val cardBindings = mutableMapOf<Int, ItemRecurringPatternBinding>()
+    private val storedEvaluations = mutableMapOf<String, PatternEvaluation>()
 
     private var _binding: DialogRecurringPatternsBinding? = null
     private val binding get() = _binding!!
@@ -82,6 +95,7 @@ class RecurringPatternDialog : DialogFragment() {
                 applySelected()
             }
             buildPatternCards()
+            loadStoredEvaluations()
         } catch (e: Exception) {
             AppLogger.e("RecurringPatternDialog", "onViewCreated CRASH", e)
             try {
@@ -98,6 +112,7 @@ class RecurringPatternDialog : DialogFragment() {
                 try {
                     AppLogger.i("RecurringPatternDialog", "  Pattern $idx: ${p.suggestedDescription}, ${p.transactions.size} TX")
                     val card = ItemRecurringPatternBinding.inflate(layoutInflater, binding.containerPatterns, true)
+                    cardBindings[idx] = card
 
                     if (p.transactions.isEmpty()) {
                         AppLogger.w("RecurringPatternDialog", "  ⚠️ Pattern $idx hat keine Transaktionen, skip")
@@ -149,20 +164,33 @@ class RecurringPatternDialog : DialogFragment() {
 
                     card.tvPatternReason.text = p.reasoning ?: ""
 
-                    card.ivExpand.setOnClickListener {
+                    applySuggestion(card, p)
+
+                    val toggle = {
                         try {
                             toggleDetail(card.layoutDetail, card.ivExpand)
                         } catch (e: Exception) {
                             AppLogger.e("RecurringPatternDialog", "toggleDetail fehlgeschlagen", e)
                         }
                     }
-                    card.root.setOnClickListener {
-                        try {
-                            toggleDetail(card.layoutDetail, card.ivExpand)
-                        } catch (e: Exception) {
-                            AppLogger.e("RecurringPatternDialog", "toggleDetail fehlgeschlagen", e)
+                    card.ivExpand.setOnClickListener { toggle() }
+                    card.layoutHeader.setOnClickListener { toggle() }
+
+                    card.rbImportance.setOnRatingBarChangeListener { _, value, fromUser ->
+                        if (fromUser) {
+                            card.tvEvalSource.text = "Eigene Bewertung"
+                            refreshRatingUi(card)
+                            Toast.makeText(requireContext(), "Wichtigkeit: ${value.toInt()}/5", Toast.LENGTH_SHORT).show()
                         }
                     }
+                    card.rbCuttability.setOnRatingBarChangeListener { _, value, fromUser ->
+                        if (fromUser) {
+                            card.tvEvalSource.text = "Eigene Bewertung"
+                            refreshRatingUi(card)
+                            Toast.makeText(requireContext(), "Kürzbarkeit: ${value.toInt()}/5", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    refreshRatingUi(card)
                 } catch (e: Exception) {
                     AppLogger.e("RecurringPatternDialog", "  ❌ Pattern $idx konnte nicht gebaut werden", e)
                 }
@@ -170,6 +198,70 @@ class RecurringPatternDialog : DialogFragment() {
             AppLogger.i("RecurringPatternDialog", "buildPatternCards: DONE")
         } catch (e: Exception) {
             AppLogger.e("RecurringPatternDialog", "buildPatternCards CRASH", e)
+        }
+    }
+
+    private fun applySuggestion(card: ItemRecurringPatternBinding, p: RecurringPatternDetector.RecurringPattern) {
+        val suggestion = PatternEvaluationSuggestion.suggest(p.transactions.size, p.confidence, p.detectedIntervalDays)
+        card.rbImportance.rating = suggestion.importance.toFloat()
+        card.rbCuttability.rating = suggestion.cuttability.toFloat()
+        card.tvEvalSource.text = "Vorschlag (matcher ${PatternEvaluationSuggestion.MATCHER_VERSION}) - anpassbar"
+        refreshRatingUi(card)
+    }
+
+    private fun refreshRatingUi(card: ItemRecurringPatternBinding) {
+        val w = card.rbImportance.rating.toInt()
+        val k = card.rbCuttability.rating.toInt()
+        card.tvImportanceValue.text = "Wichtigkeit: $w/5"
+        card.tvCuttabilityValue.text = "Kürzbarkeit: $k/5"
+        card.tvRatingSummary.text = "Bewertung  W $w/5 · K $k/5"
+    }
+
+    private fun loadStoredEvaluations() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val all = evaluationRepository.getAll(PatternEvaluationSuggestion.MATCHER_VERSION)
+                storedEvaluations.clear()
+                all.forEach { storedEvaluations[it.patternKey] = it }
+                applyStoredEvaluations()
+            } catch (e: Exception) {
+                AppLogger.e("RecurringPatternDialog", "loadStoredEvaluations CRASH", e)
+            }
+        }
+    }
+
+    private fun applyStoredEvaluations() {
+        for ((idx, p) in patterns.withIndex()) {
+            val card = cardBindings[idx] ?: continue
+            val key = PatternEvaluationSuggestion.keyOf(p.suggestedDescription ?: "")
+            val stored = storedEvaluations[key] ?: continue
+            if (stored.importance > 0) card.rbImportance.rating = stored.importance.toFloat()
+            if (stored.cuttability > 0) card.rbCuttability.rating = stored.cuttability.toFloat()
+            if (stored.note.isNotBlank()) card.etEvalNote.setText(stored.note)
+            card.tvEvalSource.text = "Bewertung gespeichert"
+            refreshRatingUi(card)
+        }
+    }
+
+    private fun persistEvaluation(idx: Int, card: ItemRecurringPatternBinding, p: RecurringPatternDetector.RecurringPattern) {
+        try {
+            val key = PatternEvaluationSuggestion.keyOf(p.suggestedDescription ?: "")
+            if (key.isBlank()) return
+            val existing = storedEvaluations[key]
+            val evaluation = PatternEvaluation(
+                id = existing?.id ?: 0,
+                patternKey = key,
+                matcherVersion = PatternEvaluationSuggestion.MATCHER_VERSION,
+                importance = card.rbImportance.rating.toInt(),
+                cuttability = card.rbCuttability.rating.toInt(),
+                note = card.etEvalNote.text?.toString()?.trim() ?: "",
+                categoryOverrideId = selectedCategoryId[idx],
+                createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            )
+            evaluationRepository.saveAsync(evaluation)
+        } catch (e: Exception) {
+            AppLogger.e("RecurringPatternDialog", "persistEvaluation CRASH für $idx", e)
         }
     }
 
@@ -361,6 +453,7 @@ class RecurringPatternDialog : DialogFragment() {
                     )
                     rules.add(rule)
                     AppLogger.i("RecurringPatternDialog", "  ✅ Pattern $idx → Rule erstellt: ${rule.name}")
+                    persistEvaluation(idx, card, p)
                 } catch (e: Exception) {
                     AppLogger.e("RecurringPatternDialog", "  ❌ Pattern $idx: Fehler beim Erstellen der Rule", e)
                 }
@@ -389,6 +482,8 @@ class RecurringPatternDialog : DialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        cardBindings.clear()
+        storedEvaluations.clear()
         _binding = null
     }
 

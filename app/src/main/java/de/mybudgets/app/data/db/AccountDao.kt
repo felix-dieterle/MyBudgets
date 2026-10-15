@@ -9,6 +9,9 @@ interface AccountDao {
     @Query("SELECT * FROM accounts ORDER BY name")
     fun observeAll(): Flow<List<Account>>
 
+    @Query("SELECT * FROM accounts")
+    suspend fun getAll(): List<Account>
+
     @Query("SELECT * FROM accounts WHERE id = :id")
     suspend fun getById(id: Long): Account?
 

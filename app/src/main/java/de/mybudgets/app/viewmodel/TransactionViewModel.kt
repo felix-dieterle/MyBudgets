@@ -122,7 +122,10 @@ class TransactionViewModel @Inject constructor(
         for ((tx, cat) in list) {
             val date = fmt.format(java.util.Date(tx.date))
             val desc = tx.description.replace(";", ",")
-            val amount = "%.2f €".format(tx.amount).replace(".", ",")
+            // Locale explizit: "%.2f".format() nimmt die System-Locale, auf einem deutschen
+            // Geraet bereits "1.234,56". Das anschliessende replace(".", ",") machte daraus
+            // "1,234,56".
+            val amount = String.format(java.util.Locale.GERMANY, "%.2f €", tx.amount)
             val type = when (tx.type) {
                 TransactionType.INCOME -> "Einnahme"
                 TransactionType.EXPENSE -> "Ausgabe"

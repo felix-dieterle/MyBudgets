@@ -36,7 +36,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_13_14,
                 AppDatabase.MIGRATION_14_15,
                 AppDatabase.MIGRATION_15_16,
-                AppDatabase.MIGRATION_16_17
+                AppDatabase.MIGRATION_16_17,
+                AppDatabase.MIGRATION_17_18
             )
             .build()
         if (prevVersion != 0 && prevVersion < 13) {
@@ -56,5 +57,6 @@ object DatabaseModule {
     @Provides fun provideTransferTemplateDao(db: AppDatabase): TransferTemplateDao = db.transferTemplateDao()
     @Provides fun provideCategoryPatternDao(db: AppDatabase): CategoryPatternDao = db.categoryPatternDao()
     @Provides fun provideRecurringRuleDao(db: AppDatabase): RecurringRuleDao = db.recurringRuleDao()
+    @Provides fun providePatternEvaluationDao(db: AppDatabase): PatternEvaluationDao = db.patternEvaluationDao()
     @Provides fun provideSyncIntervalDao(db: AppDatabase): SyncIntervalDao = db.syncIntervalDao()
 }

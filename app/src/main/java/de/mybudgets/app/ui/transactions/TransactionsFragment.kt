@@ -52,13 +52,32 @@ class TransactionsFragment : Fragment() {
         }
 
         binding.btnExportCsv.setOnClickListener {
-            val csv = vm.exportFilteredAsCsv()
-            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                type = "text/csv"
-                putExtra(android.content.Intent.EXTRA_TEXT, csv)
-                putExtra(android.content.Intent.EXTRA_SUBJECT, "MyBudgets Export")
+            try {
+                val csv = vm.exportFilteredAsCsv()
+                // Ueber EXTRA_TEXT stuerzt der Export bei ~1 MB ab (TransactionTooLargeException).
+                // Bei 2322 Buchungen ist die CSV gut 300 KB gross, deshalb wie der Log-Export
+                // ueber eine Cache-Datei plus FileProvider teilen (05.10.2026).
+                val csvFile = java.io.File(requireContext().cacheDir, "mybudgets-transactions.csv")
+                csvFile.writeText(csv)
+                val uri = androidx.core.content.FileProvider.getUriForFile(
+                    requireContext(),
+                    "${requireContext().packageName}.fileprovider",
+                    csvFile
+                )
+                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "text/csv"
+                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                    putExtra(android.content.Intent.EXTRA_SUBJECT, "MyBudgets Export")
+                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(android.content.Intent.createChooser(intent, "CSV exportieren"))
+            } catch (e: Exception) {
+                com.google.android.material.snackbar.Snackbar.make(
+                    requireView(),
+                    "CSV-Export fehlgeschlagen: ${e.message}",
+                    com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                ).show()
             }
-            startActivity(android.content.Intent.createChooser(intent, "CSV exportieren"))
         }
 
         binding.etSearch.addTextChangedListener(object : TextWatcher {

@@ -29,6 +29,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT :limit")
     suspend fun getRecent(limit: Int): List<Transaction>
 
+    @Query("SELECT * FROM transactions WHERE remoteId IS NULL ORDER BY date ASC")
+    suspend fun getUnsynced(): List<Transaction>
+
     @Query("SELECT remoteId FROM transactions WHERE remoteId IS NOT NULL")
     suspend fun getAllRemoteIds(): List<String>
 

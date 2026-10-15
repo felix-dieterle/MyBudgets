@@ -85,6 +85,10 @@
     <string name="sync_meaning_mismatch">Lokal und Backend haben unterschiedlich viele Buchungen oder Konten. Daten fehlen auf einer Seite - bitte einen Sync laufen lassen.</string>
     <string name="sync_detail_title">Synchronisierung (%1$s)</string>
     <string name="sync_detail_sync_now">Jetzt synchronisieren</string>
+    <string name="sync_feedback_started">Sync angefordert – Status siehe Sync-Symbol.</string>
+    <string name="sync_feedback_offline">Offline-Modus ist aktiv – es wird nicht synchronisiert.</string>
+    <string name="sync_repush_action">Senden</string>
+    <string name="sync_repush_prompt">%1$d Buchungen haben eine ID, die das Backend nicht kennt – sie werden beim Sync übersprungen.</string>
     <string name="sync_detail_repush_orphans">%1$d Buchungen erneut senden</string>
     <string name="sync_repush_title">Buchungen erneut senden?</string>
     <string name="sync_repush_message">%1$d Buchungen haben eine ID, die das Backend nicht kennt. Beim Sync werden sie deshalb übersprungen und der Zähler stimmt nie. Jetzt werden diese IDs zurückgesetzt und die Buchungen erneut gesendet.\n\nSollten sie im Backend doch schon vorhanden sein, entstehen dabei doppelte Buchungen.</string>

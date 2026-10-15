@@ -21,9 +21,10 @@ import de.mybudgets.app.data.model.*
         CategoryPattern::class,
         RecurringRule::class,
         SyncInterval::class,
-        RecurrencePattern::class
+        RecurrencePattern::class,
+        PatternEvaluation::class
     ],
-    version = 17,
+    version = 18,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -38,6 +39,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryPatternDao(): CategoryPatternDao
     abstract fun recurringRuleDao(): RecurringRuleDao
     abstract fun recurrencePatternDao(): RecurrencePatternDao
+    abstract fun patternEvaluationDao(): PatternEvaluationDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -271,6 +273,28 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """CREATE TABLE IF NOT EXISTS pattern_evaluations (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        patternKey TEXT NOT NULL,
+                        matcherVersion TEXT NOT NULL,
+                        importance INTEGER NOT NULL DEFAULT 0,
+                        cuttability INTEGER NOT NULL DEFAULT 0,
+                        note TEXT NOT NULL DEFAULT '',
+                        categoryOverrideId INTEGER,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )"""
+                )
+                database.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS index_pattern_evaluations_patternKey_matcherVersion ON pattern_evaluations(patternKey, matcherVersion)"
+                )
+                lastMigrationVersion = "v17→v18"
+            }
+        }
+
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -317,7 +341,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_13_14,
                     MIGRATION_14_15,
                     MIGRATION_15_16,
-                    MIGRATION_16_17
+                    MIGRATION_16_17,
+                    MIGRATION_17_18
                 ).build().also { INSTANCE = it }
             }
     }

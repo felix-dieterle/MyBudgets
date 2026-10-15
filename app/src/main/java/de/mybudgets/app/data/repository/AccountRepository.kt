@@ -18,6 +18,9 @@ class AccountRepository @Inject constructor(
     suspend fun getVirtualAccountsWithPatterns(): List<Account> = dao.getVirtualAccountsWithPatterns()
 
     suspend fun getById(id: Long): Account? = dao.getById(id)
+
+    /** Alle Konten synchron - fuer den Backend-Sync, der die Konten vorher anlegen muss. */
+    suspend fun getAll(): List<Account> = dao.getAll()
     suspend fun save(account: Account): Long = if (account.id == 0L) dao.insert(account) else { dao.update(account); account.id }
     suspend fun delete(account: Account) = dao.delete(account)
 }

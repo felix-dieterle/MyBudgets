@@ -55,10 +55,15 @@ object ApiClient {
     }
 
     private fun buildRetrofit(baseUrl: String, apiKey: String): Retrofit {
+        // Redaction Pflicht: der Export des Fehlerprotokolls wird regelmaessig weitergegeben.
+        // Ohne redactHeader landet der vollstaendige API-Key im Klartext in der Datei
+        // (X-API-Key: AIRR… - so stand es am 05.10.2026 im exportierten Log).
         val logging = HttpLoggingInterceptor { message ->
             AppLogger.d("HTTP", message)
         }.apply {
             level = HttpLoggingInterceptor.Level.BODY
+            redactHeader("X-API-Key")
+            redactHeader("Authorization")
         }
         val authInterceptor = Interceptor { chain ->
             val request = chain.request().newBuilder()

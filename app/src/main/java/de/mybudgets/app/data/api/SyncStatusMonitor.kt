@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /**
@@ -109,7 +108,15 @@ internal const val PREF_ORPHAN_COUNT = "orphan_count"
 
 /** Vom UI gesetzt: verwaiste remoteIds zuruecksetzen und erneut senden. */
 const val PREF_REPUSH_ORPHANS = "repush_orphans"
-private const val UNIQUE_WORK = "backend_sync"
+
+/**
+ * Namen der Unique Work. Einmalig und periodisch teilen sich bei WorkManager einen
+ * Namensraum - vor 05.10.2026 hiessen beide "backend_sync", wodurch der nie terminale
+ * Perioden-Work jeden manuellen Auftrag via KEEP still verworfen hat.
+ * Hier definiert, weil der Monitor sie beobachtet und der Worker sie anlegt.
+ */
+const val UNIQUE_WORK_ONCE = "backend_sync_now"
+const val UNIQUE_WORK_PERIODIC = "backend_sync_periodic"
 
 internal const val SYNC_STATE_RUNNING = "RUNNING"
 internal const val SYNC_STATE_OK = "OK"
@@ -151,10 +158,17 @@ class SyncStatusMonitor @Inject constructor(
         awaitClose { p.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
-    /** true, solange ein Sync laeuft - WorkManager oder der Worker selbst meldet es. */
-    private val workRunning: Flow<Boolean> = WorkManager.getInstance(context)
-        .getWorkInfosForUniqueWorkFlow(UNIQUE_WORK)
-        .map { infos -> infos.any { it.state == androidx.work.WorkInfo.State.RUNNING } }
+    /**
+     * true, solange ein Sync laeuft - WorkManager oder der Worker selbst meldet es.
+     * Beide Unique Works werden beobachtet: ein Lauf kann sowohl vom einmaligen als auch
+     * vom 6-Stunden-Auftrag kommen, und die Anzeige darf keinen davon uebersehen.
+     */
+    private val workRunning: Flow<Boolean> = combine(
+        WorkManager.getInstance(context).getWorkInfosForUniqueWorkFlow(UNIQUE_WORK_ONCE),
+        WorkManager.getInstance(context).getWorkInfosForUniqueWorkFlow(UNIQUE_WORK_PERIODIC)
+    ) { once, periodic ->
+        (once + periodic).any { it.state == androidx.work.WorkInfo.State.RUNNING }
+    }
 
     val status: StateFlow<SyncStatusInfo> = combine(
         prefChanges,

@@ -15,6 +15,7 @@ class CategoryRepository @Inject constructor(
     private val db: AppDatabase
 ) {
     fun observeAll(): Flow<List<Category>> = dao.observeAll()
+    suspend fun getAll(): List<Category> = dao.getAll()
     suspend fun getTopLevel(): List<Category> = dao.getTopLevel()
     suspend fun getChildren(parentId: Long): List<Category> = dao.getChildren(parentId)
     suspend fun getWithPatterns(): List<Category> = dao.getWithPatterns()

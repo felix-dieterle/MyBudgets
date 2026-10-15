@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:descendantFocusability="afterDescendants"
     android:paddingTop="6dp"
     android:paddingBottom="6dp"
     android:paddingStart="8dp"
@@ -37,7 +38,7 @@
 
     </LinearLayout>
 
-    <!-- Message -->
+    <!-- Message: markierbar, damit einzelne Zeilen aus dem Log kopiert werden koennen -->
     <TextView
         android:id="@+id/tv_log_message"
         android:layout_width="match_parent"
@@ -45,7 +46,8 @@
         android:layout_marginTop="1dp"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:fontFamily="monospace"
-        android:textSize="11sp" />
+        android:textSize="11sp"
+        android:textIsSelectable="true" />
 
     <!-- Throwable (optional) -->
     <TextView
@@ -57,6 +59,7 @@
         android:fontFamily="monospace"
         android:textSize="10sp"
         android:textColor="@color/log_error"
+        android:textIsSelectable="true"
         android:visibility="gone" />
 
     <View

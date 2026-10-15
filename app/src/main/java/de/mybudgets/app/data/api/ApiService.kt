@@ -40,8 +40,17 @@ interface ApiService {
     @GET("categories")
     suspend fun getCategories(): Response<List<CategoryDto>>
 
+    @POST("categories")
+    suspend fun createCategory(@Body category: CategoryDto): Response<Map<String, Long>>
+
     @POST("sync")
     suspend fun sync(@Body payload: Map<String, Any>): Response<SyncResponse>
+
+    /** Dashboard-Musterbewertungen ziehen (Back-Sync, US-004). Read-only. */
+    @GET("patterns")
+    suspend fun getPatterns(
+        @Query("matcher_version") matcherVersion: String
+    ): Response<PatternsResponse>
 
     @GET("version")
     suspend fun getVersion(): Response<Map<String, String>>

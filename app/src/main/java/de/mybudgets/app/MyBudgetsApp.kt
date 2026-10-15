@@ -14,6 +14,7 @@ import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.data.repository.GamificationRepository
 import de.mybudgets.app.data.repository.LabelRepository
 import de.mybudgets.app.util.DataSeeder
+import de.mybudgets.app.worker.BackendSyncScheduler
 import de.mybudgets.app.worker.BackendSyncWorker
 import de.mybudgets.app.worker.StandingOrderWorker
 import de.mybudgets.app.util.AppLogger
@@ -160,9 +161,14 @@ class MyBudgetsApp : Application(), Configuration.Provider {
     private fun scheduleBackgroundWorkers() {
         val workManager = WorkManager.getInstance(this)
 
+        // Vor 05.10.2026 hiess der periodische Sync "backend_sync" - derselbe Name wie
+        // der einmalige. Dadurch hat KEEP jeden manuellen Sync still verworfen. Den
+        // Altauftrag einmalig entfernen, damit er nichts mehr blockiert.
+        workManager.cancelUniqueWork(BackendSyncScheduler.LEGACY_UNIQUE)
+
         // Backend sync every 6 hours when online
         workManager.enqueueUniquePeriodicWork(
-            "backend_sync",
+            BackendSyncScheduler.UNIQUE_PERIODIC,
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<BackendSyncWorker>(6, TimeUnit.HOURS)
                 .setConstraints(

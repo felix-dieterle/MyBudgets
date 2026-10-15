@@ -12,6 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.data.api.BackendStatus
 import de.mybudgets.app.data.api.BackendStatusChecker
@@ -33,6 +34,7 @@ import kotlinx.coroutines.launch
 private const val TAG = "MainActivity"
 private const val BLINK_ALPHA = 0.15f
 private const val BLINK_STEP_MS = 400L
+private const val SPIN_STEP_MS = 900L
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -42,8 +44,12 @@ class MainActivity : AppCompatActivity() {
     @Inject lateinit var statusChecker: BackendStatusChecker
     @Inject lateinit var syncMonitor: SyncStatusMonitor
 
+    /** Zuletzt angebotene Orphan-Zahl, damit der Hinweis nicht bei jedem Status-Wechsel feuert. */
+    private var repushPromptedFor = 0
+
     /** Laufende Blink-Animationen je View - ohne das bleibt ein Indicator nach onStop stehen. */
     private val blinkJobs = mutableMapOf<View, Job>()
+private val spinJobs = mutableMapOf<View, Job>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -143,7 +149,7 @@ class MainActivity : AppCompatActivity() {
         binding.ivSyncStatus.setImageResource(icon)
         binding.ivSyncStatus.imageTintList = ColorStateList.valueOf(getColor(color))
         binding.ivSyncStatus.contentDescription = getString(R.string.sync_indicator_desc, getString(descRes))
-        setBlinking(binding.ivSyncStatus, info.state == SyncIndicatorState.SYNCING)
+        setRotating(binding.ivSyncStatus, info.state == SyncIndicatorState.SYNCING)
         bindInlineStatus(info, color)
     }
 
@@ -169,12 +175,48 @@ class MainActivity : AppCompatActivity() {
         binding.tvSyncStatusInline.apply {
             if (text == null) {
                 visibility = View.GONE
+                isClickable = false
             } else {
                 this.text = text
                 setTextColor(getColor(colorRes))
+                // Zweiter Weg zur Reparatur: der Text selbst ist antippbar. Vorher lag der
+                // Repush versteckt als neutraler Button in einem Dialog mit drei Tasten -
+                // der wurde zuverlaessig uebersehen, und ohne ihn bleibt das Backend leer.
+                val repushable = info.orphanCount > 0
+                isClickable = repushable
+                setOnClickListener(
+                    if (repushable) { { v -> confirmRepushOrphans(info.orphanCount) } } else null
+                )
                 visibility = View.VISIBLE
             }
         }
+        promptForRepushOnce(info)
+    }
+
+    /**
+     * Nach einem Lauf mit verwaisten IDs aktiv anbieten, sie erneut zu senden.
+     *
+     * Der Nutzer hat den Sync-Button gedrueckt und deshalb konsequent "nichts passiert"
+     * gesehen - der Sync kann diese Buchungen gar nicht senden, solange sie eine
+     * remoteId tragen. Der Hinweis erscheint deshalb direkt nach dem Lauf, an der Stelle,
+     * wo ohnehin gerade Snackbar-Meldungen landen.
+     */
+    private fun promptForRepushOnce(info: SyncStatusInfo) {
+        val orphans = info.orphanCount
+        if (orphans <= 0 || isFinishing || isDestroyed) {
+            repushPromptedFor = 0
+            return
+        }
+        if (repushPromptedFor == orphans) return
+        if (info.state == SyncIndicatorState.SYNCING) return
+        repushPromptedFor = orphans
+        Snackbar.make(
+            binding.root,
+            getString(R.string.sync_repush_prompt, orphans),
+            Snackbar.LENGTH_LONG
+        ).setAction(R.string.sync_repush_action) {
+            confirmRepushOrphans(orphans)
+        }.show()
     }
 
     /**
@@ -200,6 +242,28 @@ class MainActivity : AppCompatActivity() {
     private fun stopAllBlinking() {
         blinkJobs.keys.toList().forEach { setBlinking(it, false) }
         blinkJobs.clear()
+        spinJobs.keys.toList().forEach { setRotating(it, false) }
+        spinJobs.clear()
+    }
+
+    /**
+     * Dauerhafte Rotation fuer das Sync-Icon. Das Blinken war als Signal zu undeutlich - es sah
+     * aus wie ein Fehlzustand. Eine gleichmaessige Bewegung liest sich eindeutig als "laeuft noch".
+     */
+    private fun setRotating(view: View, rotating: Boolean) {
+        spinJobs.remove(view)?.cancel()
+        view.animate().cancel()
+        if (!rotating) {
+            view.rotation = 0f
+            return
+        }
+        spinJobs[view] = lifecycleScope.launch {
+            view.rotation = 0f
+            while (isActive) {
+                view.animate().rotationBy(360f).setDuration(SPIN_STEP_MS).withEndAction(null).start()
+                delay(SPIN_STEP_MS)
+            }
+        }
     }
 
     /** Klick auf das Sync-Icon: was genau ist los - und wie wird es wieder gut? */
@@ -210,7 +274,7 @@ class MainActivity : AppCompatActivity() {
             .setTitle(getString(R.string.sync_detail_title, info.state.name))
             .setMessage(buildSyncReport(info))
             .setPositiveButton(R.string.sync_detail_sync_now) { _, _ ->
-                BackendSyncScheduler.enqueue(this)
+                requestManualSync()
             }
             .setNeutralButton(R.string.status_diagnose_open_log) { _, _ -> openLogConsole() }
             .setNegativeButton(android.R.string.cancel, null)
@@ -239,10 +303,31 @@ class MainActivity : AppCompatActivity() {
                     .edit()
                     .putBoolean(PREF_REPUSH_ORPHANS, true)
                     .apply()
-                BackendSyncScheduler.enqueue(this)
+                requestManualSync()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    /**
+     * Manuell angeforderter Sync - mit sichtbarer Bestaetigung.
+     *
+     * Vorher war ein Tap nicht von einem No-Op zu unterscheiden: der Auftrag wurde
+     * verworfen, das Symbol zuckte kurz, und die Anzeige blieb im alten Zustand. Deshalb
+     * REPLACE statt KEEP (bricht auch einen wartenden Retry-Backoff ab) und eine
+     * kurze Rueckmeldung, die klar sagt, was als naechstes passiert.
+     */
+    private fun requestManualSync() {
+        if (isFinishing || isDestroyed) return
+        BackendSyncScheduler.enqueueManual(this)
+        val offline = getSharedPreferences("mybudgets_prefs", MODE_PRIVATE)
+            .getBoolean("offline_mode", true)
+        val message = if (offline) {
+            getString(R.string.sync_feedback_offline)
+        } else {
+            getString(R.string.sync_feedback_started)
+        }
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun buildSyncReport(info: SyncStatusInfo): String = buildString {
