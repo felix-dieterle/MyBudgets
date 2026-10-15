@@ -24,7 +24,7 @@ import de.mybudgets.app.data.model.*
         RecurrencePattern::class,
         PatternEvaluation::class
     ],
-    version = 18,
+    version = 19,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -295,6 +295,20 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // US-004: Herkunft einer Bewertung (local|server) und die Markierung,
+                // welche Buchung durch einen angewendeten Muster-Override befuellt wurde.
+                database.execSQL(
+                    "ALTER TABLE pattern_evaluations ADD COLUMN source TEXT NOT NULL DEFAULT 'local'"
+                )
+                database.execSQL(
+                    "ALTER TABLE transactions ADD COLUMN patternOverrideKey TEXT"
+                )
+                lastMigrationVersion = "v18→v19"
+            }
+        }
+
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -342,7 +356,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_14_15,
                     MIGRATION_15_16,
                     MIGRATION_16_17,
-                    MIGRATION_17_18
+                    MIGRATION_17_18,
+                    MIGRATION_18_19
                 ).build().also { INSTANCE = it }
             }
     }

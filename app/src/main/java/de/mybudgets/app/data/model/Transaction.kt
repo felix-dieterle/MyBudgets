@@ -21,5 +21,11 @@ data class Transaction(
     val recurrencePatternId: Long? = null, // FK to RecurrencePattern
     val remoteId: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
-    val originalDescription: String = ""
+    val originalDescription: String = "",
+    /**
+     * Muster-Schluessel eines angewendeten Dashboard-Overrides (US-004). Gesetzt, wenn
+     * diese Buchung durch "Kategorie auf passende Buchungen anwenden" befuellt wurde;
+     * erlaubt die Ruecknahme, ohne manuelle Einteilungen zu beruehren.
+     */
+    val patternOverrideKey: String? = null
 )

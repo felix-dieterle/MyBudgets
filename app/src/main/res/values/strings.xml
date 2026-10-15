@@ -267,6 +267,19 @@
     <string name="recurring_patterns_apply">%d Muster übernommen</string>
     <string name="recurring_pattern_date_range">%s – %s</string>
     <string name="recurring_pattern_tx_count">%d Transaktionen</string>
+    <string name="pattern_apply_override">Kategorie auf passende Buchungen anwenden</string>
+    <string name="pattern_apply_override_hint">Füllt nur Buchungen ohne Kategorie. Vorhandene Einteilungen bleiben unverändert.</string>
+    <string name="pattern_apply_override_no_category">Bitte zuerst unten eine Kategorie auswählen</string>
+    <string name="pattern_apply_override_no_key">Für dieses Muster lässt sich kein Schlüssel bilden</string>
+    <string name="pattern_apply_override_none">Keine passende Buchung ohne Kategorie gefunden</string>
+    <string name="pattern_apply_override_title">Kategorie anwenden</string>
+    <string name="pattern_apply_override_message">%1$d Buchung(en) passen zu diesem Muster.\n\nOhne Kategorie: %2$d – diese bekommen "%4$s".\nBereits kategorisiert: %3$d – bleiben unverändert.</string>
+    <string name="pattern_apply_override_confirm">Anwenden</string>
+    <string name="pattern_apply_override_done">%1$d Buchung(en) kategorisiert, %2$d übersprungen</string>
+    <string name="pattern_override_removed_title">Kategorie-Zuordnung zurücknehmen?</string>
+    <string name="pattern_override_removed_message">Die Kategorie für %1$d Buchung(en) stammt aus einer Dashboard-Bewertung, die dort inzwischen entfernt wurde.\n\nZurücksetzen? Die Buchungen werden wieder als "ohne Kategorie" geführt.</string>
+    <string name="pattern_override_removed_confirm">Zurücksetzen</string>
+    <string name="pattern_override_removed_keep">Behalten</string>
     <string name="db_migration_done">Datenbank aktualisiert: %s</string>
 
     <!-- Forecast line config dialog -->

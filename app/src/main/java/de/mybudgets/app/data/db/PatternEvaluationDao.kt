@@ -23,4 +23,8 @@ interface PatternEvaluationDao {
 
     @Query("DELETE FROM pattern_evaluations WHERE patternKey = :key AND matcherVersion = :version")
     suspend fun delete(key: String, version: String)
+
+    /** Vom Server gezogene Bewertungen mit gesetztem Kategorie-Override (US-004-Ruecknahme). */
+    @Query("SELECT * FROM pattern_evaluations WHERE matcherVersion = :version AND source = 'server' AND categoryOverrideId IS NOT NULL")
+    suspend fun getServerCategoryOverrides(version: String): List<PatternEvaluation>
 }

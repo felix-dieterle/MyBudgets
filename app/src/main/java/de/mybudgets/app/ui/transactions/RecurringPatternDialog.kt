@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
 import kotlinx.coroutines.launch
@@ -20,6 +21,7 @@ import de.mybudgets.app.data.model.PatternEvaluation
 import de.mybudgets.app.data.model.RecurringRule
 import de.mybudgets.app.data.model.Transaction
 import de.mybudgets.app.data.repository.PatternEvaluationRepository
+import de.mybudgets.app.data.repository.PatternOverrideRepository
 import de.mybudgets.app.databinding.DialogRecurringPatternsBinding
 import de.mybudgets.app.databinding.ItemRecurringPatternBinding
 import de.mybudgets.app.util.AppLogger
@@ -33,6 +35,7 @@ import javax.inject.Inject
 class RecurringPatternDialog : DialogFragment() {
 
     @Inject lateinit var evaluationRepository: PatternEvaluationRepository
+    @Inject lateinit var overrideRepository: PatternOverrideRepository
     private val cardBindings = mutableMapOf<Int, ItemRecurringPatternBinding>()
     private val storedEvaluations = mutableMapOf<String, PatternEvaluation>()
 
@@ -159,8 +162,10 @@ class RecurringPatternDialog : DialogFragment() {
                     try {
                         buildCategoryList(card.categoryGroup, idx, p.transactions)
                     } catch (e: Exception) {
-                        AppLogger.e("RecurringPatternDialog", "  buildCategoryList fehlgeschlagen für Pattern $idx", e)
+                        AppLogger.e("RecurringPatternDialog", "  buildCategoryList fehlgeschlagen für $idx", e)
                     }
+
+                    card.btnApplyOverride.setOnClickListener { confirmApplyOverride(idx, card) }
 
                     card.tvPatternReason.text = p.reasoning ?: ""
 
@@ -233,7 +238,7 @@ class RecurringPatternDialog : DialogFragment() {
     private fun applyStoredEvaluations() {
         for ((idx, p) in patterns.withIndex()) {
             val card = cardBindings[idx] ?: continue
-            val key = PatternEvaluationSuggestion.keyOf(p.suggestedDescription ?: "")
+            val key = PatternEvaluationSuggestion.keyForPattern(p)
             val stored = storedEvaluations[key] ?: continue
             if (stored.importance > 0) card.rbImportance.rating = stored.importance.toFloat()
             if (stored.cuttability > 0) card.rbCuttability.rating = stored.cuttability.toFloat()
@@ -245,7 +250,7 @@ class RecurringPatternDialog : DialogFragment() {
 
     private fun persistEvaluation(idx: Int, card: ItemRecurringPatternBinding, p: RecurringPatternDetector.RecurringPattern) {
         try {
-            val key = PatternEvaluationSuggestion.keyOf(p.suggestedDescription ?: "")
+            val key = PatternEvaluationSuggestion.keyForPattern(p)
             if (key.isBlank()) return
             val existing = storedEvaluations[key]
             val evaluation = PatternEvaluation(
@@ -262,6 +267,74 @@ class RecurringPatternDialog : DialogFragment() {
             evaluationRepository.saveAsync(evaluation)
         } catch (e: Exception) {
             AppLogger.e("RecurringPatternDialog", "persistEvaluation CRASH für $idx", e)
+        }
+    }
+
+    /**
+     * Wendet den gewaehlten Kategorie-Override auf alle passenden Buchungen an (US-004).
+     * Zuerst Vorschau, dann explizite Bestaetigung - geschrieben wird ausschliesslich auf
+     * Buchungen ohne Kategorie.
+     */
+    private fun confirmApplyOverride(idx: Int, card: ItemRecurringPatternBinding) {
+        val p = patterns.getOrNull(idx) ?: return
+        val categoryId = selectedCategoryId[idx]
+        val categoryName = categories.firstOrNull { it.id == categoryId }?.name
+        if (categoryId == null || categoryName == null) {
+            Toast.makeText(requireContext(), getString(R.string.pattern_apply_override_no_category), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val key = PatternEvaluationSuggestion.keyForPattern(p)
+        if (key.isBlank()) {
+            Toast.makeText(requireContext(), getString(R.string.pattern_apply_override_no_key), Toast.LENGTH_SHORT).show()
+            return
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val preview = try {
+                overrideRepository.preview(key)
+            } catch (e: Exception) {
+                AppLogger.e("RecurringPatternDialog", "confirmApplyOverride preview CRASH", e)
+                null
+            }
+            if (preview == null || preview.uncategorized == 0) {
+                Toast.makeText(requireContext(), getString(R.string.pattern_apply_override_none), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.pattern_apply_override_title))
+                .setMessage(
+                    getString(
+                        R.string.pattern_apply_override_message,
+                        preview.matched, preview.uncategorized, preview.alreadyCategorized, categoryName
+                    )
+                )
+                .setPositiveButton(R.string.pattern_apply_override_confirm) { _, _ ->
+                    applyOverrideNow(idx, card, p, key, categoryId)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private fun applyOverrideNow(
+        idx: Int,
+        card: ItemRecurringPatternBinding,
+        p: RecurringPatternDetector.RecurringPattern,
+        key: String,
+        categoryId: Long
+    ) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val result = overrideRepository.applyToMatching(key, categoryId)
+                persistEvaluation(idx, card, p)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.pattern_apply_override_done, result.applied, result.skipped),
+                    Toast.LENGTH_LONG
+                ).show()
+            } catch (e: Exception) {
+                AppLogger.e("RecurringPatternDialog", "applyOverrideNow CRASH für $idx", e)
+                Toast.makeText(requireContext(), "Fehler: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 

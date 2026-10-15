@@ -1,6 +1,7 @@
 package de.mybudgets.app.ui.transactions
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -15,7 +16,9 @@ import de.mybudgets.app.R
 import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.databinding.FragmentTransactionsBinding
 import de.mybudgets.app.util.DateFormatter
+import de.mybudgets.app.data.repository.PatternOverrideRepository
 import de.mybudgets.app.viewmodel.TransactionViewModel
+import de.mybudgets.app.worker.PREF_PENDING_OVERRIDE_RESETS
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -31,6 +34,7 @@ class TransactionsFragment : Fragment() {
     private lateinit var adapter: TransactionAdapter
 
     @Inject lateinit var categoryRepository: CategoryRepository
+    @Inject lateinit var patternOverrideRepository: PatternOverrideRepository
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, s: Bundle?): View {
         _binding = FragmentTransactionsBinding.inflate(inflater, container, false)
@@ -156,6 +160,8 @@ class TransactionsFragment : Fragment() {
                 }
             }
         }
+
+        showPendingOverrideResetsIfAny()
     }
 
     private fun showDatePicker(onSelected: (Long) -> Unit) {
@@ -192,6 +198,37 @@ class TransactionsFragment : Fragment() {
                     }
                 }
                 .show(childFragmentManager, "CategoryFilter")
+        }
+    }
+
+    /**
+     * Ruecknahme (US-004): Wurde ein im Dashboard gesetzter Kategorie-Override dort wieder
+     * entfernt, hat der Sync das nur vorgemerkt. Hier fragen wir nach - zurueckgesetzt wird
+     * ausschliesslich nach Bestaetigung.
+     */
+    private fun showPendingOverrideResetsIfAny() {
+        val prefs = requireContext().getSharedPreferences("mybudgets_prefs", Context.MODE_PRIVATE)
+        val pending = prefs.getStringSet(PREF_PENDING_OVERRIDE_RESETS, emptySet())?.sorted().orEmpty()
+        if (pending.isEmpty()) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val total = pending.sumOf { patternOverrideRepository.countApplied(it) }
+            if (total == 0) {
+                prefs.edit().remove(PREF_PENDING_OVERRIDE_RESETS).apply()
+                return@launch
+            }
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.pattern_override_removed_title)
+                .setMessage(getString(R.string.pattern_override_removed_message, total, pending.size))
+                .setPositiveButton(R.string.pattern_override_removed_confirm) { _, _ ->
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        pending.forEach { patternOverrideRepository.reset(it) }
+                        prefs.edit().remove(PREF_PENDING_OVERRIDE_RESETS).apply()
+                    }
+                }
+                .setNegativeButton(R.string.pattern_override_removed_keep) { _, _ ->
+                    prefs.edit().remove(PREF_PENDING_OVERRIDE_RESETS).apply()
+                }
+                .show()
         }
     }
 

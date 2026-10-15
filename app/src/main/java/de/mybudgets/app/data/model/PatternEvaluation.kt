@@ -17,5 +17,16 @@ data class PatternEvaluation(
     val note: String = "",
     val categoryOverrideId: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
-)
+    val updatedAt: Long = System.currentTimeMillis(),
+    /**
+     * Herkunft der Bewertung: [SOURCE_LOCAL] (in der App erstellt) oder [SOURCE_SERVER]
+     * (per US-004-Back-Sync aus dem Dashboard gezogen). Server-Zeilen duerfen zur
+     * Ruecknahme-Erkennung ausgewertet werden, lokale nicht.
+     */
+    val source: String = SOURCE_LOCAL
+) {
+    companion object {
+        const val SOURCE_LOCAL = "local"
+        const val SOURCE_SERVER = "server"
+    }
+}

@@ -197,9 +197,12 @@ Muster bewerten (Kategorie-Override, Kürzbarkeit). Diese Bewertungen landen in
 
 **Ziel:** Ein Dashboard-Override soll in der App ankommen und passende Buchungen kategorisieren.
 
-**Betroffen:** `finn`-Backend (neuer Endpunkt) + App (Sync-Schritt; `data/model/PatternEvaluation.kt` vorhanden).
+**Betroffen:** `finn`-Backend (Endpunkt) + App (Sync-Schritt; `data/model/PatternEvaluation.kt` vorhanden).
 **Planung:** siehe `F:\CascadeProjects\mama-razzi\public\apps\finn\userstories\US-004-back-sync-zur-app.md`
-**Status:** offen (Enabler für US-003: Edit-Button im Blindflug)
+**Status:** umgesetzt (16.10.2026) – Kanal `GET /patterns`, manuelles Anwenden im Muster-Dialog,
+Rücknahme nach Bestätigung; DB-Migration v18→v19 (`pattern_evaluations.source`,
+`transactions.patternOverrideKey`), `PatternKeyNormalizer` (= Port von `insights_normalisieren`).
+Offen: nur E2E auf Geraet.
 
 ---
 

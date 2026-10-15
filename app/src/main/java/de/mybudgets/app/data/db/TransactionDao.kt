@@ -69,6 +69,24 @@ interface TransactionDao {
     @Query("UPDATE transactions SET isRecurring = 1, recurringIntervalDays = :intervalDays WHERE id IN (:ids)")
     suspend fun markAsRecurring(ids: List<Long>, intervalDays: Int)
 
+    @Query("SELECT * FROM transactions")
+    suspend fun getAll(): List<Transaction>
+
+    /**
+     * Setzt Kategorie und Override-Herkunft fuer die uebergebenen Buchungen (US-004).
+     * Nur fuer Buchungen ohne Kategorie gedacht - die Auswahl trifft der Aufrufer.
+     */
+    @Query("UPDATE transactions SET categoryId = :categoryId, patternOverrideKey = :key WHERE id IN (:ids)")
+    suspend fun applyPatternOverride(ids: List<Long>, categoryId: Long, key: String): Int
+
+    /** Nimmt einen angewendeten Override zurueck: Kategorie und Herkunft werden geleert. */
+    @Query("UPDATE transactions SET categoryId = NULL, patternOverrideKey = NULL WHERE patternOverrideKey = :key")
+    suspend fun resetPatternOverride(key: String): Int
+
+    /** Anzahl der Buchungen, deren Kategorie aus genau diesem Override stammt. */
+    @Query("SELECT COUNT(*) FROM transactions WHERE patternOverrideKey = :key")
+    suspend fun countByPatternOverrideKey(key: String): Int
+
     @Delete
     suspend fun delete(transaction: Transaction)
     

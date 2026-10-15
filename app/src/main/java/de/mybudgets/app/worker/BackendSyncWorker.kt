@@ -26,6 +26,7 @@ import de.mybudgets.app.data.model.TransactionType
 import de.mybudgets.app.data.repository.AccountRepository
 import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.data.repository.PatternEvaluationRepository
+import de.mybudgets.app.data.repository.PatternOverrideRepository
 import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.util.AppLogger
 import de.mybudgets.app.util.PatternEvaluationSuggestion
@@ -44,6 +45,9 @@ private const val MAX_PAGES = 20
 private const val PUSH_PROGRESS_EVERY = 100
 const val PREF_UNKNOWN_REMOTE_CATEGORIES = "unknown_remote_categories"
 
+/** Vorgemerkte Ruecknahmen angewendeter Overrides (US-004) - wartet auf Nutzerbestaetigung. */
+const val PREF_PENDING_OVERRIDE_RESETS = "pending_override_resets"
+
 @HiltWorker
 class BackendSyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
@@ -51,7 +55,8 @@ class BackendSyncWorker @AssistedInject constructor(
     private val accountRepo: AccountRepository,
     private val categoryRepo: CategoryRepository,
     private val transactionRepo: TransactionRepository,
-    private val patternEvalRepo: PatternEvaluationRepository
+    private val patternEvalRepo: PatternEvaluationRepository,
+    private val patternOverrideRepo: PatternOverrideRepository
 ) : CoroutineWorker(appContext, params) {
 
     companion object {
@@ -499,12 +504,35 @@ class BackendSyncWorker @AssistedInject constructor(
                     cuttability = dto.kuerzbarkeit.coerceIn(0, 5),
                     note = dto.notiz,
                     categoryOverrideId = dto.kategorieOverride?.let { pathToId[normalizeCategoryPath(it)] },
-                    updatedAt = dto.updatedAt
+                    updatedAt = dto.updatedAt,
+                    source = PatternEvaluation.SOURCE_SERVER
                 )
             }
         val applied = patternEvalRepo.merge(rows, version)
         AppLogger.i(TAG, "patterns: ${dtos.size} vom Server, ${rows.size} passend, $applied uebernommen")
+        flagRemovedOverrides(rows.map { it.patternKey }.toSet(), version)
         return applied
+    }
+
+    /**
+     * US-004-Ruecknahme: Server-Overrides, deren Schluessel im aktuellen Abzug fehlt
+     * (im Dashboard geloescht/geleert) und deren Kategorien die App angewendet hat,
+     * werden nur **vorgemerkt** - zurueckgesetzt wird erst nach Nutzerbestaetigung
+     * (siehe Muster-Screen). Ein Fehler hier darf den Sync nicht gefaehrden.
+     */
+    private suspend fun flagRemovedOverrides(serverKeys: Set<String>, version: String) {
+        try {
+            val removed = patternOverrideRepo.removedServerOverrideKeys(serverKeys, version)
+                .filter { patternOverrideRepo.countApplied(it) > 0 }
+            if (removed.isEmpty()) return
+            val prefs = applicationContext.getSharedPreferences("mybudgets_prefs", Context.MODE_PRIVATE)
+            val existing = prefs.getStringSet(PREF_PENDING_OVERRIDE_RESETS, emptySet()) ?: emptySet()
+            val merged = java.util.HashSet(existing).apply { addAll(removed) }
+            prefs.edit().putStringSet(PREF_PENDING_OVERRIDE_RESETS, merged).apply()
+            AppLogger.i(TAG, "patterns: ${removed.size} angewendete Override(s) entfernt - Ruecknahme vorgemerkt")
+        } catch (e: Exception) {
+            AppLogger.w(TAG, "patterns: Ruecknahme-Erkennung fehlgeschlagen (${e.javaClass.simpleName}: ${e.message})")
+        }
     }
 
     /** Pfad-Index der lokalen Kategorien: normalisierter Pfad UND Blattname -> categoryId. */

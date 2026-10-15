@@ -12,9 +12,11 @@ import org.junit.Test
 class PatternEvaluationSuggestionTest {
 
     @Test
-    fun `keyOf lowercases, trims and collapses whitespace`() {
+    fun `keyOf delegates to the dashboard normalizer`() {
         assertEquals("miete aktuell", PatternEvaluationSuggestion.keyOf("  Miete   Aktuell "))
-        assertEquals("steuernr 018", PatternEvaluationSuggestion.keyOf("STEUERNR\t018"))
+        assertEquals("steuernr", PatternEvaluationSuggestion.keyOf("STEUERNR\t018"))
+        assertEquals("rewe sagt danke", PatternEvaluationSuggestion.keyOf("REWE SAGT DANKE 12345678"))
+        assertEquals("miete", PatternEvaluationSuggestion.keyOf("Miete EREF 123456"))
     }
 
     @Test
@@ -56,7 +58,7 @@ class PatternEvaluationSuggestionTest {
         )
 
         assertTrue(context.belongsToPattern)
-        assertEquals("rewe", context.patternKey)
+        assertEquals("rewe sagt danke", context.patternKey)
         assertNotNull(context.suggestion)
         assertEquals(1, context.suggestion!!.importance)
         assertEquals(3, context.suggestion!!.cuttability)
@@ -75,6 +77,22 @@ class PatternEvaluationSuggestionTest {
         assertFalse(context.belongsToPattern)
         assertEquals("bäcker meier", context.patternKey)
         assertNull(context.suggestion)
+    }
+
+    @Test
+    fun `keyForPattern uses the most common normalized description`() {
+        val pattern = RecurringPatternDetector.RecurringPattern(
+            transactions = listOf(
+                tx(1L, "REWE SAGT DANKE 111"),
+                tx(2L, "REWE SAGT DANKE 222"),
+                tx(3L, "EDEKA 333")
+            ),
+            detectedIntervalDays = 30,
+            confidence = 0.9,
+            suggestedDescription = "REWE"
+        )
+
+        assertEquals("rewe sagt danke", PatternEvaluationSuggestion.keyForPattern(pattern))
     }
 
     @Test

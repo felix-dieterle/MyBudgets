@@ -27,8 +27,25 @@ object PatternEvaluationSuggestion {
     const val UNRATED = 0
     const val MAX_RATING = 5
 
-    fun keyOf(keyword: String): String =
-        keyword.trim().lowercase().replace(Regex("\\s+"), " ")
+    fun keyOf(keyword: String): String = PatternKeyNormalizer.normalize(keyword)
+
+    /**
+     * Kanonischer Schluessel eines erkannten Musters: die haeufigste normalisierte
+     * Beschreibung seiner Buchungen. Genau so gruppiert das Dashboard
+     * (`insights_normalisieren(description)`), also treffen Dashboard-Overrides hier.
+     * Faellt die Gruppe auf die Muster-Beschreibung zurueck, wenn keine Beschreibung
+     * einen Schluessel ergibt.
+     */
+    fun keyForPattern(pattern: RecurringPatternDetector.RecurringPattern): String {
+        val counts = LinkedHashMap<String, Int>()
+        for (tx in pattern.transactions) {
+            val k = PatternKeyNormalizer.normalize(tx.description)
+            if (k.isEmpty()) continue
+            counts[k] = (counts[k] ?: 0) + 1
+        }
+        return counts.maxByOrNull { it.value }?.key
+            ?: PatternKeyNormalizer.normalize(pattern.suggestedDescription)
+    }
 
     fun suggest(transactionCount: Int, confidence: Double, intervalDays: Int): EvaluationSuggestion {
         val importance = (1 + transactionCount / 3).coerceIn(1, MAX_RATING)
@@ -69,7 +86,7 @@ object PatternEvaluationSuggestion {
 
         return if (match != null) {
             TransactionEvaluationContext(
-                patternKey = keyOf(match.suggestedDescription),
+                patternKey = keyForPattern(match),
                 suggestion = suggest(
                     match.transactions.size,
                     match.confidence,

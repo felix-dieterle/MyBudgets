@@ -96,16 +96,21 @@ Wichtigkeit) sollen **in der App ankommen** und dort auf passende Buchungen wirk
 **Problem:** `pattern_evaluations` / `insights_dismissals` sind heute Dashboard-only; der Sync
 läuft nur **App → Server**. Ein Edit im Dashboard erreicht die App nie.
 
+**Status (16.10.2026):** umgesetzt – Kanal `GET /patterns` + Pull/Merge in der App,
+manuelles Anwenden im Muster-Dialog (nur Buchungen **ohne** Kategorie), Rücknahme nach
+Bestätigung. Key-Matching via `PatternKeyNormalizer` (= Port von `insights_normalisieren`).
+Offen: nur E2E auf dem Gerät.
+
 | Task | Prio |
 |------|------|
-| Richtung festlegen (App zieht Regeln per Endpunkt vs. Push) | High |
-| Endpunkt/Format im `finn`-Backend definieren + implementieren | High |
-| App: Regeln laden und lokal auf Buchungen anwenden (Room-`PatternEvaluation` nutzen) | High |
-| Match-Regeln pro Muster (Keyword/IBAN/Betrag) – `muster_key` allein reicht nicht | High |
-| Konflikt: App-Kategorie vs. Dashboard-Override (Priorität/Warnung) | Medium |
-| Rücknahme/Löschen einer Bewertung propagieren | Medium |
-| `matcher_version`-Mismatch erkennen und sicher behandeln | Medium |
-| Round-Trip-Test: Override im Dashboard → App-Sync → Kategorie sitzt | High |
+| Richtung festlegen (App zieht Regeln per Endpunkt vs. Push) | High ✅ |
+| Endpunkt/Format im `finn`-Backend definieren + implementieren | High ✅ |
+| App: Regeln laden und lokal auf Buchungen anwenden (Room-`PatternEvaluation` nutzen) | High ✅ |
+| Match-Regeln pro Muster (Keyword/IBAN/Betrag) – `muster_key` allein reicht nicht | High ✅ |
+| Konflikt: App-Kategorie vs. Dashboard-Override (Priorität/Warnung) | Medium ✅ |
+| Rücknahme/Löschen einer Bewertung propagieren | Medium ✅ |
+| `matcher_version`-Mismatch erkennen und sicher behandeln | Medium ✅ |
+| Round-Trip-Test: Override im Dashboard → App-Sync → Kategorie sitzt | High ⏳ Gerät |
 
 **Randbedingung:** Das Dashboard schreibt **nie** an `transactions`/`categories` (finn-AGENTS.md) –
 es wirkt nur über die Bewertungsschicht. Skelett im App-Code: `data/model/PatternEvaluation.kt` + DAO.
