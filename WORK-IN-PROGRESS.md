@@ -199,7 +199,7 @@ Muster bewerten (Kategorie-Override, Kürzbarkeit). Diese Bewertungen landen in
 
 **Betroffen:** `finn`-Backend (Endpunkt) + App (Sync-Schritt; `data/model/PatternEvaluation.kt` vorhanden).
 **Planung:** siehe `F:\CascadeProjects\mama-razzi\public\apps\finn\userstories\US-004-back-sync-zur-app.md`
-**Status:** umgesetzt (16.10.2026) – Kanal `GET /patterns`, manuelles Anwenden im Muster-Dialog,
+**Status:** umgesetzt (15.10.2026) – Kanal `GET /patterns`, manuelles Anwenden im Muster-Dialog,
 Rücknahme nach Bestätigung; DB-Migration v18→v19 (`pattern_evaluations.source`,
 `transactions.patternOverrideKey`), `PatternKeyNormalizer` (= Port von `insights_normalisieren`).
 Offen: nur E2E auf Geraet.

@@ -96,7 +96,7 @@ Wichtigkeit) sollen **in der App ankommen** und dort auf passende Buchungen wirk
 **Problem:** `pattern_evaluations` / `insights_dismissals` sind heute Dashboard-only; der Sync
 läuft nur **App → Server**. Ein Edit im Dashboard erreicht die App nie.
 
-**Status (16.10.2026):** umgesetzt – Kanal `GET /patterns` + Pull/Merge in der App,
+**Status (15.10.2026):** umgesetzt – Kanal `GET /patterns` + Pull/Merge in der App,
 manuelles Anwenden im Muster-Dialog (nur Buchungen **ohne** Kategorie), Rücknahme nach
 Bestätigung. Key-Matching via `PatternKeyNormalizer` (= Port von `insights_normalisieren`).
 Offen: nur E2E auf dem Gerät.
