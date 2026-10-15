@@ -338,12 +338,37 @@ FAILURE: SDK location not found
 .\gradlew.bat clean
 ```
 
+## DB-Grenzen (KRITISCH - freigegeben 05.10.2026)
+
+Es gibt drei völlig getrennte Datenbestände. Verwechslung = Datenverlust.
+
+| Datenbestand | Ort | Regel |
+|---|---|---|
+| **App-DB (lokal, autoritativ für die App)** | `F:\prg\xampp\mysql` → MariaDB `mybudgets` | Nur **lesend** untersuchen. Schreibrechte nur nach ausdrücklicher Ansage des Users |
+| **mama-razzi / diekunstgalerie.org Haupt-DB** | produktiv | **TABU.** Keine Queries, keine Änderungen, nicht inspizieren |
+| **Room-DB auf dem Gerät** | App-interner Storage | Nur die App schreibt hier hinein |
+
+- Die `finn`-App (`mama-razzi\public\apps\finn\`) ist ein MySQL-Backend mit **eigener** Datenbank
+  `mybudgets` (`sql\schema.sql`) - **nicht** die mama-razzi-Haupt-DB. Beide teilen sich nur den
+  Apache, nicht die Daten.
+- **Verboten:** `config.local.php`, `config.php` und `config.properties` von Hand lesen, um an
+  DB-Credentials zu kommen. Stattdessen ein Skript die Credentials selbst laden lassen und nur
+  Query-Ergebnisse ausgeben (`finn-readonly-check.php` als Vorbild).
+- Auch das **Massen** der Mama-razzi-Haupt-DB (Tabellennahmen o. ä.) unterbleibt. `SHOW DATABASES`
+  auf dem MariaDB-Server ist zulässig, weil es keine Datenbank berührt.
+
 ## Security
 
 ### Credentials
 
 - **App:** User-Eingabe, gespeichert in App-internem Storage (verschlüsselt)
 - **NIEMALS** echte Credentials ins Git committen!
+- **Backend-Key (05.10.2026, User-Entscheid):** Das `finn`-Backend existiert **nur im lokalen
+  WLAN**, es gibt kein Online-Backend. Der API-Key ist damit LAN-only, von außen nicht
+  erreichbar, und laut User **unkritisch**. → **Keine Key-Rotation vorschlagen**, solange es
+  kein Online-Backend gibt. Sollte das Backend doch mal online gehen, gilt das hier nicht mehr.
+- Trotzdem bleibt die Header-Redaction im `HttpLoggingInterceptor` aktiv: exportierte
+  Fehlerprotokolle werden weitergegeben, da gehört kein Schlüssel hinein.
 
 ### Keystore
 
