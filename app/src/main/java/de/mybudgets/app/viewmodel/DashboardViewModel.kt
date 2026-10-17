@@ -47,7 +47,16 @@ data class MonthlyTrendPoint(
     val income: Float,
     val expense: Float,
     val balance: Float = 0f,
-    val categoryExpenses: Map<String, Float> = emptyMap()
+    // Gruppenschluessel des gewaehlten Sets -> Summe.
+    // CATEGORIES: "c:<rootCategoryId>" bzw. "c:none" fuer Buchungen ohne Kategorie.
+    val groupValues: Map<String, Float> = emptyMap()
+)
+
+data class TrendBucket(
+    val key: String,
+    val label: String,
+    val colorIndex: Int,
+    val categoryId: Long? = null
 )
 
 private data class PieChartIntermediate(
@@ -80,6 +89,10 @@ data class DonutSliceConfig(
 )
 
 enum class DonutDisplayMode { CATEGORIES, CUSTOM_SETS }
+
+enum class TrendMode { INCOME_EXPENSE, GROUPS }
+
+enum class TrendGroupSet { CATEGORIES, CLASSES }
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
@@ -461,7 +474,6 @@ class DashboardViewModel @Inject constructor(
         val lastMonthKey = parseMonthLabel(sorted.last().key)
         
         val categoryMap = cats.associateBy { it.id }
-        val catLabels = cats.associate { it.id to it.name }
         fun getRootCategory(catId: Long?): Long? {
             if (catId == null) return null
             var current = categoryMap[catId] ?: return catId
@@ -484,12 +496,14 @@ class DashboardViewModel @Inject constructor(
             val byRoot = monthTxs.filter { it.type == TransactionType.EXPENSE }
                 .groupBy { getRootCategory(it.categoryId) }
                 .mapValues { (_, txs) -> txs.sumOf { it.amount }.toFloat() }
-            val categoryExpenses = byRoot.mapKeys { (id, _) -> catLabels[id] ?: "Sonstige" }
+            val groupValues = byRoot.entries.associate { (id, sum) ->
+                (if (id == null) "c:none" else "c:$id") to sum
+            }
             MonthlyTrendPoint(
                 label = label,
                 income = income,
                 expense = expense,
-                categoryExpenses = categoryExpenses
+                groupValues = groupValues
             )
         }
         
@@ -499,6 +513,48 @@ class DashboardViewModel @Inject constructor(
         monthlyPoints.map { point ->
             cumNet += point.income - point.expense
             point.copy(balance = startBalance + cumNet)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    // ── Trend-Auswertung: Modus (Umsatz vs. Gruppen) + Set (Kategorien/Klassen) ──
+
+    private val _trendMode = MutableStateFlow(TrendMode.INCOME_EXPENSE)
+    val trendMode: StateFlow<TrendMode> = _trendMode
+    fun setTrendMode(mode: TrendMode) { _trendMode.value = mode }
+
+    private val _trendGroupSet = MutableStateFlow(TrendGroupSet.CATEGORIES)
+    val trendGroupSet: StateFlow<TrendGroupSet> = _trendGroupSet
+    fun setTrendGroupSet(set: TrendGroupSet) { _trendGroupSet.value = set }
+
+    private val _trendAnteil = MutableStateFlow(false)
+    val trendAnteil: StateFlow<Boolean> = _trendAnteil
+    fun setTrendAnteil(enabled: Boolean) { _trendAnteil.value = enabled }
+
+    // Eimer je Set, nach Gesamtsumme sortiert. CATEGORIES = Top-Level-Kategorien (Wurzel).
+    // CLASSES ist strukturell vorbereitet und liefert noch nichts.
+    val trendBuckets: StateFlow<List<TrendBucket>> = combine(
+        monthlyTrend,
+        _trendGroupSet,
+        categoryRepo.observeAll()
+    ) { points, set, cats ->
+        when (set) {
+            TrendGroupSet.CATEGORIES -> {
+                val names = cats.associate { it.id to it.name }
+                val totals = LinkedHashMap<String, Float>()
+                for (p in points) for ((k, v) in p.groupValues) totals[k] = (totals[k] ?: 0f) + v
+                totals.entries
+                    .sortedByDescending { it.value }
+                    .mapIndexed { i, (key, _) ->
+                        val id = key.removePrefix("c:").toLongOrNull()
+                        TrendBucket(
+                            key = key,
+                            label = if (id == null) "Ohne Kategorie" else (names[id] ?: "Sonstige"),
+                            colorIndex = i,
+                            categoryId = id
+                        )
+                    }
+            }
+            TrendGroupSet.CLASSES -> emptyList()
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 

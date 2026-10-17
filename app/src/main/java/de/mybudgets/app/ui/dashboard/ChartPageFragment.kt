@@ -1,6 +1,7 @@
 package de.mybudgets.app.ui.dashboard
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableString
@@ -36,13 +37,17 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.formatter.DefaultValueFormatter
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
+import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
 import com.github.mikephil.charting.listener.ChartTouchListener
 import com.github.mikephil.charting.listener.OnChartGestureListener
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.github.mikephil.charting.highlight.Highlight
+import com.google.android.material.button.MaterialButtonToggleGroup
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.R
 import de.mybudgets.app.util.AppLogger
@@ -54,6 +59,9 @@ import de.mybudgets.app.viewmodel.DonutSliceConfig
 import de.mybudgets.app.viewmodel.ForecastLineConfig
 import de.mybudgets.app.viewmodel.ForecastPoint
 import de.mybudgets.app.viewmodel.MonthlyTrendPoint
+import de.mybudgets.app.viewmodel.TrendBucket
+import de.mybudgets.app.viewmodel.TrendGroupSet
+import de.mybudgets.app.viewmodel.TrendMode
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -63,6 +71,8 @@ class ChartPageFragment : Fragment() {
     private val vm: DashboardViewModel by activityViewModels()
     private var _pageIndex: Int = 0
     private var currentTrend: List<MonthlyTrendPoint> = emptyList()
+    private var currentBuckets: List<TrendBucket> = emptyList()
+    private var trendLegend: LinearLayout? = null
     private var currentForecast: List<ForecastPoint> = emptyList()
     private var configOrder: List<String> = emptyList()
     private var pendingTapLabel: String? = null
@@ -321,9 +331,11 @@ class ChartPageFragment : Fragment() {
     private fun setupTrendChart(root: View) {
         val chart = root.findViewById<CombinedChart>(R.id.bar_chart_trend) ?: return
         val summary = root.findViewById<TextView>(R.id.tv_trend_summary)
+        val toggleMode = root.findViewById<MaterialButtonToggleGroup>(R.id.toggle_trend_mode)
+        val cbAnteil = root.findViewById<CheckBox>(R.id.cb_trend_anteil)
+        trendLegend = root.findViewById(R.id.layout_trend_legend)
 
         chart.description.isEnabled = false
-        chart.legend.textSize = 11f
         chart.setExtraBottomOffset(15f)
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         chart.xAxis.granularity = 1f
@@ -346,12 +358,32 @@ class ChartPageFragment : Fragment() {
             override fun onChartTranslate(event: MotionEvent?, translateX: Float, translateY: Float) { renderTrendChart(chart) }
         })
 
+        toggleMode?.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            vm.setTrendMode(if (checkedId == R.id.btn_trend_groups) TrendMode.GROUPS else TrendMode.INCOME_EXPENSE)
+        }
+        // Set-Umschalter (Kategorien/Klassen) ist im Layout vorbereitet, aber noch GONE.
+        // Sichtbar schalten, sobald TrendGroupSet.CLASSES befuellt ist.
+        val toggleSet = root.findViewById<MaterialButtonToggleGroup>(R.id.toggle_trend_set)
+        toggleSet?.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            vm.setTrendGroupSet(if (checkedId == R.id.btn_trend_set_classes) TrendGroupSet.CLASSES else TrendGroupSet.CATEGORIES)
+        }
+        cbAnteil?.setOnCheckedChangeListener { _, isChecked -> vm.setTrendAnteil(isChecked) }
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { vm.monthlyTrend.collect { t ->
                     currentTrend = t
                     renderTrendChart(chart)
                 } }
+                launch { vm.trendBuckets.collect { b ->
+                    currentBuckets = b
+                    renderTrendChart(chart)
+                    renderTrendLegend()
+                } }
+                launch { vm.trendMode.collect { renderTrendChart(chart); renderTrendLegend() } }
+                launch { vm.trendAnteil.collect { renderTrendChart(chart) } }
                 launch { vm.trendSummary.collect { t -> summary?.text = t } }
             }
         }
@@ -362,11 +394,10 @@ class ChartPageFragment : Fragment() {
     private fun renderTrendChart(chart: CombinedChart) {
         if (currentTrend.isEmpty()) {
             chart.data = null; chart.invalidate()
+            trendLegend?.visibility = View.GONE
             return
         }
-        val span = chart.highestVisibleX - chart.lowestVisibleX
-        val visibleMonths = if (span > 0f && span < currentTrend.size.toFloat() * 2f) (span.toInt() + 1) else currentTrend.size
-        if (visibleMonths <= 4) renderCategoryBreakdown(chart)
+        if (vm.trendMode.value == TrendMode.GROUPS && currentBuckets.isNotEmpty()) renderGroupStack(chart)
         else renderIncomeExpenseWithBalance(chart)
     }
 
@@ -374,6 +405,10 @@ class ChartPageFragment : Fragment() {
         val trend = currentTrend
         val barWidth = 0.18f
         val offset = 0.12f
+
+        chart.legend.isEnabled = true
+        chart.axisLeft.valueFormatter = DefaultValueFormatter(0)
+        trendLegend?.visibility = View.GONE
 
         val incomeEntries = trend.mapIndexed { i, p -> BarEntry(i.toFloat() - offset, p.income) }
         val expenseEntries = trend.mapIndexed { i, p -> BarEntry(i.toFloat() + offset, p.expense) }
@@ -408,34 +443,31 @@ class ChartPageFragment : Fragment() {
         chart.invalidate()
     }
 
-    private fun renderCategoryBreakdown(chart: CombinedChart) {
+    private fun renderGroupStack(chart: CombinedChart) {
         val trend = currentTrend
+        val anteil = vm.trendAnteil.value
+        val hidden = vm.hiddenCategoryIds.value
+        val shown = currentBuckets.filter { it.categoryId == null || it.categoryId !in hidden }
+        if (shown.isEmpty()) { renderIncomeExpenseWithBalance(chart); return }
 
-        val allCatNames = trend.flatMap { it.categoryExpenses.keys }.distinct().sorted()
-        if (allCatNames.isEmpty()) { renderIncomeExpenseWithBalance(chart); return }
-
-        val n = allCatNames.size
-        val span = 0.5f
-        val bw = span / n
-
-        val dataSets = allCatNames.mapIndexed { ci, catName ->
-            val entries = trend.mapIndexed { mi, p ->
-                val x = mi.toFloat() - span / 2f + ci * bw + bw / 2f
-                BarEntry(x, p.categoryExpenses[catName] ?: 0f)
-            }
-            BarDataSet(entries, catName).apply {
-                color = catColors[ci % catColors.size]
-                setDrawValues(false)
-            }
+        val entries = trend.mapIndexed { mi, p ->
+            val raw = FloatArray(shown.size) { p.groupValues[shown[it].key] ?: 0f }
+            val vals = if (anteil) {
+                val sum = raw.sum()
+                if (sum > 0f) FloatArray(raw.size) { raw[it] / sum * 100f } else raw
+            } else raw
+            BarEntry(mi.toFloat(), vals)
         }
 
-        val balEntries = trend.mapIndexed { i, p -> Entry(i.toFloat(), p.balance) }
-        val balColor = ContextCompat.getColor(requireContext(), R.color.transfer_blue)
-        val balanceSet = LineDataSet(balEntries, "Kontostand").apply {
-            color = balColor; lineWidth = 2f
-            setDrawCircles(true); circleRadius = 3f; setCircleColor(balColor)
+        // MPAndroidChart faerbt Stapel-Segmente ueber die Segment-Reihenfolge
+        // (Eintrag fuer Eintrag, je Eintrag alle Stapel) -> Farben je Eintrag wiederholen.
+        val segColors = ArrayList<Int>(trend.size * shown.size)
+        for (e in trend) for (b in shown) segColors.add(catColors[b.colorIndex % catColors.size])
+
+        val set = BarDataSet(entries, "Ausgaben").apply {
+            setColors(segColors)
             setDrawValues(false)
-            axisDependency = YAxis.AxisDependency.RIGHT
+            stackLabels = shown.map { it.label }.toTypedArray()
         }
 
         chart.xAxis.valueFormatter = object : IndexAxisValueFormatter() {
@@ -444,17 +476,59 @@ class ChartPageFragment : Fragment() {
                 return if (idx in trend.indices) trend[idx].label else ""
             }
         }
-        chart.axisRight.isEnabled = true
-        chart.axisRight.textSize = 10f
+        chart.axisLeft.axisMinimum = 0f
+        if (anteil) {
+            chart.axisRight.isEnabled = false
+            chart.axisLeft.valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String = "${value.toInt()}%"
+            }
+        } else {
+            chart.axisLeft.valueFormatter = DefaultValueFormatter(0)
+            chart.axisRight.isEnabled = true
+            chart.axisRight.textSize = 10f
+        }
 
         val combined = CombinedData().apply {
-            setData(BarData(dataSets as List<com.github.mikephil.charting.interfaces.datasets.IBarDataSet>).apply {
-                this.barWidth = bw
-            })
-            setData(LineData(balanceSet))
+            setData(BarData(listOf<IBarDataSet>(set)).apply { barWidth = 0.6f })
+            if (!anteil) {
+                val balEntries = trend.mapIndexed { i, p -> Entry(i.toFloat(), p.balance) }
+                val balColor = ContextCompat.getColor(requireContext(), R.color.transfer_blue)
+                val balanceSet = LineDataSet(balEntries, "Kontostand").apply {
+                    color = balColor; lineWidth = 2f
+                    setDrawCircles(true); circleRadius = 3f; setCircleColor(balColor)
+                    setDrawValues(false)
+                    axisDependency = YAxis.AxisDependency.RIGHT
+                }
+                setData(LineData(balanceSet))
+            }
         }
+        chart.legend.isEnabled = false
+        trendLegend?.visibility = View.VISIBLE
         chart.data = combined
         chart.invalidate()
+    }
+
+    private fun renderTrendLegend() {
+        val legend = trendLegend ?: return
+        legend.removeAllViews()
+        if (vm.trendMode.value != TrendMode.GROUPS || currentBuckets.isEmpty()) return
+        val hidden = vm.hiddenCategoryIds.value
+        val pad = (4 * resources.displayMetrics.density).toInt()
+        for (b in currentBuckets) {
+            val cb = CheckBox(requireContext()).apply {
+                text = b.label
+                textSize = 13f
+                setPadding(0, pad, 0, pad)
+                isChecked = !(b.categoryId != null && b.categoryId in hidden)
+                buttonTintList = ColorStateList.valueOf(catColors[b.colorIndex % catColors.size])
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.on_surface))
+                setOnCheckedChangeListener { _, checked ->
+                    val id = b.categoryId ?: return@setOnCheckedChangeListener
+                    if ((id in vm.hiddenCategoryIds.value) == checked) vm.toggleHideCategory(id)
+                }
+            }
+            legend.addView(cb)
+        }
     }
 
     // ── Forecast Chart ──
@@ -725,10 +799,10 @@ class ChartPageFragment : Fragment() {
     private fun exportTrendData() {
         val trend = currentTrend
         if (trend.isEmpty()) return
-        val allCats = trend.flatMap { it.categoryExpenses.keys }.distinct().sorted()
+        val buckets = currentBuckets
         val header = buildString {
             append("Monat;Einnahmen;Ausgaben;Saldo")
-            for (cat in allCats) append(";$cat")
+            for (b in buckets) append(";${b.label}")
             appendLine()
         }
         val rows = trend.joinToString("") { p ->
@@ -737,8 +811,8 @@ class ChartPageFragment : Fragment() {
                 append(";${CurrencyFormatter.format(p.income.toDouble())}")
                 append(";${CurrencyFormatter.format(p.expense.toDouble())}")
                 append(";${CurrencyFormatter.format(p.balance.toDouble())}")
-                for (cat in allCats) {
-                    append(";${CurrencyFormatter.format((p.categoryExpenses[cat] ?: 0f).toDouble())}")
+                for (b in buckets) {
+                    append(";${CurrencyFormatter.format((p.groupValues[b.key] ?: 0f).toDouble())}")
                 }
                 appendLine()
             }
