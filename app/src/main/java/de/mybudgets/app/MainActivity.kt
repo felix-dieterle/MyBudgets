@@ -17,6 +17,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.data.api.BackendStatus
 import de.mybudgets.app.data.api.BackendStatusChecker
 import de.mybudgets.app.data.api.PREF_REPUSH_ORPHANS
+import de.mybudgets.app.data.api.SyncDirection
 import de.mybudgets.app.data.api.SyncIndicatorState
 import de.mybudgets.app.data.api.SyncStatusInfo
 import de.mybudgets.app.data.api.SyncStatusMonitor
@@ -34,7 +35,12 @@ import kotlinx.coroutines.launch
 private const val TAG = "MainActivity"
 private const val BLINK_ALPHA = 0.15f
 private const val BLINK_STEP_MS = 400L
-private const val SPIN_STEP_MS = 900L
+
+/** Deckkraft des Pfeils, der gerade nicht arbeitet, waehrend der andere die Richtung zeigt. */
+private const val IDLE_ALPHA = 0.25f
+
+/** Beide Pfeile, wenn der Sync laeuft, aber die Richtung noch nicht bekannt ist. */
+private const val UNKNOWN_ALPHA = 0.55f
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -49,7 +55,6 @@ class MainActivity : AppCompatActivity() {
 
     /** Laufende Blink-Animationen je View - ohne das bleibt ein Indicator nach onStop stehen. */
     private val blinkJobs = mutableMapOf<View, Job>()
-private val spinJobs = mutableMapOf<View, Job>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,9 +90,9 @@ private val spinJobs = mutableMapOf<View, Job>()
                 openLogConsole()
                 true
             }
-            binding.ivSyncStatus.setOnClickListener { showSyncDetails() }
-            binding.ivSyncStatus.setOnLongClickListener {
-                openLogConsole()
+            binding.syncArrows.setOnClickListener { showSyncDetails() }
+            binding.syncArrows.setOnLongClickListener {
+                openSyncLog()
                 true
             }
             lifecycleScope.launch {
@@ -136,21 +141,68 @@ private val spinJobs = mutableMapOf<View, Job>()
         binding.vStatusLamp.contentDescription = getString(R.string.status_lamp_desc, getString(descRes))
     }
 
+    /**
+     * Der Doppelpfeil ersetzt das frueher wechselnde Zustands-Icon: links "vom Backend holen",
+     * rechts "zum Backend senden". Die Farbe traegt den Zusand, die Hervorhebung die Richtung,
+     * in der gerade gearbeitet wird - "Synchronisiert gerade" war vorher nicht nachpruefbar.
+     */
     private fun bindSyncIcon(info: SyncStatusInfo) {
-        val (icon, color, descRes) = when (info.state) {
-            SyncIndicatorState.DISABLED -> Triple(R.drawable.ic_sync_disabled, R.color.sync_status_disabled, R.string.sync_state_disabled)
-            SyncIndicatorState.SYNCING -> Triple(R.drawable.ic_sync_syncing, R.color.sync_status_syncing, R.string.sync_state_syncing)
-            SyncIndicatorState.ERROR -> Triple(R.drawable.ic_sync_error, R.color.sync_status_error, R.string.sync_state_error)
-            SyncIndicatorState.PENDING -> Triple(R.drawable.ic_sync_pending, R.color.sync_status_pending, R.string.sync_state_pending)
-            SyncIndicatorState.NEVER_SYNCED -> Triple(R.drawable.ic_sync_pending, R.color.sync_status_pending, R.string.sync_state_never_synced)
-            SyncIndicatorState.MISMATCH -> Triple(R.drawable.ic_sync_mismatch, R.color.sync_status_pending, R.string.sync_state_mismatch)
-            SyncIndicatorState.UP_TO_DATE -> Triple(R.drawable.ic_sync_up_to_date, R.color.sync_status_up_to_date, R.string.sync_state_up_to_date)
+        val (color, descRes) = when (info.state) {
+            SyncIndicatorState.DISABLED -> R.color.sync_status_disabled to R.string.sync_state_disabled
+            SyncIndicatorState.SYNCING -> R.color.sync_status_syncing to R.string.sync_state_syncing
+            SyncIndicatorState.ERROR -> R.color.sync_status_error to R.string.sync_state_error
+            SyncIndicatorState.PENDING -> R.color.sync_status_pending to R.string.sync_state_pending
+            SyncIndicatorState.NEVER_SYNCED -> R.color.sync_status_pending to R.string.sync_state_never_synced
+            SyncIndicatorState.MISMATCH -> R.color.sync_status_pending to R.string.sync_state_mismatch
+            SyncIndicatorState.UP_TO_DATE -> R.color.sync_status_up_to_date to R.string.sync_state_up_to_date
         }
-        binding.ivSyncStatus.setImageResource(icon)
-        binding.ivSyncStatus.imageTintList = ColorStateList.valueOf(getColor(color))
-        binding.ivSyncStatus.contentDescription = getString(R.string.sync_indicator_desc, getString(descRes))
-        setRotating(binding.ivSyncStatus, info.state == SyncIndicatorState.SYNCING)
+        bindSyncArrows(info, color)
+        binding.syncArrows.contentDescription = getString(
+            R.string.sync_indicator_desc,
+            getString(descRes),
+            getString(directionLabelRes(info))
+        )
         bindInlineStatus(info, color)
+    }
+
+    private fun directionLabelRes(info: SyncStatusInfo): Int = when (info.direction) {
+        SyncDirection.PULL -> R.string.sync_dir_pull
+        SyncDirection.PUSH -> R.string.sync_dir_push
+        SyncDirection.BOTH -> R.string.sync_dir_both
+        null -> R.string.sync_dir_none
+    }
+
+    /**
+     * Faerbt beide Pfeile im Zustands-Farbton und hebt die Richtung hervor, in der gerade
+     * gearbeitet wird. Der aktive Pfeil pulsiert als Lebenszeichen - vorher drehte sich das
+     * ganze Icon, was ueber die Richtung nichts aussagte.
+     */
+    private fun bindSyncArrows(info: SyncStatusInfo, colorRes: Int) {
+        val tint = ColorStateList.valueOf(getColor(colorRes))
+        binding.ivSyncPull.imageTintList = tint
+        binding.ivSyncPush.imageTintList = tint
+
+        val syncing = info.state == SyncIndicatorState.SYNCING
+        var pullAlpha = 1f
+        var pushAlpha = 1f
+        var pullPulses = false
+        var pushPulses = false
+        if (syncing) {
+            when (info.direction) {
+                SyncDirection.PULL -> { pushAlpha = IDLE_ALPHA; pullPulses = true }
+                SyncDirection.PUSH -> { pullAlpha = IDLE_ALPHA; pushPulses = true }
+                SyncDirection.BOTH -> { pullPulses = true; pushPulses = true }
+                // WorkManager meldet "laeuft", bevor der Worker seine erste Phase gesetzt hat.
+                // Dann ist die Richtung noch unbekannt - beide Pfeile gleichmaessig pulsieren.
+                null -> { pullAlpha = UNKNOWN_ALPHA; pushAlpha = UNKNOWN_ALPHA; pullPulses = true; pushPulses = true }
+            }
+        }
+        // Erst das Pulsieren setzen: setBlinking() stellt alpha auf 1 zurueck, die Deckkraft
+        // des ruhenden Pfeils muss deshalb danach kommen.
+        setBlinking(binding.ivSyncPull, pullPulses)
+        setBlinking(binding.ivSyncPush, pushPulses)
+        binding.ivSyncPull.alpha = pullAlpha
+        binding.ivSyncPush.alpha = pushAlpha
     }
 
     /**
@@ -242,31 +294,9 @@ private val spinJobs = mutableMapOf<View, Job>()
     private fun stopAllBlinking() {
         blinkJobs.keys.toList().forEach { setBlinking(it, false) }
         blinkJobs.clear()
-        spinJobs.keys.toList().forEach { setRotating(it, false) }
-        spinJobs.clear()
     }
 
-    /**
-     * Dauerhafte Rotation fuer das Sync-Icon. Das Blinken war als Signal zu undeutlich - es sah
-     * aus wie ein Fehlzustand. Eine gleichmaessige Bewegung liest sich eindeutig als "laeuft noch".
-     */
-    private fun setRotating(view: View, rotating: Boolean) {
-        spinJobs.remove(view)?.cancel()
-        view.animate().cancel()
-        if (!rotating) {
-            view.rotation = 0f
-            return
-        }
-        spinJobs[view] = lifecycleScope.launch {
-            view.rotation = 0f
-            while (isActive) {
-                view.animate().rotationBy(360f).setDuration(SPIN_STEP_MS).withEndAction(null).start()
-                delay(SPIN_STEP_MS)
-            }
-        }
-    }
-
-    /** Klick auf das Sync-Icon: was genau ist los - und wie wird es wieder gut? */
+    /** Klick auf die Pfeile: was genau ist los - und wie wird es wieder gut? */
     private fun showSyncDetails() {
         if (isFinishing || isDestroyed) return
         val info = syncMonitor.status.value
@@ -276,7 +306,7 @@ private val spinJobs = mutableMapOf<View, Job>()
             .setPositiveButton(R.string.sync_detail_sync_now) { _, _ ->
                 requestManualSync()
             }
-            .setNeutralButton(R.string.status_diagnose_open_log) { _, _ -> openLogConsole() }
+            .setNeutralButton(R.string.sync_detail_open_log) { _, _ -> openSyncLog() }
             .setNegativeButton(android.R.string.cancel, null)
 
 // "Jetzt synchronisieren" loest den Fall nicht: die Buchungen haben eine remoteId und
@@ -431,12 +461,21 @@ private val spinJobs = mutableMapOf<View, Job>()
     }
 
     private fun openLogConsole() {
+        navigateTo(R.id.logConsoleFragment, "Fehlerprotokoll")
+    }
+
+    /** Das Sync-Protokoll: Phasen und Richtungen der bisherigen Laeufe. */
+    private fun openSyncLog() {
+        navigateTo(R.id.syncLogFragment, "Sync-Protokoll")
+    }
+
+    private fun navigateTo(destinationId: Int, label: String) {
         if (isFinishing || isDestroyed) return
         runCatching {
             val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-            navHost.navController.navigate(R.id.logConsoleFragment)
+            navHost.navController.navigate(destinationId)
         }.onFailure {
-            AppLogger.e(TAG, "Fehlerprotokoll konnte nicht geöffnet werden: ${it.message}", it)
+            AppLogger.e(TAG, "$label konnte nicht geöffnet werden: ${it.message}", it)
         }
     }
 

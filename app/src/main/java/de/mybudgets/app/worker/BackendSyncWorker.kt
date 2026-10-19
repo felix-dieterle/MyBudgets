@@ -13,6 +13,14 @@ import de.mybudgets.app.data.api.PREF_ORPHAN_COUNT
 import de.mybudgets.app.data.api.PREF_REMOTE_ACC_COUNT
 import de.mybudgets.app.data.api.PREF_REMOTE_TX_COUNT
 import de.mybudgets.app.data.api.PREF_REPUSH_ORPHANS
+import de.mybudgets.app.data.api.PREF_SYNC_PHASE
+import de.mybudgets.app.data.api.PHASE_PULL_PATTERNS
+import de.mybudgets.app.data.api.PHASE_PULL_TX
+import de.mybudgets.app.data.api.PHASE_PUSH_REPUSH
+import de.mybudgets.app.data.api.PHASE_PUSH_TX
+import de.mybudgets.app.data.api.PHASE_RUN
+import de.mybudgets.app.data.api.PHASE_SYNC_ACCOUNTS
+import de.mybudgets.app.data.api.PHASE_SYNC_CATEGORIES
 import de.mybudgets.app.data.api.SYNC_STATE_ERROR
 import de.mybudgets.app.data.api.SYNC_STATE_OK
 import de.mybudgets.app.data.api.SYNC_STATE_RUNNING
@@ -27,6 +35,7 @@ import de.mybudgets.app.data.repository.AccountRepository
 import de.mybudgets.app.data.repository.CategoryRepository
 import de.mybudgets.app.data.repository.PatternEvaluationRepository
 import de.mybudgets.app.data.repository.PatternOverrideRepository
+import de.mybudgets.app.data.repository.SyncLogRepository
 import de.mybudgets.app.data.repository.TransactionRepository
 import de.mybudgets.app.util.AppLogger
 import de.mybudgets.app.util.PatternEvaluationSuggestion
@@ -56,11 +65,43 @@ class BackendSyncWorker @AssistedInject constructor(
     private val categoryRepo: CategoryRepository,
     private val transactionRepo: TransactionRepository,
     private val patternEvalRepo: PatternEvaluationRepository,
-    private val patternOverrideRepo: PatternOverrideRepository
+    private val patternOverrideRepo: PatternOverrideRepository,
+    private val syncLogRepo: SyncLogRepository
 ) : CoroutineWorker(appContext, params) {
 
     companion object {
         private val runningSync = java.util.concurrent.atomic.AtomicBoolean(false)
+    }
+
+    /**
+     * Meldet die aktuell laufende Phase nach aussen, damit der Doppelpfeil-Indikator die aktive
+     * Richtung hervorheben kann. null entfernt sie wieder - eine stehengebliebene Phase wuerde
+     * einen Pfeil dauerhaft hervorheben.
+     */
+    private fun setPhase(prefs: SharedPreferences, phase: String?) {
+        val editor = prefs.edit()
+        if (phase == null) editor.remove(PREF_SYNC_PHASE) else editor.putString(PREF_SYNC_PHASE, phase)
+        editor.apply()
+    }
+
+    /**
+     * Schreibt eine Zeile ins Sync-Protokoll. Fehler dabei duerfen den Sync nie stoppen -
+     * das Protokoll ist Beiwerk, der Abgleich ist der Zweck.
+     */
+    private suspend fun logPhase(
+        runId: Long,
+        phase: String,
+        direction: String,
+        area: String,
+        itemCount: Int,
+        success: Boolean,
+        message: String = ""
+    ) {
+        runCatching {
+            syncLogRepo.log(runId, phase, direction, area, itemCount, success, message)
+        }.onFailure {
+            AppLogger.w(TAG, "Protokoll-Eintrag '$phase' nicht geschrieben: ${it.message}")
+        }
     }
 
     override suspend fun doWork(): Result {
@@ -84,6 +125,12 @@ class BackendSyncWorker @AssistedInject constructor(
             return Result.success()
         }
 
+        val runId = System.currentTimeMillis()
+
+        /** Ein Eintrag fuer den Lauf als Ganzes - auf dem Fehlerpfad ist er der einzige. */
+        suspend fun logRunFailed(reason: String) =
+            logPhase(runId, PHASE_RUN, SyncLogRepository.DIRECTION_NONE, "Lauf", 0, false, reason)
+
         return try {
             AppLogger.i(TAG, "doWork: Starte Backend-Sync gegen $backendUrl (apiKey: $keyInfo)")
             prefs.edit().putString("sync_state", SYNC_STATE_RUNNING)
@@ -98,12 +145,22 @@ class BackendSyncWorker @AssistedInject constructor(
             // Konten zuerst: transactions.account_id hat einen Fremdschluessel auf accounts.id.
             // Ohne diesen Schritt schlug am 05.10.2026 jeder Upload mit einem FK-Verstoss fehl
             // (SQLSTATE 23000 / 1452), weil das Backend-accounts leer war.
+            setPhase(prefs, PHASE_SYNC_ACCOUNTS)
             val accountMap = syncAccounts(api, prefs)
+            logPhase(
+                runId, PHASE_SYNC_ACCOUNTS, SyncLogRepository.DIRECTION_BOTH, "Konten",
+                accountMap.size, true, "${accountMap.size} zugeordnet"
+            )
 
             // Kategorien ebenfalls vorab abgleichen: transactions.category_id verweist auf
             // categories.id, und das Backend kennt nur die 22 vorinstallierten Ids 1..22,
             // waehrend lokal Ids bis 50 vergeben sind.
+            setPhase(prefs, PHASE_SYNC_CATEGORIES)
             val categoryMap = syncCategories(api, prefs)
+            logPhase(
+                runId, PHASE_SYNC_CATEGORIES, SyncLogRepository.DIRECTION_BOTH, "Kategorien",
+                categoryMap.size, true, "${categoryMap.size} zugeordnet"
+            )
 
             // Als eigene Funktion, weil der Repush-Zweig sie ein zweites Mal braucht.
             suspend fun pushMissing(): Int {
@@ -155,8 +212,14 @@ class BackendSyncWorker @AssistedInject constructor(
                 return pushed
             }
 
+            setPhase(prefs, PHASE_PUSH_TX)
             val pushed = pushMissing()
+            logPhase(
+                runId, PHASE_PUSH_TX, SyncLogRepository.DIRECTION_PUSH, "Buchungen (Upload)",
+                pushed, true, "$pushed hochgeladen"
+            )
 
+            setPhase(prefs, PHASE_PULL_TX)
 // Pull remote transactions - deduplicate against known remoteIds.
             // Die Seiten werden durchzaehlt und dabei sofort importiert, damit der Dialog
             // eine ECHTE Backend-Zahl zeigen kann und nicht nur die Groesse des ersten Abrufs.
@@ -197,6 +260,12 @@ class BackendSyncWorker @AssistedInject constructor(
                 AppLogger.w(TAG, "doWork: Abruf nach $MAX_PAGES Seiten gestoppt - Zaehler unvollstaendig")
             }
             if (pulled > 0) AppLogger.i(TAG, "doWork: $pulled neue Buchungen vom Server importiert")
+            logPhase(
+                runId, PHASE_PULL_TX, SyncLogRepository.DIRECTION_PULL, "Buchungen (Import)",
+                pulled, pullComplete,
+                if (pullComplete) "$pulled importiert, $remoteTxCount im Backend"
+                else "$pulled importiert - Abruf unvollstaendig"
+            )
 
             // Verwaiste remoteIds: lokal verweist eine Buchung auf eine Backend-ID, die es dort
             // nicht (mehr) gibt. Ein normaler Sync ueberspringt sie (remoteId != null), die
@@ -219,10 +288,20 @@ class BackendSyncWorker @AssistedInject constructor(
                 if (!orphans.isNullOrEmpty()) {
                     val cleared = transactionRepo.clearRemoteIds(orphans.toList())
                     AppLogger.w(TAG, "doWork: ${cleared} verwaiste remoteId(s) zurueckgesetzt (Nutzerwunsch)")
+                    setPhase(prefs, PHASE_PUSH_REPUSH)
                     val repushed = pushMissing()
                     AppLogger.i(TAG, "doWork: $repushed Buchungen nach zurueckgesetzten IDs erneut gesendet")
+                    logPhase(
+                        runId, PHASE_PUSH_REPUSH, SyncLogRepository.DIRECTION_PUSH,
+                        "Buchungen (erneut)", repushed, true,
+                        "$cleared IDs zurueckgesetzt, $repushed gesendet"
+                    )
                 } else {
                     AppLogger.i(TAG, "doWork: Repush angefordert, aber keine verwaisten IDs gefunden")
+                    logPhase(
+                        runId, PHASE_PUSH_REPUSH, SyncLogRepository.DIRECTION_PUSH,
+                        "Buchungen (Repush)", 0, true, "angefordert, aber keine verwaisten IDs"
+                    )
                 }
             }
 
@@ -239,10 +318,19 @@ class BackendSyncWorker @AssistedInject constructor(
 
             // Dashboard-Bewertungen ziehen (Back-Sync, US-004). Bewusst isoliert: ein Fehler
             // hier darf den bestehenden Sync nicht gefaehrden oder als HTTP-Fehler zaehlen.
+            setPhase(prefs, PHASE_PULL_PATTERNS)
             try {
                 pullPatternEvaluations(api)
+                logPhase(
+                    runId, PHASE_PULL_PATTERNS, SyncLogRepository.DIRECTION_PULL,
+                    "Muster-Bewertungen", 0, true
+                )
             } catch (e: Exception) {
                 AppLogger.w(TAG, "patterns: Pull uebersprungen (${e.javaClass.simpleName}: ${e.message})")
+                logPhase(
+                    runId, PHASE_PULL_PATTERNS, SyncLogRepository.DIRECTION_PULL,
+                    "Muster-Bewertungen", 0, false, "uebersprungen: ${e.javaClass.simpleName}"
+                )
             }
 
             if (httpFailures > 0) {
@@ -251,18 +339,14 @@ class BackendSyncWorker @AssistedInject constructor(
                     // Dauerhafter Fehler: Result.failure() statt retry(). Sonst wartet der
                     // Auftrag mit exponentiellem Backoff (bis 5 h) und der Zustand bleibt
                     // so lange "Fehler", ohne dass ein weiterer Versuch etwas aendert.
-                    markFailed(
-                        prefs,
-                        "Backend lehnt den API-Key ab (HTTP 401/403) - bitte in den Einstellungen pruefen",
-                        null
-                    )
+                    val reason = "Backend lehnt den API-Key ab (HTTP 401/403) - bitte in den Einstellungen pruefen"
+                    markFailed(prefs, reason, null)
+                    logRunFailed(reason)
                     return Result.failure()
                 }
-                markFailed(
-                    prefs,
-                    "$httpFailures Abfrage(n) mit HTTP-Fehler beantwortet (davon $pushed erfolgreich hochgeladen)",
-                    null
-                )
+                val reason = "$httpFailures Abfrage(n) mit HTTP-Fehler beantwortet (davon $pushed erfolgreich hochgeladen)"
+                markFailed(prefs, reason, null)
+                logRunFailed(reason)
                 return Result.retry()
             }
 
@@ -275,31 +359,45 @@ class BackendSyncWorker @AssistedInject constructor(
                 .remove("sync_last_error")
                 .apply()
             AppLogger.i(TAG, "doWork: Backend-Sync abgeschlossen, remote=$remoteTxCount Buchungen / $remoteAccCount Konten, hochgeladen=$pushed")
+            logPhase(
+                runId, PHASE_RUN, SyncLogRepository.DIRECTION_NONE, "Lauf abgeschlossen",
+                remoteTxCount, true,
+                "hochgeladen=$pushed, importiert=$pulled, Backend=$remoteTxCount Buchungen / $remoteAccCount Konten"
+            )
             Result.success()
         } catch (e: java.net.SocketTimeoutException) {
-            markFailed(prefs, "Zeitüberschreitung bei $backendUrl - Server läuft nicht oder blockiert die Anfrage", e)
+            val reason = "Zeitüberschreitung bei $backendUrl - Server läuft nicht oder blockiert die Anfrage"
+            markFailed(prefs, reason, e)
+            logRunFailed(reason)
             Result.retry()
         } catch (e: java.net.UnknownHostException) {
-            markFailed(prefs, "Host aus $backendUrl nicht auflösbar - falsche URL oder falsches WLAN", e)
+            val reason = "Host aus $backendUrl nicht auflösbar - falsche URL oder falsches WLAN"
+            markFailed(prefs, reason, e)
+            logRunFailed(reason)
             Result.retry()
         } catch (e: java.net.ConnectException) {
-            markFailed(prefs, "Verbindung zu $backendUrl abgelehnt - läuft der PHP-Server?", e)
+            val reason = "Verbindung zu $backendUrl abgelehnt - läuft der PHP-Server?"
+            markFailed(prefs, reason, e)
+            logRunFailed(reason)
             Result.retry()
         } catch (e: java.io.IOException) {
-            markFailed(prefs, "Netzwerkfehler bei $backendUrl: ${e.javaClass.simpleName}: ${e.message}", e)
+            val reason = "Netzwerkfehler bei $backendUrl: ${e.javaClass.simpleName}: ${e.message}"
+            markFailed(prefs, reason, e)
+            logRunFailed(reason)
             Result.retry()
         } catch (e: Exception) {
             // Am 05.10.2026 war die eigentliche Ursache ein PHP-Fehler im Antwort-Body
             // (Fremdschluessel-Verstoss), die App meldete nur "MalformedJsonException" und
             // damit die Ursache versteckt. Der Roh-Body steht in den HTTP-Logzeilen darunter.
-            markFailed(
-                prefs,
-                "Backend-Sync fehlgeschlagen: ${e.javaClass.simpleName}: ${e.message}" +
-                    " (Rohantwort siehe HTTP-Logzeilen)",
-                e
-            )
+            val reason = "Backend-Sync fehlgeschlagen: ${e.javaClass.simpleName}: ${e.message}" +
+                " (Rohantwort siehe HTTP-Logzeilen)"
+            markFailed(prefs, reason, e)
+            logRunFailed(reason)
             Result.retry()
         } finally {
+            // Die Phase gehoert keinem Lauf mehr an, sobald er vorbei ist - sonst bliebe ein
+            // Pfeil dauerhaft hervorgehoben und wuerde einen laufenden Sync behaupten.
+            setPhase(prefs, null)
             runningSync.set(false)
         }
     }

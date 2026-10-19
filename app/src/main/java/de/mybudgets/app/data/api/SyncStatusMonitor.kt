@@ -55,6 +55,21 @@ enum class SyncIndicatorState {
 }
 
 /**
+ * Richtung, in die ein laufender Abgleich gerade arbeitet. Der Doppelpfeil-Indikator hebt
+ * diese Richtung hervor - ohne sie waere "Synchronisiert gerade" nur eine Behauptung.
+ */
+enum class SyncDirection {
+    /** Daten kommen vom Backend auf das Geraet. */
+    PULL,
+
+    /** Lokale Aenderungen gehen zum Backend. */
+    PUSH,
+
+    /** Beides im selben Schritt (Konten/Kategorien abgleichen). */
+    BOTH
+}
+
+/**
  * Vollstaendige Beschreibung des Sync-Zustands. [SyncStatusMonitor.status] steuert Icon und
  * Farbe, [report] fuellt den Detail-Dialog nach einem Klick auf das Icon.
  *
@@ -73,12 +88,9 @@ data class SyncStatusInfo(
     val backendUrl: String,
     val queued: Boolean,
     val offlineMode: Boolean,
-    /**
-     * Buchungen, deren remoteId das Backend nicht kennt. Solange das > 0 ist, bleibt ein Sync
-     * wirkungslos: die Buchungen werden uebersprungen, weil sie eine ID zu haben scheinen.
-     * -1 heisst "nicht bestimmbar" (Abruf war unvollstaendig) - dann nichts anzeigen.
-     */
-    val orphanCount: Int
+    val orphanCount: Int,
+    /** Aktuelle Phase des laufenden Syncs aus [PREF_SYNC_PHASE] - leer, wenn kein Sync laeuft. */
+    val phase: String = ""
 ) {
     /** true, wenn der Backend-Stand durch einen fehlerfreien Abgleich belegt ist. */
     val remoteKnown: Boolean get() = remoteTransactionCount >= 0 && remoteAccountCount >= 0
@@ -90,6 +102,19 @@ data class SyncStatusInfo(
     val mismatched: Boolean
         get() = remoteKnown &&
             (localTransactionCount != remoteTransactionCount || localAccountCount != remoteAccountCount)
+
+    /**
+     * Richtung des laufenden Syncs, abgeleitet aus dem Praefix der Phase: "PUSH_*" laedt hoch,
+     * "PULL_*" zieht vom Backend, "SYNC_*" macht beides (Konten/Kategorien abgleichen).
+     * null = kein Sync laeuft oder die Phase ist unbekannt.
+     */
+    val direction: SyncDirection?
+        get() = when {
+            phase.startsWith("PUSH") -> SyncDirection.PUSH
+            phase.startsWith("PULL") -> SyncDirection.PULL
+            phase.startsWith("SYNC") -> SyncDirection.BOTH
+            else -> null
+        }
 }
 
 private const val PREFS = "mybudgets_prefs"
@@ -121,6 +146,23 @@ const val UNIQUE_WORK_PERIODIC = "backend_sync_periodic"
 internal const val SYNC_STATE_RUNNING = "RUNNING"
 internal const val SYNC_STATE_OK = "OK"
 internal const val SYNC_STATE_ERROR = "ERROR"
+
+/**
+ * Vom Worker gesetzte aktuelle Phase des Laufs ("PUSH_TX", "PULL_TX", "SYNC_ACC", ...).
+ * Der Indikator hebt daraus die aktive Richtung hervor. Wird am Ende des Laufs entfernt -
+ * eine stehengebliebene Phase wuerde einen Pfeil dauerhaft hervorheben.
+ */
+internal const val PREF_SYNC_PHASE = "sync_phase"
+
+internal const val PHASE_SYNC_ACCOUNTS = "SYNC_ACC"
+internal const val PHASE_SYNC_CATEGORIES = "SYNC_CATEGORIES"
+internal const val PHASE_PUSH_TX = "PUSH_TX"
+internal const val PHASE_PULL_TX = "PULL_TX"
+internal const val PHASE_PUSH_REPUSH = "PUSH_REPUSH"
+internal const val PHASE_PULL_PATTERNS = "PULL_PATTERNS"
+
+/** Kein Richtungsbezug: der Eintrag beschreibt den Lauf als Ganzes (Abschluss oder Fehler). */
+internal const val PHASE_RUN = "RUN"
 
 /**
  * Liefert dem Status-Icon seinen Zustand aus drei unabhaengigen Quellen, damit kein
@@ -219,7 +261,8 @@ class SyncStatusMonitor @Inject constructor(
             backendUrl = url,
             queued = running || workerState == SYNC_STATE_RUNNING,
             offlineMode = offlineMode,
-            orphanCount = if (verified) p.getInt(PREF_ORPHAN_COUNT, -1) else -1
+            orphanCount = if (verified) p.getInt(PREF_ORPHAN_COUNT, -1) else -1,
+            phase = (p.getString(PREF_SYNC_PHASE, "") ?: "").trim()
         )
     }
 }

@@ -94,6 +94,10 @@
         android:name="de.mybudgets.app.ui.legal.LegalFragment"
         android:label="@string/nav_legal" />
 
+    <fragment android:id="@+id/syncLogFragment"
+        android:name="de.mybudgets.app.ui.synclog.SyncLogFragment"
+        android:label="@string/sync_log_title" />
+
     <fragment android:id="@+id/transferFragment"
         android:name="de.mybudgets.app.ui.transfers.TransferFragment"
         android:label="@string/transfer_title" />

@@ -64,8 +64,19 @@
     <string name="status_diagnose_failed">Diagnose konnte nicht ausgeführt werden - Details im Fehlerprotokoll.</string>
 
     <!-- Sync-Status-Icon -->
-    <string name="sync_indicator_desc">Synchronisierung: %1$s</string>
-    <string name="sync_indicator_hint">Antippen: Details zum Sync-Zustand. Lang drücken: Fehlerprotokoll.</string>
+    <string name="sync_indicator_desc">Synchronisierung: %1$s (%2$s)</string>
+    <string name="sync_dir_pull">empfängt Daten</string>
+    <string name="sync_dir_push">sendet Daten</string>
+    <string name="sync_dir_both">empfängt und sendet</string>
+    <string name="sync_dir_none">keine Richtung</string>
+    <string name="sync_indicator_hint">Antippen: Details zum Sync-Zustand. Lang drücken: Sync-Protokoll.</string>
+    <string name="sync_detail_open_log">Protokoll</string>
+    <string name="sync_log_title">Sync-Protokoll</string>
+    <string name="sync_log_empty">Noch keine Sync-Läufe protokolliert.</string>
+    <string name="sync_log_clear">Leeren</string>
+    <string name="sync_log_cleared">Protokoll geleert</string>
+    <string name="sync_log_count">%1$d Einträge</string>
+    <string name="sync_log_dir_hint">Richtung: %1$s</string>
     <string name="sync_state_disabled">Deaktiviert</string>
     <string name="sync_state_syncing">Synchronisiert gerade</string>
     <string name="sync_state_pending">Änderungen ausstehend</string>
@@ -244,6 +255,13 @@
     <!-- Chart empty states -->
     <string name="chart_pie_empty">Keine Ausgaben in diesem Zeitraum</string>
     <string name="chart_trend_empty">Keine Umsätze vorhanden</string>
+    <string name="trend_drill_hint">Tippe auf einen Block, um den Monat und seine Unterkategorien zu sehen.</string>
+    <string name="trend_all_hidden">Alle Kategorien ausgeblendet\n(oben wieder antippen)</string>
+    <string name="trend_drill_title">%1$s · %2$s</string>
+    <string name="trend_drill_title_month">%1$s · Ausgaben gesamt</string>
+    <string name="trend_drill_total">%1$s € · %2$d Buchungen</string>
+    <string name="trend_drill_rest_of">Rest (%1$s)</string>
+    <string name="trend_drill_close">Detail schließen</string>
     <string name="chart_forecast_empty">Nicht genug Daten für Prognose\n(3+ Monate erforderlich)</string>
     <string name="chart_pie_sets">Sets</string>
     <string name="chart_pie_back_categories">← Kategorien</string>

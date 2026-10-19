@@ -40,15 +40,35 @@
             tools:ignore="RtlSymmetry"
             tools:text="Sync fehlgeschlagen" />
 
-        <ImageView
-            android:id="@+id/iv_sync_status"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+        <LinearLayout
+            android:id="@+id/sync_arrows"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="4dp"
+            android:layout_marginStart="2dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:contentDescription="@string/sync_indicator_hint"
             android:focusable="true"
-            android:src="@drawable/ic_sync_up_to_date" />
+            android:contentDescription="@string/sync_indicator_hint">
+
+            <ImageView
+                android:id="@+id/iv_sync_pull"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="@string/sync_dir_pull"
+                android:src="@drawable/ic_sync_arrow_pull" />
+
+            <ImageView
+                android:id="@+id/iv_sync_push"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginStart="2dp"
+                android:contentDescription="@string/sync_dir_push"
+                android:src="@drawable/ic_sync_arrow_push" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
