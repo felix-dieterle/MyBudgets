@@ -1,106 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="0dp">
-    <LinearLayout
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_marginBottom="0dp">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Monatlicher Verlauf"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+                <ImageButton
+                    android:id="@+id/btn_export_trend"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_share"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Verlauf exportieren"
+                    android:scaleType="centerInside"
+                    android:padding="4dp" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggle_trend_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                app:checkedButton="@id/btn_trend_income">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_trend_income"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Einnahmen/Ausgaben" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_trend_groups"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Nach Gruppe" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggle_trend_set"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                app:checkedButton="@id/btn_trend_set_categories"
+                android:visibility="gone">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_trend_set_categories"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Kategorien" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_trend_set_classes"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Klassen" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+            <CheckBox
+                android:id="@+id/cb_trend_anteil"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Anteile" />
+            <com.github.mikephil.charting.charts.CombinedChart
+                android:id="@+id/bar_chart_trend"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginTop="8dp" />
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/layout_trend_legend"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                app:chipSpacingHorizontal="4dp"
+                app:chipSpacingVertical="0dp"
+                app:singleSelection="false" />
             <TextView
-                android:layout_width="0dp"
+                android:id="@+id/tv_trend_hint"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Monatlicher Verlauf"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
-            <ImageButton
-                android:id="@+id/btn_export_trend"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@android:drawable/ic_menu_share"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Verlauf exportieren"
-                android:scaleType="centerInside"
-                android:padding="4dp" />
+                android:layout_marginTop="4dp"
+                android:text="@string/trend_drill_hint"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:visibility="gone" />
+            <LinearLayout
+                android:id="@+id/layout_trend_drill"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="?attr/colorSurfaceVariant"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:visibility="gone">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/tv_trend_drill_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
+                    <ImageButton
+                        android:id="@+id/btn_trend_drill_close"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/trend_drill_close"
+                        android:padding="4dp"
+                        android:scaleType="centerInside"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/tv_trend_drill_total"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall" />
+                <LinearLayout
+                    android:id="@+id/layout_trend_drill_items"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/tv_trend_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
         </LinearLayout>
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/toggle_trend_mode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:singleSelection="true"
-            app:selectionRequired="true"
-            app:checkedButton="@id/btn_trend_income">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_trend_income"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Einnahmen / Ausgaben" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_trend_groups"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Nach Gruppe" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/toggle_trend_set"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:visibility="gone"
-            app:singleSelection="true"
-            app:selectionRequired="true"
-            app:checkedButton="@id/btn_trend_set_categories">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_trend_set_categories"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Kategorien" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_trend_set_classes"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Klassen" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
-        <CheckBox
-            android:id="@+id/cb_trend_anteil"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Anteile" />
-        <com.github.mikephil.charting.charts.CombinedChart
-            android:id="@+id/bar_chart_trend"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginTop="8dp" />
-        <LinearLayout
-            android:id="@+id/layout_trend_legend"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-        <TextView
-            android:id="@+id/tv_trend_summary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
-    </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+    </com.google.android.material.card.MaterialCardView>
+</ScrollView>

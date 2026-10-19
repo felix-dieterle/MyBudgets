@@ -52,11 +52,41 @@ data class MonthlyTrendPoint(
     val groupValues: Map<String, Float> = emptyMap()
 )
 
+/** Sentinel-Id fuer "Ohne Kategorie": Buckets ohne Wurzelkategorie sind damit ausblendbar wie andere. */
+const val TREND_NO_CATEGORY_ID = -1L
+
 data class TrendBucket(
     val key: String,
     val label: String,
     val colorIndex: Int,
-    val categoryId: Long? = null
+    val categoryId: Long = TREND_NO_CATEGORY_ID
+)
+
+/**
+ * Auswahl fuer den Drill-down im Verlauf. [parentKey] = Gruppen-Schluessel des angetippten
+ * Blocks ("c:<id>" / "c:none"); null bedeutet: der Nutzer will den ganzen Monat sehen.
+ */
+data class TrendDrillSelection(val monthLabel: String, val parentKey: String? = null)
+
+/** Eine Zeile im Drill-down: Unterkategorie (oder Wurzelkategorie) des Monats. */
+data class TrendDrillItem(
+    val label: String,
+    val amount: Float,
+    val count: Int,
+    val colorIndex: Int,
+    /** true = Sammelzeile fuer Buchungen, die direkt auf der angetippten Kategorie liegen. */
+    val isRest: Boolean = false
+)
+
+data class TrendDrillData(
+    val monthLabel: String,
+    /** null = alle Ausgaben des Monats (kein Block ausgewaehlt). */
+    val parentLabel: String?,
+    val total: Float,
+    val monthExpense: Float,
+    val monthIncome: Float,
+    val txCount: Int,
+    val items: List<TrendDrillItem>
 )
 
 private data class PieChartIntermediate(
@@ -550,13 +580,124 @@ class DashboardViewModel @Inject constructor(
                             key = key,
                             label = if (id == null) "Ohne Kategorie" else (names[id] ?: "Sonstige"),
                             colorIndex = i,
-                            categoryId = id
+                            categoryId = id ?: TREND_NO_CATEGORY_ID
                         )
                     }
             }
             TrendGroupSet.CLASSES -> emptyList()
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    // ── Drill-down im Gruppen-Verlauf: ein Monat + die Unterkategorien eines Blocks ──
+
+    private val _trendDrill = MutableStateFlow<TrendDrillSelection?>(null)
+    val trendDrillSelection: StateFlow<TrendDrillSelection?> = _trendDrill
+
+    /** Derselbe Block noch einmal angetippt = Detail wieder schliessen. */
+    fun toggleTrendDrill(monthLabel: String, parentKey: String?) {
+        val current = _trendDrill.value
+        _trendDrill.value =
+            if (current != null && current.monthLabel == monthLabel && current.parentKey == parentKey) null
+            else TrendDrillSelection(monthLabel, parentKey)
+    }
+
+    fun clearTrendDrill() { _trendDrill.value = null }
+
+    val trendDrill: StateFlow<TrendDrillData?> = combine(
+        transactions,
+        categoryRepo.observeAll(),
+        _trendDrill,
+        hiddenCategoryIds
+    ) { txs, cats, selection, hidden ->
+        if (selection == null) return@combine null
+
+        val categoryMap = cats.associateBy { it.id }
+        fun getRootCategory(catId: Long?): Long? {
+            if (catId == null) return null
+            var current = categoryMap[catId] ?: return catId
+            while (current.parentCategoryId != null) {
+                current = categoryMap[current.parentCategoryId] ?: return catId
+            }
+            return current.id
+        }
+        fun keyOf(id: Long?) = if (id == null) "c:none" else "c:$id"
+        /** Direktes Kind von [rootId], in dem [catId] haengt; null wenn [catId] = [rootId]. */
+        fun directChildOf(rootId: Long, catId: Long?): Long? {
+            if (catId == null) return null
+            var current = categoryMap[catId] ?: return null
+            if (current.id == rootId) return null
+            while (current.parentCategoryId != null && current.parentCategoryId != rootId) {
+                current = categoryMap[current.parentCategoryId] ?: return null
+            }
+            return current.id
+        }
+
+        val rootId = selection.parentKey?.removePrefix("c:")?.toLongOrNull()
+        val parentHiddenId = if (selection.parentKey == "c:none") TREND_NO_CATEGORY_ID else rootId
+        if (parentHiddenId != null && parentHiddenId in hidden) return@combine null
+
+        val monthTxs = groupByMonth(txs)[selection.monthLabel].orEmpty()
+        val monthIncome = monthTxs.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }.toFloat()
+        val monthExpenses = monthTxs.filter { it.type == TransactionType.EXPENSE }
+        val scoped = if (selection.parentKey == null) monthExpenses
+        else monthExpenses.filter { keyOf(getRootCategory(it.categoryId)) == selection.parentKey }
+
+        val amounts = LinkedHashMap<String, Float>()
+        val counts = LinkedHashMap<String, Int>()
+        val labels = HashMap<String, String>()
+        val rests = HashSet<String>()
+        for (tx in scoped) {
+            val key: String
+            val label: String
+            if (selection.parentKey == null) {
+                val root = getRootCategory(tx.categoryId)
+                key = keyOf(root)
+                label = if (root == null) "Ohne Kategorie" else (categoryMap[root]?.name ?: "Sonstige")
+            } else if (rootId == null) {
+                key = keyOf(null)
+                label = "Ohne Kategorie"
+            } else {
+                val childId = directChildOf(rootId, tx.categoryId)
+                if (childId == null) {
+                    key = "c:rest:$rootId"
+                    label = categoryMap[rootId]?.name ?: "Sonstige"
+                    rests.add(key)
+                } else {
+                    key = "c:$childId"
+                    label = categoryMap[childId]?.name ?: "Sonstige"
+                }
+            }
+            amounts[key] = (amounts[key] ?: 0f) + tx.amount.toFloat()
+            counts[key] = (counts[key] ?: 0) + 1
+            labels[key] = label
+        }
+
+        val items = amounts.entries
+            .sortedByDescending { it.value }
+            .mapIndexed { i, (key, amount) ->
+                TrendDrillItem(
+                    label = labels[key] ?: "Sonstige",
+                    amount = amount,
+                    count = counts[key] ?: 0,
+                    colorIndex = i,
+                    isRest = key in rests
+                )
+            }
+
+        TrendDrillData(
+            monthLabel = selection.monthLabel,
+            parentLabel = when {
+                selection.parentKey == null -> null
+                rootId == null -> "Ohne Kategorie"
+                else -> categoryMap[rootId]?.name ?: "Sonstige"
+            },
+            total = scoped.sumOf { it.amount }.toFloat(),
+            monthExpense = monthExpenses.sumOf { it.amount }.toFloat(),
+            monthIncome = monthIncome,
+            txCount = scoped.size,
+            items = items
+        )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val forecast: StateFlow<List<ForecastPoint>> = combine(
         transactions,

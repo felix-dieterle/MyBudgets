@@ -48,6 +48,8 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.github.mikephil.charting.highlight.Highlight
 import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import dagger.hilt.android.AndroidEntryPoint
 import de.mybudgets.app.R
 import de.mybudgets.app.util.AppLogger
@@ -60,6 +62,7 @@ import de.mybudgets.app.viewmodel.ForecastLineConfig
 import de.mybudgets.app.viewmodel.ForecastPoint
 import de.mybudgets.app.viewmodel.MonthlyTrendPoint
 import de.mybudgets.app.viewmodel.TrendBucket
+import de.mybudgets.app.viewmodel.TrendDrillData
 import de.mybudgets.app.viewmodel.TrendGroupSet
 import de.mybudgets.app.viewmodel.TrendMode
 import kotlinx.coroutines.flow.combine
@@ -72,7 +75,7 @@ class ChartPageFragment : Fragment() {
     private var _pageIndex: Int = 0
     private var currentTrend: List<MonthlyTrendPoint> = emptyList()
     private var currentBuckets: List<TrendBucket> = emptyList()
-    private var trendLegend: LinearLayout? = null
+    private var trendLegend: ChipGroup? = null
     private var currentForecast: List<ForecastPoint> = emptyList()
     private var configOrder: List<String> = emptyList()
     private var pendingTapLabel: String? = null
@@ -371,6 +374,30 @@ class ChartPageFragment : Fragment() {
         }
         cbAnteil?.setOnCheckedChangeListener { _, isChecked -> vm.setTrendAnteil(isChecked) }
 
+        chart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+            override fun onValueSelected(e: Entry?, h: Highlight?) {
+                val barEntry = e as? BarEntry ?: return
+                val dataSetIndex = h?.dataSetIndex ?: return
+                val monthIndex = Math.round(barEntry.x).toInt()
+                val month = currentTrend.getOrNull(monthIndex) ?: return
+                when (vm.trendMode.value) {
+                    TrendMode.GROUPS -> {
+                        // dataSetIndex 1 = Saldo-Linie (nur wenn "Anteile" aus ist)
+                        if (dataSetIndex != 0) return
+                        val bucket = currentBuckets.getOrNull(h.stackIndex) ?: return
+                        if (bucket.categoryId in vm.hiddenCategoryIds.value) return
+                        vm.toggleTrendDrill(month.label, bucket.key)
+                    }
+                    // Klick auf den Ausgaben-Balken: der ganze Monat nach Kategorien
+                    TrendMode.INCOME_EXPENSE -> {
+                        if (dataSetIndex != 1) return
+                        vm.toggleTrendDrill(month.label, null)
+                    }
+                }
+            }
+            override fun onNothingSelected() {}
+        })
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { vm.monthlyTrend.collect { t ->
@@ -384,11 +411,14 @@ class ChartPageFragment : Fragment() {
                 } }
                 launch { vm.trendMode.collect { renderTrendChart(chart); renderTrendLegend() } }
                 launch { vm.trendAnteil.collect { renderTrendChart(chart) } }
+                launch { vm.hiddenCategoryIds.collect { renderTrendChart(chart); renderTrendLegend() } }
+                launch { vm.trendDrill.collect { renderTrendDrill(it) } }
                 launch { vm.trendSummary.collect { t -> summary?.text = t } }
             }
         }
 
         root.findViewById<ImageButton>(R.id.btn_export_trend)?.setOnClickListener { exportTrendData() }
+        root.findViewById<ImageButton>(R.id.btn_trend_drill_close)?.setOnClickListener { vm.clearTrendDrill() }
     }
 
     private fun renderTrendChart(chart: CombinedChart) {
@@ -447,8 +477,18 @@ class ChartPageFragment : Fragment() {
         val trend = currentTrend
         val anteil = vm.trendAnteil.value
         val hidden = vm.hiddenCategoryIds.value
-        val shown = currentBuckets.filter { it.categoryId == null || it.categoryId !in hidden }
-        if (shown.isEmpty()) { renderIncomeExpenseWithBalance(chart); return }
+        val shown = currentBuckets.filter { it.categoryId !in hidden }
+        if (shown.isEmpty()) {
+            // Alle Kategorien abgehakt: Die Legende muss stehenbleiben, sonst gibt es keinen
+            // Weg zurueck. Statt der Umsatz-Ansicht zeigt das Chart einen Hinweis.
+            chart.data = null
+            chart.legend.isEnabled = false
+            chart.setNoDataText(getString(R.string.trend_all_hidden))
+            chart.invalidate()
+            trendLegend?.visibility = View.VISIBLE
+            return
+        }
+        chart.setNoDataText(getString(R.string.chart_trend_empty))
 
         val entries = trend.mapIndexed { mi, p ->
             val raw = FloatArray(shown.size) { p.groupValues[shown[it].key] ?: 0f }
@@ -508,27 +548,115 @@ class ChartPageFragment : Fragment() {
         chart.invalidate()
     }
 
+    /**
+     * Legende als Chips: alle Kategorien passen damit nebeneinander mit Zeilenumbruch in die
+     * Karte, statt untereinander aus ihr herauszulaufen. Gefuellt + weisse Schrift = im Chart
+     * sichtbar, nur Umriss = ausgeblendet.
+     */
     private fun renderTrendLegend() {
         val legend = trendLegend ?: return
         legend.removeAllViews()
-        if (vm.trendMode.value != TrendMode.GROUPS || currentBuckets.isEmpty()) return
-        val hidden = vm.hiddenCategoryIds.value
-        val pad = (4 * resources.displayMetrics.density).toInt()
-        for (b in currentBuckets) {
-            val cb = CheckBox(requireContext()).apply {
-                text = b.label
-                textSize = 13f
-                setPadding(0, pad, 0, pad)
-                isChecked = !(b.categoryId != null && b.categoryId in hidden)
-                buttonTintList = ColorStateList.valueOf(catColors[b.colorIndex % catColors.size])
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.on_surface))
-                setOnCheckedChangeListener { _, checked ->
-                    val id = b.categoryId ?: return@setOnCheckedChangeListener
-                    if ((id in vm.hiddenCategoryIds.value) == checked) vm.toggleHideCategory(id)
+        val active = vm.trendMode.value == TrendMode.GROUPS && currentBuckets.isNotEmpty()
+        if (active) {
+            val hidden = vm.hiddenCategoryIds.value
+            for (b in currentBuckets) {
+                val color = catColors[b.colorIndex % catColors.size]
+                val shown = b.categoryId !in hidden
+                val chip = Chip(requireContext()).apply {
+                    text = b.label
+                    textSize = 12f
+                    isCheckable = false
+                    chipStrokeWidth = (1 * resources.displayMetrics.density)
+                    chipStrokeColor = ColorStateList.valueOf(color)
+                    chipBackgroundColor = ColorStateList.valueOf(if (shown) color else Color.TRANSPARENT)
+                    setTextColor(
+                        if (shown) Color.WHITE
+                        else ContextCompat.getColor(requireContext(), R.color.on_surface)
+                    )
+                    setOnClickListener { vm.toggleHideCategory(b.categoryId) }
                 }
+                legend.addView(chip)
             }
-            legend.addView(cb)
         }
+        renderTrendHint(active)
+    }
+
+    private fun renderTrendHint(legendActive: Boolean) {
+        val hint = view?.findViewById<TextView>(R.id.tv_trend_hint) ?: return
+        val anyShown = currentBuckets.any { it.categoryId !in vm.hiddenCategoryIds.value }
+        hint.visibility =
+            if (legendActive && anyShown && vm.trendDrill.value == null) View.VISIBLE else View.GONE
+    }
+
+    /** Detail zum angetippten Block: der konkrete Monat und seine Unterkategorien. */
+    private fun renderTrendDrill(data: TrendDrillData?) {
+        val root = view ?: return
+        val panel = root.findViewById<LinearLayout>(R.id.layout_trend_drill) ?: return
+        val title = root.findViewById<TextView>(R.id.tv_trend_drill_title)
+        val totalView = root.findViewById<TextView>(R.id.tv_trend_drill_total)
+        val items = root.findViewById<LinearLayout>(R.id.layout_trend_drill_items)
+        if (data == null) {
+            panel.visibility = View.GONE
+            renderTrendHint(vm.trendMode.value == TrendMode.GROUPS && currentBuckets.isNotEmpty())
+            return
+        }
+
+        title.text = if (data.parentLabel == null) {
+            getString(R.string.trend_drill_title_month, data.monthLabel)
+        } else {
+            getString(R.string.trend_drill_title, data.monthLabel, data.parentLabel)
+        }
+        totalView.text = getString(
+            R.string.trend_drill_total,
+            CurrencyFormatter.format(data.total.toDouble()),
+            data.txCount
+        )
+
+        items.removeAllViews()
+        val pad = (4 * resources.displayMetrics.density).toInt()
+        val sum = data.total.coerceAtLeast(0.01f)
+        for (item in data.items) {
+            val color = catColors[item.colorIndex % catColors.size]
+            val label = if (item.isRest) getString(R.string.trend_drill_rest_of, item.label) else item.label
+            val pct = item.amount / sum * 100f
+            val row = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                setPadding(0, pad, 0, pad)
+            }
+            row.addView(TextView(requireContext()).apply {
+                text = "●"
+                textSize = 12f
+                setTextColor(color)
+                setPadding(0, 0, pad, 0)
+            })
+            row.addView(TextView(requireContext()).apply {
+                text = label
+                textSize = 13f
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.on_surface))
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            row.addView(TextView(requireContext()).apply {
+                text = buildString {
+                    append(CurrencyFormatter.format(item.amount.toDouble()))
+                    append(" € (")
+                    append("%.1f".format(pct))
+                    append("%)")
+                    if (item.count > 1) append(" · ${item.count}×")
+                }
+                textSize = 13f
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.on_surface))
+            })
+            items.addView(row)
+        }
+
+        panel.visibility = View.VISIBLE
+        renderTrendHint(false)
     }
 
     // ── Forecast Chart ──
