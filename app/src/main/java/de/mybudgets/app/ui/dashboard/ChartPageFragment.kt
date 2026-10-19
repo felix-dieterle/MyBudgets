@@ -353,9 +353,9 @@ class ChartPageFragment : Fragment() {
         chart.setOnChartGestureListener(object : OnChartGestureListener {
             override fun onChartGestureStart(event: MotionEvent?, lastPerformedGesture: ChartTouchListener.ChartGesture?) {}
             override fun onChartGestureEnd(event: MotionEvent?, lastPerformedGesture: ChartTouchListener.ChartGesture?) {}
-            override fun onChartLongPressed(event: MotionEvent?) {}
+            override fun onChartSingleTapped(event: MotionEvent?) { handleTrendTap(chart, event) }
             override fun onChartDoubleTapped(event: MotionEvent?) {}
-            override fun onChartSingleTapped(event: MotionEvent?) {}
+            override fun onChartLongPressed(event: MotionEvent?) {}
             override fun onChartFling(event1: MotionEvent?, event2: MotionEvent?, velocityX: Float, velocityY: Float) {}
             override fun onChartScale(event: MotionEvent?, scaleX: Float, scaleY: Float) { renderTrendChart(chart) }
             override fun onChartTranslate(event: MotionEvent?, translateX: Float, translateY: Float) { renderTrendChart(chart) }
@@ -375,26 +375,7 @@ class ChartPageFragment : Fragment() {
         cbAnteil?.setOnCheckedChangeListener { _, isChecked -> vm.setTrendAnteil(isChecked) }
 
         chart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
-            override fun onValueSelected(e: Entry?, h: Highlight?) {
-                val barEntry = e as? BarEntry ?: return
-                val dataSetIndex = h?.dataSetIndex ?: return
-                val monthIndex = Math.round(barEntry.x).toInt()
-                val month = currentTrend.getOrNull(monthIndex) ?: return
-                when (vm.trendMode.value) {
-                    TrendMode.GROUPS -> {
-                        // dataSetIndex 1 = Saldo-Linie (nur wenn "Anteile" aus ist)
-                        if (dataSetIndex != 0) return
-                        val bucket = currentBuckets.getOrNull(h.stackIndex) ?: return
-                        if (bucket.categoryId in vm.hiddenCategoryIds.value) return
-                        vm.toggleTrendDrill(month.label, bucket.key)
-                    }
-                    // Klick auf den Ausgaben-Balken: der ganze Monat nach Kategorien
-                    TrendMode.INCOME_EXPENSE -> {
-                        if (dataSetIndex != 1) return
-                        vm.toggleTrendDrill(month.label, null)
-                    }
-                }
-            }
+            override fun onValueSelected(e: Entry?, h: Highlight?) {}
             override fun onNothingSelected() {}
         })
 
@@ -419,6 +400,33 @@ class ChartPageFragment : Fragment() {
 
         root.findViewById<ImageButton>(R.id.btn_export_trend)?.setOnClickListener { exportTrendData() }
         root.findViewById<ImageButton>(R.id.btn_trend_drill_close)?.setOnClickListener { vm.clearTrendDrill() }
+    }
+
+    /**
+     * Auswertung eines Klicks auf einen Balken-Abschnitt. Bewusst hier statt im
+     * OnChartValueSelectedListener: MPAndroidChart meldet einen Treffer auf denselben
+     * Abschnitt zweimal hintereinander nicht (Highlight.equalTo) und die nicht
+     * highlightbare Saldo-Linie liefert ein Entry statt BarEntry.
+     */
+    private fun handleTrendTap(chart: CombinedChart, event: MotionEvent?) {
+        val touch = event ?: return
+        val highlight = chart.getHighlightByTouchPoint(touch.x, touch.y) ?: return
+        val barEntry = chart.data?.getEntryForHighlight(highlight) as? BarEntry ?: return
+        val month = currentTrend.getOrNull(Math.round(barEntry.x).toInt()) ?: return
+        when (vm.trendMode.value) {
+            TrendMode.GROUPS -> {
+                // Datenreihe 0 = die gestapelten Balken, stackIndex zaehlt nur die sichtbaren Stapel.
+                if (highlight.dataSetIndex != 0) return
+                val shown = currentBuckets.filter { it.categoryId !in vm.hiddenCategoryIds.value }
+                val bucket = shown.getOrNull(highlight.stackIndex) ?: return
+                vm.toggleTrendDrill(month.label, bucket.key)
+            }
+            // Klick auf den Ausgaben-Balken (1): der ganze Monat nach Kategorien
+            TrendMode.INCOME_EXPENSE -> {
+                if (highlight.dataSetIndex != 1) return
+                vm.toggleTrendDrill(month.label, null)
+            }
+        }
     }
 
     private fun renderTrendChart(chart: CombinedChart) {
@@ -454,6 +462,7 @@ class ChartPageFragment : Fragment() {
             setDrawCircles(true); circleRadius = 3f; setCircleColor(balColor)
             setDrawValues(false)
             axisDependency = YAxis.AxisDependency.RIGHT
+            isHighlightEnabled = false
         }
 
         chart.xAxis.valueFormatter = object : IndexAxisValueFormatter() {
@@ -538,6 +547,7 @@ class ChartPageFragment : Fragment() {
                     setDrawCircles(true); circleRadius = 3f; setCircleColor(balColor)
                     setDrawValues(false)
                     axisDependency = YAxis.AxisDependency.RIGHT
+                    isHighlightEnabled = false
                 }
                 setData(LineData(balanceSet))
             }
