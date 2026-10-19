@@ -399,7 +399,7 @@ class ChartPageFragment : Fragment() {
         }
 
         root.findViewById<ImageButton>(R.id.btn_export_trend)?.setOnClickListener { exportTrendData() }
-        root.findViewById<ImageButton>(R.id.btn_trend_drill_close)?.setOnClickListener { vm.clearTrendDrill() }
+        root.findViewById<ImageButton>(R.id.btn_trend_drill_back)?.setOnClickListener { vm.clearTrendDrill() }
     }
 
     /**
@@ -601,12 +601,14 @@ class ChartPageFragment : Fragment() {
     /** Detail zum angetippten Block: der konkrete Monat und seine Unterkategorien. */
     private fun renderTrendDrill(data: TrendDrillData?) {
         val root = view ?: return
+        val chart = root.findViewById<CombinedChart>(R.id.bar_chart_trend)
         val panel = root.findViewById<LinearLayout>(R.id.layout_trend_drill) ?: return
         val title = root.findViewById<TextView>(R.id.tv_trend_drill_title)
         val totalView = root.findViewById<TextView>(R.id.tv_trend_drill_total)
         val items = root.findViewById<LinearLayout>(R.id.layout_trend_drill_items)
         if (data == null) {
             panel.visibility = View.GONE
+            chart.visibility = View.VISIBLE
             renderTrendHint(vm.trendMode.value == TrendMode.GROUPS && currentBuckets.isNotEmpty())
             return
         }
@@ -665,6 +667,7 @@ class ChartPageFragment : Fragment() {
             items.addView(row)
         }
 
+        chart.visibility = View.GONE
         panel.visibility = View.VISIBLE
         renderTrendHint(false)
     }
